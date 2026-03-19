@@ -1,0 +1,63 @@
+﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Features.Products.Dto;
+using Ecommerce.Domain.Entities;
+using AutoMapper;
+using MediatR;
+
+namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
+{
+    public class CreateProductCommand : IRequest<Result<Guid>>, IMapFrom<Product>
+    {
+        public string Code { get; set; }
+
+        public string Name { get; set; }
+
+        public string Sku { get; set; }
+
+        public decimal Price { get; set; }
+
+        public decimal? SalePrice { get; set; }
+
+        public double Rating { get; set; }
+
+        public int ReviewCount { get; set; }
+
+        public string Description { get; set; }
+
+        public int StockQuantity { get; set; }
+
+        public DateTime? PublishedDate { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public Guid CategoryId { get; set; }
+
+        public Guid BrandId { get; set; }
+
+        // Hình ảnh đại diện chính (URL)
+        public string MainImage { get; set; }
+
+        // Danh sách các hình ảnh phụ (URL)
+        public List<string> AdditionalImages { get; set; } = new List<string>();
+
+        // Danh sách thông số kỹ thuật
+        public List<ProductSpecificationDto> Specifications { get; set; } = new List<ProductSpecificationDto>();
+
+        // Variants
+        public List<string> Colors { get; set; } = [];
+        public List<string> Sizes { get; set; } = [];
+
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<CreateProductCommand, Product>()
+                .ForMember(dest => dest.Images, opt => opt.Ignore())
+                .ForMember(dest => dest.Specifications, opt => opt.Ignore())
+                .ForMember(dest => dest.Variants, opt => opt.Ignore())
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.MainImage));
+        }
+    }
+
+
+}
+

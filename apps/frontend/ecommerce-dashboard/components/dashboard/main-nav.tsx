@@ -1,0 +1,58 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+import { cn } from "@/lib/utils"
+import { Icons } from "@/components/icons"
+
+export function MainNav() {
+  const pathname = usePathname()
+
+  return (
+    <div className="mr-4 hidden md:flex">
+      <Link href="/" className="mr-6 flex items-center space-x-2">
+        <Icons.logo className="h-6 w-6" />
+        <span className="hidden font-bold sm:inline-block">E-Commerce Dashboard</span>
+      </Link>
+      <nav className="flex items-center space-x-6 text-sm font-medium">
+        <Link
+          href="/dashboard"
+          className={cn(
+            "transition-colors hover:text-foreground/80",
+            pathname === "/dashboard" ? "text-foreground" : "text-foreground/60",
+          )}
+        >
+          Dashboard
+        </Link>
+        <Link
+          href="/dashboard/products"
+          className={cn(
+            "transition-colors hover:text-foreground/80",
+            pathname?.startsWith("/dashboard/products") ? "text-foreground" : "text-foreground/60",
+          )}
+        >
+          Products
+        </Link>
+        <Link
+          href="/dashboard/orders"
+          className={cn(
+            "transition-colors hover:text-foreground/80",
+            pathname?.startsWith("/dashboard/orders") ? "text-foreground" : "text-foreground/60",
+          )}
+        >
+          Orders
+        </Link>
+        <Link
+          href="/dashboard/customers"
+          className={cn(
+            "transition-colors hover:text-foreground/80",
+            pathname?.startsWith("/dashboard/customers") ? "text-foreground" : "text-foreground/60",
+          )}
+        >
+          Customers
+        </Link>
+      </nav>
+    </div>
+  )
+}

@@ -1,0 +1,24 @@
+﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Domain.Entities;
+using AutoMapper;
+
+namespace Ecommerce.Application.Features.Reviews.Dto
+{
+    public class ReviewDto : IMapFrom<Review>
+    {
+        public Guid Id { get; set; }
+        public string UserName { get; set; }
+        public string UserAvatar { get; set; }
+        public int Rating { get; set; }
+        public string Content { get; set; }
+        public DateTime Date { get; set; }
+        public List<string> Images { get; set; } = new();
+
+
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<Review, ReviewDto>();
+        }
+    }
+}
+
