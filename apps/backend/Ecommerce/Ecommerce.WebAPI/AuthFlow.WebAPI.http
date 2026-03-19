@@ -1,0 +1,6 @@
+@AuthFlow.WebAPI_HostAddress = http://localhost:5052
+
+GET {{AuthFlow.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,38 @@
+# Root environment files
+.env
+.env.*
+
+# Docker compose local environment
+/docker-compose/.env
+
+# Frontend local environment files
+/apps/frontend/**/.env
+/apps/frontend/**/.env.*
+/apps/frontend/**/.env.local
+
+# Backend local configuration and secrets
+/apps/backend/**/appsettings.json
+/apps/backend/**/appsettings.Development.json
+/apps/backend/**/appsettings.Production.json
+/apps/backend/**/appsettings.Local.json
+/apps/backend/**/secrets.json
+
+# Build and package artifacts
+**/bin/
+**/obj/
+**/.next/
+**/node_modules/
+**/coverage/
+**/dist/
+**/build/
+**/out/
+
+# IDE and local tooling
+**/.vs/
+**/.idea/
+**/.vscode/
+**/TemplateEngineHost/vs/
+
+# Generated local reports
+**/build_output.txt
+**/eslint_report.json
