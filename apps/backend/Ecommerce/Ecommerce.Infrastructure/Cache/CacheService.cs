@@ -36,7 +36,7 @@ namespace Ecommerce.Infrastructure.Cache
             }
         }
 
-        public async Task<T> GetAsync<T>(string key) where T : class
+        public async Task<T?> GetAsync<T>(string key) where T : class
         {
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Cache key không được rỗng hoặc chỉ chứa khoảng trắng.", nameof(key));

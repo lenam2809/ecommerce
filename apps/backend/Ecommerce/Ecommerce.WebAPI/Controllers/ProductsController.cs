@@ -289,20 +289,20 @@ namespace Ecommerce.WebAPI.Controllers
 
     public class CreateProductRequest
     {
-        public string Code { get; set; }
-        public string Name { get; set; }
-        public string Sku { get; set; }
+        public required string Code { get; set; }
+        public required string Name { get; set; }
+        public required string Sku { get; set; }
         public decimal Price { get; set; }
         public decimal? SalePrice { get; set; }
         public double Rating { get; set; }
         public int ReviewCount { get; set; }
-        public string Description { get; set; }
+        public required string Description { get; set; }
         public int StockQuantity { get; set; }
         public DateTime? PublishedDate { get; set; }
         public bool IsActive { get; set; } = true;
         public Guid CategoryId { get; set; }
         public Guid BrandId { get; set; }
-        public IFormFile MainImage { get; set; }
+        public required IFormFile MainImage { get; set; }
         public List<IFormFile> AdditionalImages { get; set; } = new List<IFormFile>();
         public List<ProductSpecificationDto> Specifications { get; set; } = new List<ProductSpecificationDto>();
         public List<string> Colors { get; set; } = new List<string>();

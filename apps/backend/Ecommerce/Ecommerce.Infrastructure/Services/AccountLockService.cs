@@ -26,7 +26,7 @@ namespace Ecommerce.Infrastructure.Services
             return await _unitOfWork.AccountLocks.IsUserLockedAsync(userId);
         }
 
-        public async Task<AccountLock> LockUserAsync(Guid userId, string reason, ELockType lockType, int? durationMinutes = null, string notes = null)
+        public async Task<AccountLock> LockUserAsync(Guid userId, string reason, ELockType lockType, int? durationMinutes = null, string? notes = null)
         {
             DateTime? expiresAt = null;
             if (durationMinutes.HasValue && lockType == ELockType.Temporary)

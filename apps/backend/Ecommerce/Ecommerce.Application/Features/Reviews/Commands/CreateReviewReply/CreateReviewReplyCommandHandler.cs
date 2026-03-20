@@ -26,7 +26,8 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReviewReply
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IFileStorageService fileStorageService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ICacheService cacheService)
         {
             _reviewReplyRepository = reviewReplyRepository;
             _reviewRepository = reviewRepository;
@@ -34,6 +35,7 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReviewReply
             _mapper = mapper;
             _fileStorageService = fileStorageService;
             _notificationService = notificationService;
+            _cacheService = cacheService;
         }
 
         public async Task<Result<ReviewReplyDto>> Handle(CreateReviewReplyCommand command, CancellationToken cancellationToken)

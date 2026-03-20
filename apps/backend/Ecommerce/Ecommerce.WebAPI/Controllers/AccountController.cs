@@ -40,7 +40,7 @@ namespace Ecommerce.WebAPI.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileRequest request)
         {
-            string avatarUrl = null;
+            string? avatarUrl = null;
             if (request.Avatar != null)
             {
                 avatarUrl = await _fileService.SaveFileAsync(request.Avatar, "users");
@@ -72,9 +72,9 @@ namespace Ecommerce.WebAPI.Controllers
 
     public class UpdateProfileRequest
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required string PhoneNumber { get; set; }
         public IFormFile? Avatar { get; set; }
     }
 }

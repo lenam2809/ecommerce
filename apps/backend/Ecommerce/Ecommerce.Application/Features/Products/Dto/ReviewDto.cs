@@ -7,11 +7,11 @@ namespace Ecommerce.Application.Features.Products.Dto
     public class ReviewDto : IMapFrom<Review>
     {
         public Guid Id { get; set; }
-        public string UserName { get; set; }
-        public string UserAvatar { get; set; }
+        public required string UserName { get; set; }
+        public required string UserAvatar { get; set; }
         public int Rating { get; set; }
         public DateTime Date { get; set; }
-        public string Content { get; set; }
+        public required string Content { get; set; }
         public int Likes { get; set; }
         public int Replies { get; set; }
         public bool IsVerified { get; set; }

@@ -18,7 +18,7 @@ namespace Ecommerce.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task RecordStatusChangeAsync(Order originalOrder, Order updatedOrder, string changedBy, string changeSource = "Manual", string notes = null, CancellationToken cancellationToken = default)
+        public async Task RecordStatusChangeAsync(Order originalOrder, Order updatedOrder, string changedBy, string changeSource = "Manual", string? notes = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace Ecommerce.Infrastructure.Services
             }
         }
 
-        public async Task RecordOrderUpdateAsync(Order originalOrder, Order updatedOrder, string changedBy, string changeSource = "Manual", string notes = null, CancellationToken cancellationToken = default)
+        public async Task RecordOrderUpdateAsync(Order originalOrder, Order updatedOrder, string changedBy, string changeSource = "Manual", string? notes = null, CancellationToken cancellationToken = default)
         {
             try
             {

@@ -41,7 +41,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<AccountLock> LockUserAsync(Guid userId, string reason, ELockType lockType, DateTime? expiresAt = null, Guid? lockedByUserId = null, string notes = null)
+        public async Task<AccountLock> LockUserAsync(Guid userId, string reason, ELockType lockType, DateTime? expiresAt = null, Guid? lockedByUserId = null, string? notes = null)
         {
             // Vô hiệu hóa các lock cũ
             var existingLocks = await _context.AccountLocks

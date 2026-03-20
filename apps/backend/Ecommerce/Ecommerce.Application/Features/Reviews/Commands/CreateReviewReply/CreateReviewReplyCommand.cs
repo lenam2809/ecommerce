@@ -8,7 +8,7 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReviewReply
     {
         public Guid ReviewId { get; init; }
         public Guid UserId { get; init; }
-        public string Content { get; init; }
+        public required string Content { get; init; }
     }
 }
 

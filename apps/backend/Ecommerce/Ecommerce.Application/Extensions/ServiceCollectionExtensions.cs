@@ -1,10 +1,10 @@
 ﻿using Ecommerce.Application.Common.Behaviors;
 using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Features.Payments.VnPay;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Ecommerce.Application.Features.Payments.VnPay;
 
 namespace Ecommerce.Application.Extensions
 {
@@ -13,7 +13,7 @@ namespace Ecommerce.Application.Extensions
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // Register AutoMapper with the mapping profile
-            services.AddAutoMapper(typeof(MappingProfile).Assembly);
+            services.AddAutoMapper(cfg => cfg.AddMaps(typeof(MappingProfile).Assembly));
 
             // Register all validators from the assembly
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -38,7 +38,6 @@ namespace Ecommerce.Application.Extensions
 
             return services;
         }
-
     }
 }
 

@@ -16,17 +16,17 @@ namespace Ecommerce.Application.Features.Users.Commands.ChangePassword
         /// <summary>
         /// Mật khẩu hiện tại (cần xác thực)
         /// </summary>
-        public string CurrentPassword { get; set; }
+        public required string CurrentPassword { get; set; }
 
         /// <summary>
         /// Mật khẩu mới
         /// </summary>
-        public string NewPassword { get; set; }
+        public required string NewPassword { get; set; }
 
         /// <summary>
         /// Xác nhận mật khẩu mới
         /// </summary>
-        public string ConfirmNewPassword { get; set; }
+        public required string ConfirmNewPassword { get; set; }
     }
 }
 

@@ -8,17 +8,17 @@ namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrder
     {
         public Guid Id { get; set; }
 
-        public string ShippingAddress { get; set; }
+        public required string ShippingAddress { get; set; }
 
-        public string Phone { get; set; }
+        public required string Phone { get; set; }
 
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
-        public string DeliveryInstructions { get; set; }
+        public required string DeliveryInstructions { get; set; }
         public EOrderStatus Status { get; set; }
 
         public DateTime? ExpectedDeliveryDate { get; set; }
-        public string RowVersion { get; set; }
+        public required string RowVersion { get; set; }
     }
 }
 

@@ -12,16 +12,26 @@ namespace Ecommerce.Infrastructure.Extensions
             var connectionString = configuration["ConnectionStrings:DefaultConnection"];
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    connectionString,
-                    npgsqlOptions => npgsqlOptions
-                        .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
-                        .EnableRetryOnFailure(
-                            maxRetryCount: 5,
-                            maxRetryDelay: TimeSpan.FromSeconds(30),
-                            errorCodesToAdd: null)
-                )
-            );
+            {
+                if (connectionString.Contains("Data Source"))
+                {
+                    options.UseSqlite(connectionString,
+                        sqliteOptions => sqliteOptions
+                            .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+                }
+                else
+                {
+                    options.UseNpgsql(
+                        connectionString,
+                        npgsqlOptions => npgsqlOptions
+                            .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
+                            .EnableRetryOnFailure(
+                                maxRetryCount: 5,
+                                maxRetryDelay: TimeSpan.FromSeconds(30),
+                                errorCodesToAdd: null)
+                    );
+                }
+            });
 
             return services;
         }

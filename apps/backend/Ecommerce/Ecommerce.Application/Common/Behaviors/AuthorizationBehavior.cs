@@ -40,11 +40,15 @@ namespace Ecommerce.Application.Common.Behaviors
                     {
                         foreach (var role in roles)
                         {
-                            var isInRole = _httpContextAccessor.HttpContext.User.IsInRole(role.Trim());
-                            if (isInRole)
+                            var user = _httpContextAccessor.HttpContext?.User;
+                            if (user != null)
                             {
-                                authorized = true;
-                                break;
+                                var isInRole = user.IsInRole(role.Trim());
+                                if (isInRole)
+                                {
+                                    authorized = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -63,25 +67,28 @@ namespace Ecommerce.Application.Common.Behaviors
                     foreach (var policy in authorizeAttributesWithPolicies.Select(a => a.Policy))
                     {
                         var authorized = false;
-                        var user = _httpContextAccessor.HttpContext.User;
+                        var user = _httpContextAccessor.HttpContext?.User;
 
-                        if (policy.Contains(':'))
+                        if (user != null)
                         {
-                            var parts = policy.Split(':');
-                            var roleName = parts[0];
-                            var permissionName = parts[1];
-
-                            if (user.IsInRole(roleName) && user.HasClaim(c => c.Type == "Permission" && c.Value == permissionName))
+                            if (policy.Contains(':'))
                             {
-                                authorized = true;
+                                var parts = policy.Split(':');
+                                var roleName = parts[0];
+                                var permissionName = parts[1];
+
+                                if (user.IsInRole(roleName) && user.HasClaim(c => c.Type == "Permission" && c.Value == permissionName))
+                                {
+                                    authorized = true;
+                                }
                             }
-                        }
-                        else
-                        {
-                            // Simple policy check
-                            if (user.HasClaim(c => c.Type == "Permission" && c.Value == policy))
+                            else
                             {
-                                authorized = true;
+                                // Simple policy check
+                                if (user.HasClaim(c => c.Type == "Permission" && c.Value == policy))
+                                {
+                                    authorized = true;
+                                }
                             }
                         }
 
