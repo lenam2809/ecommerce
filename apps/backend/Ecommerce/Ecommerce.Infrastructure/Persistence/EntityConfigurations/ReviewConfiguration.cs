@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -33,7 +33,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             builder.Property(r => r.Date)
                    .IsRequired()
-                   .HasDefaultValueSql("GETUTCDATE()")
+                   .HasDefaultValueSql("now()")
                    .HasComment("Thời gian đánh giá");
 
             builder.Property(r => r.Likes)
@@ -186,7 +186,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             builder.Property(rr => rr.Date)
                    .IsRequired()
-                   .HasDefaultValueSql("GETUTCDATE()")
+                   .HasDefaultValueSql("now()")
                    .HasComment("Thời gian trả lời");
 
             builder.Property(rr => rr.Likes)

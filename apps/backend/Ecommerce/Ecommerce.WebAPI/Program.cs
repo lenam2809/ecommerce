@@ -7,6 +7,8 @@ using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using OfficeOpenXml;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
 {

@@ -17,8 +17,8 @@ namespace Ecommerce.Domain.Entities
 
         public bool IsDeleted { get; set; } = false;
 
-        [Timestamp]
-        public byte[] ConcurrencyToken { get; set; } = [];
+        [ConcurrencyCheck]
+        public byte[] ConcurrencyToken { get; set; } = Guid.NewGuid().ToByteArray();
 
         private readonly List<INotification> _domainEvents = new();
 

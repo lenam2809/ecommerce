@@ -73,7 +73,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .HasComment("Thời gian hết hạn mặc định (phút)");
 
             builder.Property(nt => nt.Variables)
-                   .HasColumnType("nvarchar(max)")
+                   .HasColumnType("text")
                    .HasComment("Danh sách biến sử dụng trong template (JSON)");
 
             builder.Property(nt => nt.Description)

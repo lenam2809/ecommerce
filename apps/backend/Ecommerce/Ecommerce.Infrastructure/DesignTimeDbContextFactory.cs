@@ -13,11 +13,10 @@ namespace Ecommerce.Infrastructure
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer(
-                "Server=localhost;Database=ecommerce_db;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
-                sqlOptions => sqlOptions
-                    .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
-                    .UseCompatibilityLevel(120));
+            optionsBuilder.UseNpgsql(
+                "Host=localhost;Database=ecommerce_db;Username=postgres;Password=postgres",
+                npgsqlOptions => npgsqlOptions
+                    .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

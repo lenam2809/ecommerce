@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,7 +23,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .HasForeignKey(cb => cb.BrandId);
 
             builder.Property(cb => cb.LinkedAt)
-                   .HasDefaultValueSql("GETUTCDATE()");
+                   .HasDefaultValueSql("now()");
         }
     }
 }

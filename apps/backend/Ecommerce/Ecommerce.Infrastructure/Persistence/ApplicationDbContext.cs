@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Reflection;
 
 namespace Ecommerce.Infrastructure.Persistence
@@ -83,7 +84,47 @@ namespace Ecommerce.Infrastructure.Persistence
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await DispatchDomainEvents();
+            NormalizeDateTimesToUtc();
+            RefreshConcurrencyTokens();
             return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void NormalizeDateTimesToUtc()
+        {
+            foreach (var entry in ChangeTracker.Entries()
+                         .Where(e => e.State is EntityState.Added or EntityState.Modified))
+            {
+                foreach (var property in entry.Properties)
+                {
+                    if (property.Metadata.ClrType == typeof(DateTime) || property.Metadata.ClrType == typeof(DateTime?))
+                    {
+                        var currentValue = (DateTime?)property.CurrentValue;
+                        if (currentValue.HasValue)
+                        {
+                            property.CurrentValue = NormalizeToUtc(currentValue.Value);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static DateTime NormalizeToUtc(DateTime value)
+        {
+            return value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            };
+        }
+
+        private void RefreshConcurrencyTokens()
+        {
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>()
+                         .Where(e => e.State is EntityState.Added or EntityState.Modified))
+            {
+                entry.Entity.ConcurrencyToken = Guid.NewGuid().ToByteArray();
+            }
         }
 
         private async Task DispatchDomainEvents()

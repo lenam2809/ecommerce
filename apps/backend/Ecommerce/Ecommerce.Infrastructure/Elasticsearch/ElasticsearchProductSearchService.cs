@@ -442,7 +442,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                         break;
                     default:
                         // Sử dụng field Name hoặc name.keyword nếu có
-                        sort.Field(p => p.Name, f => f.Order(order));
+                        sort.Field("name.keyword", f => f.Order(order));
                         break;
                 }
             });

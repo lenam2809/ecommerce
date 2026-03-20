@@ -38,7 +38,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasIndex(i => i.SerialNumber).IsUnique();
             builder.HasIndex(i => i.ProductVariantSkuId);
             builder.HasIndex(i => i.Status);
-            builder.HasIndex(i => i.OrderItemId).HasFilter("[OrderItemId] IS NOT NULL");
+            builder.HasIndex(i => i.OrderItemId).HasFilter("\"OrderItemId\" IS NOT NULL");
         }
     }
 }

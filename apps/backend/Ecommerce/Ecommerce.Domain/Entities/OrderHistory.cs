@@ -50,7 +50,6 @@ namespace Ecommerce.Domain.Entities
         public string NewDiscountCode { get; set; } = string.Empty;
 
         // JSON field để lưu thêm các thông tin khác nếu cần
-        [Column(TypeName = "nvarchar(max)")]
         public string AdditionalData { get; set; } = string.Empty;
 
         // Navigation property

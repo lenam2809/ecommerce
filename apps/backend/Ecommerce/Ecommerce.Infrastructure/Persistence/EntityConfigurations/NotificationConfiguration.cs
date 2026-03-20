@@ -50,7 +50,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .HasComment("Nhóm đối tượng nhận thông báo");
 
             builder.Property(n => n.Metadata)
-                   .HasColumnType("nvarchar(max)")
+                   .HasColumnType("text")
                    .HasComment("Dữ liệu bổ sung dạng JSON");
 
             builder.Property(n => n.ActionUrl)
