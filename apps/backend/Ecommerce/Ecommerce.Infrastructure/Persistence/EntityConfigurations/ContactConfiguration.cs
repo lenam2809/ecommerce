@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -49,7 +49,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             // Configure timestamps
             builder.Property(c => c.CreatedAt)
                    .IsRequired()
-                   .HasDefaultValueSql("GETUTCDATE()");
+                   .HasDefaultValueSql("now()");
 
             builder.Property(c => c.UpdatedAt)
                    .IsRequired(false);

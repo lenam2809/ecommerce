@@ -19,6 +19,8 @@
 **/node_modules
 **/npm-debug.log
 **/obj
+**/.dotnet
+**/wwwroot/uploads
 **/secrets.dev.yaml
 **/values.dev.yaml
 LICENSE

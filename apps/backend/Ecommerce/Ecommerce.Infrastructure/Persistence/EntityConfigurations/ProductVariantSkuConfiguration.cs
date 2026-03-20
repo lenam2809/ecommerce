@@ -42,7 +42,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             // Indexes
             builder.HasIndex(s => s.Sku).IsUnique();
             builder.HasIndex(s => s.ProductId);
-            builder.HasIndex(s => s.Barcode).IsUnique().HasFilter("[Barcode] IS NOT NULL");
+            builder.HasIndex(s => s.Barcode).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
         }
     }
 }

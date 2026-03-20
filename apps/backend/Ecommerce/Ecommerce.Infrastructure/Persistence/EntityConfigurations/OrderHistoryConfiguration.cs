@@ -49,7 +49,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                 .HasMaxLength(50);
 
             builder.Property(oh => oh.AdditionalData)
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             builder.HasOne(oh => oh.Order)
                 .WithMany()
