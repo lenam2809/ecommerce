@@ -32,16 +32,12 @@ services:
       - key: Jwt__AccessTokenExpirationMinutes
         value: "60"
       - key: FileStorage__UploadFolder
-        value: wwwroot/uploads
+        value: uploads # Khớp với mkdir -p /app/uploads trong Dockerfile
       - key: Elasticsearch__Uri
         sync: false
         placeholder: "https://your-elasticsearch-url:9243"
       - key: Elasticsearch__EnableSsl
         value: "true"
-    disk:
-      name: ecommerce-uploads
-      mountPath: /app/wwwroot/uploads
-      sizeGB: 1
 
   # ===========================================================================
   # Managed Redis (Render Key Value)
