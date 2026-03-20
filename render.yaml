@@ -1,0 +1,57 @@
+services:
+  # ===========================================================================
+  # Backend API (.NET 8.0)
+  # ===========================================================================
+  - type: web
+    name: ecommerce-backend
+    env: docker
+    dockerFilePath: apps/backend/Ecommerce/Dockerfile
+    dockerContext: apps/backend/Ecommerce
+    plan: free # Có thể đổi sang starter/standard cho môi trường production
+    healthCheckPath: /swagger/index.html
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: ecommerce-db
+          property: connectionString
+      - key: ConnectionStrings__Redis
+        fromService:
+          type: redis
+          name: ecommerce-redis
+          property: connectionString
+      - key: CacheSettings__UseRedis
+        value: "true"
+      - key: Jwt__SecretKey
+        generateValue: true
+      - key: Jwt__Issuer
+        value: Ecommerce
+      - key: Jwt__Audience
+        value: EcommerceUsers
+      - key: Jwt__AccessTokenExpirationMinutes
+        value: "60"
+      - key: FileStorage__UploadFolder
+        value: wwwroot/uploads
+      # URL Elasticsearch bên ngoài (Ví dụ: Bonsai hoặc Elastic Cloud)
+      - key: Elasticsearch__Uri
+        sync: false
+        placeholder: "https://your-elasticsearch-url:9243"
+      - key: Elasticsearch__EnableSsl
+        value: "true"
+    disk:
+      name: ecommerce-uploads
+      mountPath: /app/wwwroot/uploads
+      sizeGB: 1
+
+databases:
+  - name: ecommerce-db
+    plan: free # Có thể đổi sang starter/standard cho môi trường production
+    databaseName: ecommerce_db
+    user: ecommerce_user
+    postgresMajorVersion: 15
+
+redis:
+  - name: ecommerce-redis
+    plan: free # Có thể đổi sang starter/standard cho môi trường production
+    ipAllowList: [] # Chỉ cho phép truy cập nội bộ
