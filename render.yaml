@@ -4,10 +4,10 @@ services:
   # ===========================================================================
   - type: web
     name: ecommerce-backend
-    env: docker
-    dockerFilePath: apps/backend/Ecommerce/Dockerfile
+    runtime: docker
+    dockerfilePath: apps/backend/Ecommerce/Dockerfile
     dockerContext: apps/backend/Ecommerce
-    plan: free # Có thể đổi sang starter/standard cho môi trường production
+    plan: free
     healthCheckPath: /swagger/index.html
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
@@ -18,7 +18,7 @@ services:
           property: connectionString
       - key: ConnectionStrings__Redis
         fromService:
-          type: redis
+          type: keyvalue
           name: ecommerce-redis
           property: connectionString
       - key: CacheSettings__UseRedis
@@ -33,7 +33,6 @@ services:
         value: "60"
       - key: FileStorage__UploadFolder
         value: wwwroot/uploads
-      # URL Elasticsearch bên ngoài (Ví dụ: Bonsai hoặc Elastic Cloud)
       - key: Elasticsearch__Uri
         sync: false
         placeholder: "https://your-elasticsearch-url:9243"
@@ -44,14 +43,17 @@ services:
       mountPath: /app/wwwroot/uploads
       sizeGB: 1
 
+  # ===========================================================================
+  # Managed Redis (Render Key Value)
+  # ===========================================================================
+  - type: keyvalue
+    name: ecommerce-redis
+    plan: free
+    ipAllowList: []
+
 databases:
   - name: ecommerce-db
-    plan: free # Có thể đổi sang starter/standard cho môi trường production
+    plan: free
     databaseName: ecommerce_db
     user: ecommerce_user
     postgresMajorVersion: 15
-
-redis:
-  - name: ecommerce-redis
-    plan: free # Có thể đổi sang starter/standard cho môi trường production
-    ipAllowList: [] # Chỉ cho phép truy cập nội bộ
