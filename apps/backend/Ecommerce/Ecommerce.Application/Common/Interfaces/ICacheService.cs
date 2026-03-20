@@ -12,7 +12,7 @@
         /// <typeparam name="T">Kiểu dữ liệu muốn lấy (phải là class).</typeparam>
         /// <param name="key">Khóa xác định dữ liệu trong cache.</param>
         /// <returns>Dữ liệu tương ứng với key, hoặc null nếu không tìm thấy.</returns>
-        Task<T> GetAsync<T>(string key) where T : class;
+        Task<T?> GetAsync<T>(string key) where T : class;
 
         /// <summary>
         /// Ghi dữ liệu vào cache với các tùy chọn thời gian hết hạn tuyệt đối và trượt.

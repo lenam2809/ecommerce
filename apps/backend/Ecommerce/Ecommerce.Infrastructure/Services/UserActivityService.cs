@@ -23,7 +23,7 @@ namespace Ecommerce.Infrastructure.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task LogActivityAsync(string activityType, string description = null, object additionalData = null, Guid? userId = null)
+        public async Task LogActivityAsync(string activityType, string? description = null, object? additionalData = null, Guid? userId = null)
         {
             if (!userId.HasValue)
             {

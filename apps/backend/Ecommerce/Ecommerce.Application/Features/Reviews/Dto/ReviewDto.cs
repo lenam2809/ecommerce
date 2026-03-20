@@ -7,10 +7,10 @@ namespace Ecommerce.Application.Features.Reviews.Dto
     public class ReviewDto : IMapFrom<Review>
     {
         public Guid Id { get; set; }
-        public string UserName { get; set; }
-        public string UserAvatar { get; set; }
+        public required string UserName { get; set; }
+        public required string UserAvatar { get; set; }
         public int Rating { get; set; }
-        public string Content { get; set; }
+        public required string Content { get; set; }
         public DateTime Date { get; set; }
         public List<string> Images { get; set; } = new();
 

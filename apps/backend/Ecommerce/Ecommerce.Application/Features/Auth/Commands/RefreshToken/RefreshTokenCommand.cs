@@ -6,8 +6,8 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
 {
     public class RefreshTokenCommand : IRequest<Result<AuthResponseDto>>
     {
-        public string AccessToken { get; set; }
-        public string RefreshToken { get; set; }
+        public required string AccessToken { get; set; }
+        public required string RefreshToken { get; set; }
     }
 }
 

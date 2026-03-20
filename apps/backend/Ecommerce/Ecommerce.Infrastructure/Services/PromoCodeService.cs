@@ -17,18 +17,19 @@ namespace Ecommerce.Infrastructure.Services
             var promoCode = await _promoCodeRepository.FirstOrDefaultAsync(pc => pc.Code == code && pc.IsActive);
 
             if (promoCode == null)
-                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Invalid promo code" };
+                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Invalid promo code", PromoCode = null! };
 
             if (DateTime.Now < promoCode.ValidFrom || DateTime.Now > promoCode.ValidTo)
-                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Promo code expired" };
+                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Promo code expired", PromoCode = promoCode };
 
             if (promoCode.UsageLimit > 0 && promoCode.TimesUsed >= promoCode.UsageLimit)
-                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Promo code usage limit reached" };
+                return new PromoCodeValidationResult { IsValid = false, ErrorMessage = "Promo code usage limit reached", PromoCode = promoCode };
 
             return new PromoCodeValidationResult
             {
                 IsValid = true,
                 PromoCode = promoCode,
+                ErrorMessage = string.Empty,
                 DiscountAmount = CalculateDiscount(promoCode, cartSubtotal),
                 FreeShipping = promoCode.FreeShipping
             };
@@ -49,8 +50,8 @@ namespace Ecommerce.Infrastructure.Services
     public class PromoCodeValidationResult
     {
         public bool IsValid { get; set; }
-        public string ErrorMessage { get; set; }
-        public PromoCode PromoCode { get; set; }
+        public required string ErrorMessage { get; set; }
+        public required PromoCode PromoCode { get; set; }
         public decimal DiscountAmount { get; set; }
         public bool FreeShipping { get; set; }
     }

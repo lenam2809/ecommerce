@@ -12,7 +12,6 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<Role> _roleManager;
-        private readonly ApplicationDbContext _context;
 
         public UserRepository(
             UserManager<ApplicationUser> userManager,
@@ -21,7 +20,6 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _context = context;
         }
 
         public async Task<ApplicationUser> GetByIdAsync(Guid id)

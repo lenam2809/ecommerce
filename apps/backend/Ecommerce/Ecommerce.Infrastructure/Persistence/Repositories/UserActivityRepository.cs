@@ -54,7 +54,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task LogActivityAsync(Guid userId, string activityType, string description, string ipAddress = null, string userAgent = null, object additionalData = null)
+        public async Task LogActivityAsync(Guid userId, string activityType, string description, string? ipAddress = null, string? userAgent = null, object? additionalData = null)
         {
             var activity = new UserActivity
             {

@@ -8,9 +8,9 @@ namespace Ecommerce.Application.Features.PromoCodes.Commands.CreatePromoCode
 {
     public class CreatePromoCodeCommand : IRequest<Result<Guid>>, IMapFrom<PromoCode>
     {
-        public string Code { get; set; }
-        public string Description { get; set; }
-        public string Type { get; set; }
+        public required string Code { get; set; }
+        public required string Description { get; set; }
+        public required string Type { get; set; }
         public decimal DiscountPercentage { get; set; }
         public decimal DiscountAmount { get; set; }
         public bool FreeShipping { get; set; }

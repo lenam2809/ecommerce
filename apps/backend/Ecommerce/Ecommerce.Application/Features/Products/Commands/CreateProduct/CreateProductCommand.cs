@@ -9,11 +9,11 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 {
     public class CreateProductCommand : IRequest<Result<Guid>>, IMapFrom<Product>
     {
-        public string Code { get; set; }
+        public required string Code { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Sku { get; set; }
+        public required string Sku { get; set; }
 
         public decimal Price { get; set; }
 
@@ -23,7 +23,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 
         public int ReviewCount { get; set; }
 
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         public int StockQuantity { get; set; }
 
@@ -36,7 +36,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         public Guid BrandId { get; set; }
 
         // Hình ảnh đại diện chính (URL)
-        public string MainImage { get; set; }
+        public required string MainImage { get; set; }
 
         // Danh sách các hình ảnh phụ (URL)
         public List<string> AdditionalImages { get; set; } = new List<string>();

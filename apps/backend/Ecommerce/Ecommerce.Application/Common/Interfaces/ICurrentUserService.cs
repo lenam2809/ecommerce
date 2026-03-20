@@ -30,7 +30,7 @@
         /// </summary>
         /// <param name="claimType">Tên claim cần lấy.</param>
         /// <returns>Giá trị của claim nếu có, ngược lại trả về null.</returns>
-        string GetClaim(string claimType);
+        string? GetClaim(string claimType);
 
         /// <summary>
         /// Kiểm tra người dùng hiện tại có thuộc vai trò nào đó không.

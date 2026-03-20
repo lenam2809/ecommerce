@@ -2,10 +2,10 @@
 {
     public class RecentTransactionDto
     {
-        public string CustomerName { get; set; }
-        public string CustomerEmail { get; set; }
+        public required string CustomerName { get; set; }
+        public required string CustomerEmail { get; set; }
         public decimal Amount { get; set; }
-        public string OrderDate { get; set; }
+        public required string OrderDate { get; set; }
     }
 }
 

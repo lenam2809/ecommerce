@@ -26,8 +26,8 @@ namespace Ecommerce.Application.Features.AccountLocks.Dto
         public void Mapping(Profile profile)
         {
             profile.CreateMap<AccountLock, AccountLockDto>()
-                .ForMember(dest => dest.LockedByUserName, opt => opt.MapFrom(src => src.LockedByUser.FullName))
-                .ForMember(dest => dest.UnlockedByUserName, opt => opt.MapFrom(src => src.UnlockedByUser.FullName));
+                .ForMember(dest => dest.LockedByUserName, opt => opt.MapFrom(src => src.LockedByUser != null ? src.LockedByUser.FullName : null))
+                .ForMember(dest => dest.UnlockedByUserName, opt => opt.MapFrom(src => src.UnlockedByUser != null ? src.UnlockedByUser.FullName : null));
         }
     }
 }

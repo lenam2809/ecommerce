@@ -18,22 +18,22 @@ namespace Ecommerce.Application.Features.Users.Commands.UpdateUser
         /// <summary>
         /// Tên của người dùng
         /// </summary>
-        public string FirstName { get; set; }
+        public required string FirstName { get; set; }
 
         /// <summary>
         /// Họ của người dùng
         /// </summary>
-        public string LastName { get; set; }
+        public required string LastName { get; set; }
 
         /// <summary>
         /// Số điện thoại của người dùng
         /// </summary>
-        public string PhoneNumber { get; set; }
+        public required string PhoneNumber { get; set; }
 
         /// <summary>
         /// Ảnh đại diện mới (nếu có)
         /// </summary>
-        public IFormFile Avatar { get; set; }
+        public IFormFile? Avatar { get; set; }
 
         /// <summary>
         /// Cấp độ khách hàng

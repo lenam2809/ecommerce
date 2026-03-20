@@ -33,7 +33,7 @@ namespace Ecommerce.Infrastructure.Identity
         public string FullName => User?.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
 
 
-        public string GetClaim(string claimType)
+        public string? GetClaim(string claimType)
         {
             return User?.FindFirstValue(claimType);
         }
@@ -43,7 +43,7 @@ namespace Ecommerce.Infrastructure.Identity
             return User?.IsInRole(role) ?? false;
         }
 
-        public bool HasClaim(string claimType, string claimValue = null)
+        public bool HasClaim(string claimType, string? claimValue = null)
         {
             if (User == null) return false;
 
@@ -52,7 +52,7 @@ namespace Ecommerce.Infrastructure.Identity
                 return User.HasClaim(c => c.Type == claimType);
             }
 
-            return User.HasClaim(claimType, claimValue);
+            return User.HasClaim(claimType, claimValue!);
         }
 
         public async Task<bool> IsInRoleAsync(string role)
