@@ -1,7 +1,14 @@
 # =============================================================================
+# Base Stage (Security updates)
+# =============================================================================
+FROM node:20-alpine AS base
+# Upgrade packages to fix known high vulnerabilities in the base image
+RUN apk upgrade --no-cache
+
+# =============================================================================
 # Stage 1: Dependencies
 # =============================================================================
-FROM node:20-alpine AS deps
+FROM base AS deps
 WORKDIR /app
 
 # Copy package files
@@ -13,7 +20,7 @@ RUN npm ci --only=production=false
 # =============================================================================
 # Stage 2: Builder
 # =============================================================================
-FROM node:20-alpine AS builder
+FROM base AS builder
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -24,13 +31,16 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build the application
 RUN npm run build
 
 # =============================================================================
 # Stage 3: Runner (Production)
 # =============================================================================
-FROM node:20-alpine AS runner
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
