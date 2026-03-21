@@ -17,6 +17,13 @@ namespace Ecommerce.Infrastructure.Extensions
         public static IServiceCollection AddElasticsearch(
             this IServiceCollection services, IConfiguration configuration)
         {
+            var useElasticsearch = configuration.GetValue<bool>("Elasticsearch:UseElasticsearch", true);
+            if (!useElasticsearch)
+            {
+                services.AddScoped<IProductSearchService, NoOpProductSearchService>();
+                return services;
+            }
+
             var uri = configuration["Elasticsearch:Uri"] ?? "http://localhost:9200";
             var indexName = configuration["Elasticsearch:IndexName"] ?? "shopviet-products";
 

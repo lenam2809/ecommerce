@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
@@ -67,11 +67,8 @@ ExcelPackage.License.SetNonCommercialPersonal("Ecommerce");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -104,5 +101,7 @@ app.MapHub<NotificationHub>("/api/notification-hub");
 app.MapHub<ReviewHub>("/api/reviewHub");
 
 app.MapControllers();
+
+app.MapGet("/", () => "API is running");
 
 app.Run();
