@@ -1,4 +1,4 @@
-﻿using Ecommerce.Infrastructure.Extensions;
+using Ecommerce.Infrastructure.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
