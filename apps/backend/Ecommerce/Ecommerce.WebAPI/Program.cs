@@ -1,9 +1,8 @@
-using Ecommerce.Application.Common.Configs;
+﻿using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
-using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +39,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
-    
+
     options.AddPolicy("AllowAll",
         policy =>
         {
@@ -52,7 +51,7 @@ builder.Services.AddCors(options =>
                       .AllowCredentials()  // Required for cookies
                       .WithExposedHeaders("Set-Cookie");  // Allow cookie headers
             }
-            else 
+            else
             {
                 // Fallback cho dev - KHÔNG dùng AllowCredentials với AllowAnyOrigin
                 policy.SetIsOriginAllowed(_ => true)  // Allow any origin
@@ -76,15 +75,15 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-    
+
     // Always apply migrations
     await context.Database.MigrateAsync();
 
     // Only seed data in Development
-    if (app.Environment.IsDevelopment())
-    {
-        await ApplicationDbContextSeed.SeedAsync(services);
-    }
+    //if (app.Environment.IsDevelopment())
+    //{
+    //    await ApplicationDbContextSeed.SeedAsync(services);
+    //}
 }
 
 app.UseRequestLogging();
