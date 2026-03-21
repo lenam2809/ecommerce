@@ -70,11 +70,11 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await ApplicationDbContextSeed.SeedAsync(services);
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var services = scope.ServiceProvider;
+//     await ApplicationDbContextSeed.SeedAsync(services);
+// }
 
 app.UseRequestLogging();
 
