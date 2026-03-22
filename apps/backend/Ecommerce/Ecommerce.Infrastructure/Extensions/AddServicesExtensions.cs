@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Services;
 using Ecommerce.Domain.Services;
@@ -15,10 +15,11 @@ namespace Ecommerce.Infrastructure.Extensions
         {
             // Configure Options
             services.Configure<FileStorageConfig>(configuration.GetSection("FileStorage"));
+            services.Configure<SupabaseStorageConfig>(configuration.GetSection("SupabaseStorage"));
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<IFileStorageService, SupabaseStorageService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IExcelService, ExcelService>();
             services.AddScoped<IOrderHistoryService, OrderHistoryService>();
