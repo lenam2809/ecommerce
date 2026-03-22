@@ -43,9 +43,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         }
 
                     } catch (err) {
-                        // If verification fails, clear auth
-                        await authService.logout()
-                        setUser(null)
+                        // Chỉ clear nếu là 401, không phải network error
+                        if (err?.response?.status === 401) {
+                            authService.clearUser()
+                            setUser(null)
+                        }
+                        // Network error → giữ user đã có trong localStorage
                     }
                 }
             } catch (err) {
