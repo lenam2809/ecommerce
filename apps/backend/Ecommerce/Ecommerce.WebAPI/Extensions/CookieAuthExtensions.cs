@@ -20,19 +20,24 @@ namespace Ecommerce.WebAPI.Extensions
             var isLocalhost = IsLocalhost(response.HttpContext);
             var cookieSettings = config?.GetSection("CookieSettings");
 
+            // For cross-domain production (Render/Railway), we NEED SameSite=None and Secure=true
+            // For localhost, Lax and Secure=false is easier for development
+            var sameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None;
+            var secure = !isLocalhost || (cookieSettings?.GetValue<bool>("ForceSecure") ?? false);
+
             // Access Token Cookie
             var accessTokenOptions = new CookieOptions
             {
                 HttpOnly = true,                    // Not accessible via JavaScript
-                Secure = false,                     // Force false for localhost debugging
-                SameSite = SameSiteMode.Lax,        // Force Lax for localhost debugging
-                Path = "/",                       // Accessible for entire domain (Middleware needs this)
+                Secure = secure,
+                SameSite = sameSite,
+                Path = "/",                       // Accessible for entire domain
                 Expires = DateTimeOffset.UtcNow.AddMinutes(
                     cookieSettings?.GetValue<int>("AccessTokenMinutes") ?? 15
                 )
             };
 
-            // Set domain for production
+            // Set domain for production if specified
             var domain = cookieSettings?.GetValue<string>("Domain");
             if (!string.IsNullOrEmpty(domain) && !isLocalhost)
             {
@@ -43,8 +48,8 @@ namespace Ecommerce.WebAPI.Extensions
             var refreshTokenOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax,
+                Secure = secure,
+                SameSite = sameSite,
                 Path = "/api/auth",                  // Only sent to auth endpoints
                 Expires = DateTimeOffset.UtcNow.AddDays(
                     cookieSettings?.GetValue<int>("RefreshTokenDays") ?? 7
@@ -67,12 +72,15 @@ namespace Ecommerce.WebAPI.Extensions
         {
             var isLocalhost = IsLocalhost(response.HttpContext);
             var csrfToken = Guid.NewGuid().ToString("N");
+            
+            var sameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None;
+            var secure = !isLocalhost || (config?.GetSection("CookieSettings").GetValue<bool>("ForceSecure") ?? false);
 
             var csrfOptions = new CookieOptions
             {
                 HttpOnly = false,                    // Frontend needs to read this
-                Secure = !isLocalhost || (config?.GetSection("CookieSettings").GetValue<bool>("ForceSecure") ?? false),
-                SameSite = SameSiteMode.Strict,
+                Secure = secure,
+                SameSite = sameSite,
                 Path = "/",
                 Expires = DateTimeOffset.UtcNow.AddHours(24)
             };
@@ -87,12 +95,15 @@ namespace Ecommerce.WebAPI.Extensions
         {
             var isLocalhost = IsLocalhost(response.HttpContext);
             var domain = config?.GetSection("CookieSettings").GetValue<string>("Domain");
+            
+            var sameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None;
+            var secure = !isLocalhost || (config?.GetSection("CookieSettings").GetValue<bool>("ForceSecure") ?? false);
 
             var accessClearOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = !isLocalhost,
-                SameSite = SameSiteMode.Strict,
+                Secure = secure,
+                SameSite = sameSite,
                 Path = "/",
                 Expires = DateTimeOffset.UtcNow.AddDays(-1)  // Immediate expiry
             };
@@ -100,8 +111,8 @@ namespace Ecommerce.WebAPI.Extensions
             var refreshClearOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = !isLocalhost,
-                SameSite = SameSiteMode.Strict,
+                Secure = secure,
+                SameSite = sameSite,
                 Path = "/api/auth",
                 Expires = DateTimeOffset.UtcNow.AddDays(-1)
             };
@@ -109,8 +120,8 @@ namespace Ecommerce.WebAPI.Extensions
             var csrfClearOptions = new CookieOptions
             {
                 HttpOnly = false,
-                Secure = !isLocalhost,
-                SameSite = SameSiteMode.Strict,
+                Secure = secure,
+                SameSite = sameSite,
                 Path = "/",
                 Expires = DateTimeOffset.UtcNow.AddDays(-1)
             };
