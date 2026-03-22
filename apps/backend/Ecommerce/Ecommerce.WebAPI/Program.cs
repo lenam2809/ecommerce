@@ -3,9 +3,9 @@ using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
+using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
-using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -77,13 +77,13 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
 
     // Always apply migrations
-    await context.Database.MigrateAsync();
+    //await context.Database.MigrateAsync();
 
     // Only seed data in Development
-    //if (app.Environment.IsDevelopment())
-    //{
-    //    await ApplicationDbContextSeed.SeedAsync(services);
-    //}
+    if (app.Environment.IsDevelopment())
+    {
+        await ApplicationDbContextSeed.SeedAsync(services);
+    }
 }
 
 app.UseRequestLogging();
