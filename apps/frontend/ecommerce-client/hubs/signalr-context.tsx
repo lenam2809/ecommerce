@@ -38,11 +38,8 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
 
     const { isAuthenticated } = useAuth()
 
-    // Helper to normalize URL (remove trailing slash)
-    const getBaseUrl = () => {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-        return apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
-    }
+    // Use same-origin /api (proxied to backend) for cookie-based auth
+    const getBaseUrl = () => '/api'
 
     // Helper to get CSRF token
     const getCsrfToken = () => {

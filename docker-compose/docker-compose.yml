@@ -112,6 +112,10 @@ services:
       - FileStorage__UploadFolder=${FILE_STORAGE_UPLOAD_FOLDER:-uploads}
       - AppUrl=${BACKEND_URL:-http://localhost:5000}
       - Elasticsearch__Uri=http://elasticsearch:9200
+      - Cors__AllowedOrigins__0=${FRONTEND_URL_1:-http://localhost:3000}
+      - Cors__AllowedOrigins__1=${FRONTEND_URL_2:-http://localhost:3001}
+      - CookieSettings__ForceSecure=true
+      - AuthConfig__IncludeTokensInResponse=false
     volumes:
       - ../apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads:/app/wwwroot/uploads
     networks:
@@ -140,13 +144,13 @@ services:
       context: ../apps/frontend/ecommerce-client
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:5000/api}
     container_name: ecommerce-client
     restart: unless-stopped
     ports:
       - "${CLIENT_PORT:-3000}:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:5000/api}
     networks:
       - ecommerce-network
     depends_on:
@@ -160,13 +164,13 @@ services:
       context: ../apps/frontend/ecommerce-dashboard
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:5000/api}
     container_name: ecommerce-dashboard
     restart: unless-stopped
     ports:
       - "${DASHBOARD_PORT:-3001}:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:5000/api}
     networks:
       - ecommerce-network
     depends_on:
