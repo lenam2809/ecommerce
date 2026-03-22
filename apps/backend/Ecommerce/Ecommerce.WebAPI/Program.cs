@@ -7,6 +7,7 @@ using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using OfficeOpenXml;
+using Microsoft.AspNetCore.HttpOverrides;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -75,6 +76,11 @@ builder.Services.AddCors(options =>
 ExcelPackage.License.SetNonCommercialPersonal("Ecommerce");
 
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
