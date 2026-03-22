@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Interfaces;
+using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Base;
 using Ecommerce.Infrastructure.Persistence.Repositories.Base;
 
@@ -122,7 +122,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
 
         public void Dispose()
         {
-            _context.Dispose();
+            // _context.Dispose(); // Tạm thời để DI container tự quản lý vòng đời
         }
 
         public IRepository<T> BaseRepository<T>() where T : class

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Ecommerce.Infrastructure.Persistence;
@@ -12,14 +12,12 @@ namespace Ecommerce.Infrastructure.Logging
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly Channel<LogEntry> _logChannel;
+        public ChannelReader<LogEntry> Reader => _logChannel.Reader;
 
         public LogRepository(IServiceScopeFactory scopeFactory)
         {
             _scopeFactory = scopeFactory;
             _logChannel = Channel.CreateUnbounded<LogEntry>();
-
-            // Start background processing
-            _ = Task.Run(ProcessLogQueueAsync);
         }
 
         public async Task<IEnumerable<LogEntry>> GetLogsAsync(DateTime? startDate = null, DateTime? endDate = null, ELogLevel? level = null)
@@ -60,38 +58,6 @@ namespace Ecommerce.Infrastructure.Logging
             // Đưa log vào channel để xử lý bất đồng bộ
             await _logChannel.Writer.WriteAsync(SystemLog);
         }
-
-        private async Task ProcessLogQueueAsync()
-        {
-            await foreach (var systemLog in _logChannel.Reader.ReadAllAsync())
-            {
-                try
-                {
-                    using var scope = _scopeFactory.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                    var dbLog = new LogEntry
-                    {
-                        Level = systemLog.Level,
-                        Message = systemLog.Message,
-                        EventName = systemLog.EventName,
-                        SourceContext = systemLog.SourceContext,
-                        ApplicationUserId = systemLog.ApplicationUserId,
-                        IpAddress = systemLog.IpAddress,
-                        Timestamp = systemLog.Timestamp,
-                        Properties = systemLog.Properties
-                    };
-
-                    dbContext.LogEntries.Add(dbLog);
-                    await dbContext.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Log persistence failed: {ex.Message}");
-                }
-            }
-        }
     }
-
 }
 
