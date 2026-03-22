@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -264,10 +264,10 @@ namespace Ecommerce.Infrastructure.Persistence
                       .IsRequired(false);
             });
 
-            builder.Entity<LogProperty>()
-                .HasOne<LogEntry>()
-                .WithMany(e => e.Properties)
-                .HasForeignKey(p => p.LogEntryId);
+
+
+
+
 
             // Add query filters for soft delete
 

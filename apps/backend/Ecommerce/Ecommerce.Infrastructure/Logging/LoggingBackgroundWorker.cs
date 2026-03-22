@@ -52,11 +52,28 @@ namespace Ecommerce.Infrastructure.Logging
                     {
                         await ExecuteInScopeAsync(async context =>
                         {
+                            // Truncate fields that have MaxLength constraints
+                            var eventName = log.EventName?.Length > 190 ? log.EventName[..190] : log.EventName;
+                            var userAgent = log.UserAgent?.Length > 500 ? log.UserAgent[..500] : log.UserAgent;
+
+                            // Truncate log property keys
+                            if (log.Properties != null)
+                            {
+                                foreach (var prop in log.Properties)
+                                {
+                                    if (prop.Key?.Length > 190)
+                                    {
+                                        prop.Key = prop.Key[..190];
+                                    }
+                                    // Value is now 'text' type in DB, so no truncation needed
+                                }
+                            }
+
                             var dbLog = new LogEntry
                             {
                                 Level = log.Level,
                                 Message = log.Message,
-                                EventName = log.EventName,
+                                EventName = eventName,
                                 SourceContext = log.SourceContext,
                                 ApplicationUserId = log.ApplicationUserId,
                                 IpAddress = log.IpAddress,

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,19 +21,19 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             builder.Property(e => e.Message)
                    .IsRequired()
-                   .HasMaxLength(2000); // Adjust max length as needed
+                   .HasColumnType("text");
 
             builder.Property(e => e.EventName)
-                   .HasMaxLength(100);
+                   .HasMaxLength(200);
 
             builder.Property(e => e.SourceContext)
-                   .HasMaxLength(200);
+                   .HasColumnType("text");
 
             builder.Property(e => e.IpAddress)
                    .HasMaxLength(50);
 
             builder.Property(e => e.UserAgent)
-                   .HasMaxLength(500);
+                   .HasMaxLength(512);
 
 
             // Configure relationship with ApplicationUser
