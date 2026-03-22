@@ -72,7 +72,7 @@ namespace Ecommerce.WebAPI.Extensions
         {
             var isLocalhost = IsLocalhost(response.HttpContext);
             var csrfToken = Guid.NewGuid().ToString("N");
-            
+
             var sameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None;
             var secure = !isLocalhost || (config?.GetSection("CookieSettings").GetValue<bool>("ForceSecure") ?? false);
 
@@ -95,7 +95,7 @@ namespace Ecommerce.WebAPI.Extensions
         {
             var isLocalhost = IsLocalhost(response.HttpContext);
             var domain = config?.GetSection("CookieSettings").GetValue<string>("Domain");
-            
+
             var sameSite = isLocalhost ? SameSiteMode.Lax : SameSiteMode.None;
             var secure = !isLocalhost || (config?.GetSection("CookieSettings").GetValue<bool>("ForceSecure") ?? false);
 
