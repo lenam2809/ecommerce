@@ -59,7 +59,7 @@ builder.Services.AddCors(options =>
                       .AllowAnyMethod()
                       .AllowAnyHeader()
                       .WithExposedHeaders("Set-Cookie");
-                      // NOTE: AllowCredentials() removed - cannot use with AllowAnyOrigin
+                // NOTE: AllowCredentials() removed - cannot use with AllowAnyOrigin
             }
             else
             {
