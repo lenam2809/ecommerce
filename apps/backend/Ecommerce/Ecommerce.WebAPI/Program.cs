@@ -39,6 +39,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+    var isDevelopment = builder.Environment.IsDevelopment();
 
     options.AddPolicy("AllowAll",
         policy =>
@@ -51,14 +52,22 @@ builder.Services.AddCors(options =>
                       .AllowCredentials()  // Required for cookies
                       .WithExposedHeaders("Set-Cookie");  // Allow cookie headers
             }
-            else
+            else if (isDevelopment)
             {
-                // Fallback cho dev - KHÔNG dùng AllowCredentials với AllowAnyOrigin
+                // Development fallback - allow all origins without credentials
                 policy.SetIsOriginAllowed(_ => true)  // Allow any origin
                       .AllowAnyMethod()
                       .AllowAnyHeader()
-                      .AllowCredentials()
                       .WithExposedHeaders("Set-Cookie");
+                      // NOTE: AllowCredentials() removed - cannot use with AllowAnyOrigin
+            }
+            else
+            {
+                // Production: MUST have explicit origins configured
+                throw new InvalidOperationException(
+                    "CORS configuration error: In production, Cors:AllowedOrigins must be explicitly configured in appsettings. " +
+                    "AllowAnyOrigin() cannot be used with AllowCredentials()."
+                );
             }
         });
 });

@@ -50,7 +50,7 @@ namespace Ecommerce.WebAPI.Extensions
                 HttpOnly = true,
                 Secure = secure,
                 SameSite = sameSite,
-                Path = "/api/auth",                  // Only sent to auth endpoints
+                Path = "/api",                  // Sent to all /api/* routes (including /api/auth/refresh-token)
                 Expires = DateTimeOffset.UtcNow.AddDays(
                     cookieSettings?.GetValue<int>("RefreshTokenDays") ?? 7
                 )
@@ -113,7 +113,7 @@ namespace Ecommerce.WebAPI.Extensions
                 HttpOnly = true,
                 Secure = secure,
                 SameSite = sameSite,
-                Path = "/api/auth",
+                Path = "/api",
                 Expires = DateTimeOffset.UtcNow.AddDays(-1)
             };
 
