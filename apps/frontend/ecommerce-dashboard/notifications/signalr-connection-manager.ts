@@ -81,8 +81,8 @@ class SignalRConnectionManager {
                 await this.stopConnection();
             }
 
-            // Đảm bảo URL được xây dựng đúng cách
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+            // Use same-origin /api (proxied to backend) for cookie-based auth
+            const baseUrl = '/api';
             const fullHubUrl = this.buildUrl(baseUrl, hubUrl);
 
             console.log(`Connecting to SignalR hub at: ${fullHubUrl}`);

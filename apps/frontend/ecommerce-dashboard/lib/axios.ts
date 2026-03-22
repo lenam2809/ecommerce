@@ -3,8 +3,9 @@ import { logger } from "@/lib/logger"
 import { sessionSync } from "@/lib/session-sync"
 
 // Create an axios instance with default config
+// Use relative /api so requests go same-origin → proxied by Next.js → cookies set for frontend domain
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+    baseURL: '/api',
     headers: {
         "Content-Type": "application/json",
     },
@@ -28,7 +29,7 @@ async function refreshTokenSilently(): Promise<boolean> {
     try {
         // Cookie is automatically sent with request due to withCredentials
         await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/refresh-token`,
+            '/api/auth/refresh-token',
             {},
             { withCredentials: true }
         )
