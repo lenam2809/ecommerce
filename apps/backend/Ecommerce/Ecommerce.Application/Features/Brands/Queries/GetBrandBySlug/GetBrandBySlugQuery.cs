@@ -6,7 +6,7 @@ namespace Ecommerce.Application.Features.Brands.Queries.GetBrandBySlug
 {
     public class GetBrandBySlugQuery : IRequest<Result<BrandDto>>
     {
-        public string Slug { get; set; }
+        public required string Slug { get; set; }
     }
 }
 

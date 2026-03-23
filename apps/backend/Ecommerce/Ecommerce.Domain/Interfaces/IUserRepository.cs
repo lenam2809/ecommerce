@@ -6,10 +6,10 @@ namespace Ecommerce.Domain.Interfaces
 {
     public interface IUserRepository : IRepository<ApplicationUser>
     {
-        Task<ApplicationUser> GetByIdAsync(Guid id);
-        Task<ApplicationUser> GetByEmailAsync(string email);
+        Task<ApplicationUser?> GetByIdAsync(Guid id);
+        Task<ApplicationUser?> GetByEmailAsync(string email);
         Task<IEnumerable<ApplicationUser>> GetAllAsync();
-        Task<ApplicationUser> AddAsync(ApplicationUser user, string password);
+        Task<ApplicationUser?> AddAsync(ApplicationUser user, string password);
         Task UpdateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);
         Task<bool> CheckPasswordAsync(ApplicationUser user, string password);

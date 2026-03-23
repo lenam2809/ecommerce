@@ -1,9 +1,10 @@
-﻿using Ecommerce.Application.Common.Mappings;
+﻿using AutoMapper;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Entities;
-using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 {
@@ -35,11 +36,14 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 
         public Guid BrandId { get; set; }
 
-        // Hình ảnh đại diện chính (URL)
-        public required string MainImage { get; set; }
+        // Hình ảnh đại diện chính (File)
+        public required IFormFile MainImage { get; set; }
+
+        // Danh sách các hình ảnh phụ (File)
+        public List<IFormFile> AdditionalImages { get; set; } = new List<IFormFile>();
 
         // Danh sách các hình ảnh phụ (URL)
-        public List<string> AdditionalImages { get; set; } = new List<string>();
+        public List<string> AdditionalImageUrls { get; set; } = new List<string>();
 
         // Danh sách thông số kỹ thuật
         public List<ProductSpecificationDto> Specifications { get; set; } = new List<ProductSpecificationDto>();

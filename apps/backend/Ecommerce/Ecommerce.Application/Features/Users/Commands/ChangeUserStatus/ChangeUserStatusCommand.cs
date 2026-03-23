@@ -22,7 +22,7 @@ namespace Ecommerce.Application.Features.Users.Commands.ChangeUserStatus
         /// <summary>
         /// Ghi chú về lý do thay đổi trạng thái (nếu có)
         /// </summary>
-        public string StatusChangeReason { get; set; }
+        public required string StatusChangeReason { get; set; }
     }
 }
 

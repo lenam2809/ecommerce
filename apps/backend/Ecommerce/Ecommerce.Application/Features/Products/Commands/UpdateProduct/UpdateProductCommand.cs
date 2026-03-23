@@ -39,10 +39,13 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
         public Guid BrandId { get; set; }
 
         // Hình ảnh đại diện chính (có thể null nếu không muốn cập nhật)
-        public string? MainImage { get; set; }
+        public IFormFile? MainImage { get; set; }
 
-        // Danh sách các hình ảnh phụ cần thêm mới
-        public List<string> AdditionalImages { get; set; } = new List<string>();
+        // Danh sách các hình ảnh phụ cần thêm mới từ File
+        public List<IFormFile> AdditionalImages { get; set; } = new List<IFormFile>();
+
+        // Danh sách các hình ảnh phụ từ URL (đã upload trước đó hoặc từ Supabase)
+        public List<string> AdditionalImageUrls { get; set; } = new List<string>();
 
         // Danh sách ID hình ảnh cần xóa
         public List<Guid> ImageIdsToDelete { get; set; } = new List<Guid>();

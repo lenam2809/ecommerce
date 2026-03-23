@@ -30,7 +30,7 @@ namespace Ecommerce.Application.Common.Behaviors
             // Tuy nhiÃªn, GET requests (Queries) khÃ´ng nÃªn má»Ÿ Transaction Ä‘á»ƒ tá»‘i Æ°u hiá»‡u nÄƒng.
             // Ta sáº½ check tÃªn request.
             var requestName = typeof(TRequest).Name;
-            if (requestName.EndsWith("Query"))
+            if (requestName.EndsWith("Query") || _unitOfWork.HasActiveTransaction)
             {
                 return await next();
             }

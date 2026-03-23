@@ -35,7 +35,7 @@ namespace Ecommerce.Application.Common.Interfaces
         /// </summary>
         /// <param name="token">Chuỗi JWT chứa thông tin người dùng.</param>
         /// <returns>UserId dưới dạng chuỗi, hoặc null nếu không tìm thấy.</returns>
-        string GetUserIdFromToken(string token);
+        string? GetUserIdFromToken(string token);
     }
 
 }

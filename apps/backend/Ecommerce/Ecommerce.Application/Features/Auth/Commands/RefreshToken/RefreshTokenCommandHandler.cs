@@ -20,6 +20,11 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
 
         public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+            {
+                return Result<AuthResponseDto>.BadRequest("Access token và Refresh token là bắt buộc.");
+            }
+
             // Validate the expired access token
             if (!_tokenService.ValidateToken(request.AccessToken))
             {
@@ -85,11 +90,11 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 UserId = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
                 Roles = [.. roles],
                 Permissions = permissionNames
             });

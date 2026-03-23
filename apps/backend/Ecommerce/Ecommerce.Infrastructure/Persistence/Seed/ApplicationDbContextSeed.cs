@@ -149,7 +149,11 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 }
                 else
                 {
-                    roleEntities.Add(await _roleManager.FindByNameAsync(roleName));
+                    var existingRole = await _roleManager.FindByNameAsync(roleName);
+                    if (existingRole != null)
+                    {
+                        roleEntities.Add(existingRole);
+                    }
                 }
             }
 
@@ -398,36 +402,36 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             // Assign roles if they exist
             if (adminUser != null && adminRole != null)
             {
-                if (!await _userManager.IsInRoleAsync(adminUser, adminRole.Name))
+                if (!await _userManager.IsInRoleAsync(adminUser, adminRole.Name!))
                 {
-                    await _userManager.AddToRoleAsync(adminUser, adminRole.Name);
+                    await _userManager.AddToRoleAsync(adminUser, adminRole.Name!);
                     _logger.LogInformation($"Assigned {adminRole.Name} role to {adminUser.Email}");
                 }
             }
 
             if (managerUser != null && managerRole != null)
             {
-                if (!await _userManager.IsInRoleAsync(managerUser, managerRole.Name))
+                if (!await _userManager.IsInRoleAsync(managerUser, managerRole.Name!))
                 {
-                    await _userManager.AddToRoleAsync(managerUser, managerRole.Name);
+                    await _userManager.AddToRoleAsync(managerUser, managerRole.Name!);
                     _logger.LogInformation($"Assigned {managerRole.Name} role to {managerUser.Email}");
                 }
             }
 
             if (staffUser != null && staffRole != null)
             {
-                if (!await _userManager.IsInRoleAsync(staffUser, staffRole.Name))
+                if (!await _userManager.IsInRoleAsync(staffUser, staffRole.Name!))
                 {
-                    await _userManager.AddToRoleAsync(staffUser, staffRole.Name);
+                    await _userManager.AddToRoleAsync(staffUser, staffRole.Name!);
                     _logger.LogInformation($"Assigned {staffRole.Name} role to {staffUser.Email}");
                 }
             }
 
             if (customerUser != null && customerRole != null)
             {
-                if (!await _userManager.IsInRoleAsync(customerUser, customerRole.Name))
+                if (!await _userManager.IsInRoleAsync(customerUser, customerRole.Name!))
                 {
-                    await _userManager.AddToRoleAsync(customerUser, customerRole.Name);
+                    await _userManager.AddToRoleAsync(customerUser, customerRole.Name!);
                     _logger.LogInformation($"Assigned {customerRole.Name} role to {customerUser.Email}");
                 }
             }
@@ -952,7 +956,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         var review = new Review
                         {
                             Id = reviewId,
-                            UserName = user.UserName,
+                            UserName = user.UserName ?? string.Empty,
                             UserAvatar = "/uploads/users/avatar-20250521154845412-fd9c4c.jpg",
                             Rating = random.Next(1, 6),
                             Date = DateTime.Now.AddDays(-random.Next(30)),
