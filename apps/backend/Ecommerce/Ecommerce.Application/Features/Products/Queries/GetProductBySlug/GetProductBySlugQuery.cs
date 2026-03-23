@@ -6,7 +6,7 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductBySlug
 {
     public class GetProductBySlugQuery : IRequest<Result<ProductDto>>
     {
-        public string Slug { get; set; }
+        public required string Slug { get; set; }
     }
 }
 

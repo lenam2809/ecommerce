@@ -12,7 +12,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
         {
         }
 
-        public async Task<AccountLock> GetActiveLockAsync(Guid userId)
+        public async Task<AccountLock?> GetActiveLockAsync(Guid userId)
         {
             return await _context.AccountLocks
                 .Where(al => al.UserId == userId && al.IsActive)

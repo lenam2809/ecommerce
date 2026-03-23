@@ -36,7 +36,7 @@ namespace Ecommerce.Application.Common.Behaviors
                 if (authorizeAttributesWithRoles.Any())
                 {
                     var authorized = false;
-                    foreach (var roles in authorizeAttributesWithRoles.Select(a => a.Roles.Split(',')))
+                    foreach (var roles in authorizeAttributesWithRoles.Select(a => a.Roles!.Split(',')))
                     {
                         foreach (var role in roles)
                         {
@@ -71,7 +71,7 @@ namespace Ecommerce.Application.Common.Behaviors
 
                         if (user != null)
                         {
-                            if (policy.Contains(':'))
+                            if (policy!.Contains(':'))
                             {
                                 var parts = policy.Split(':');
                                 var roleName = parts[0];

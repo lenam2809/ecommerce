@@ -6,8 +6,8 @@ using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
-using OfficeOpenXml;
 using Microsoft.AspNetCore.HttpOverrides;
+using OfficeOpenXml;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

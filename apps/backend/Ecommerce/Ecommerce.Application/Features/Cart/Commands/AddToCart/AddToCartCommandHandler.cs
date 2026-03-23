@@ -6,7 +6,6 @@ using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
 {

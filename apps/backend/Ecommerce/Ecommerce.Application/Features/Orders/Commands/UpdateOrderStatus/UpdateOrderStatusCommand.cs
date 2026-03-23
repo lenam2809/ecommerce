@@ -9,7 +9,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrderStatus
         public Guid Id { get; set; }
         public EOrderStatus Status { get; set; }
         public DateTime? ExpectedDeliveryDate { get; set; }
-        public string RowVersion { get; set; }
+        public required string RowVersion { get; set; }
     }
 }
 

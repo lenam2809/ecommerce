@@ -69,7 +69,7 @@ class AuthService {
     /**
      * Clear user data from localStorage
      */
-    private clearUser(): void {
+    public clearUser(): void {
         if (typeof window !== "undefined") {
             localStorage.removeItem("user")
         }

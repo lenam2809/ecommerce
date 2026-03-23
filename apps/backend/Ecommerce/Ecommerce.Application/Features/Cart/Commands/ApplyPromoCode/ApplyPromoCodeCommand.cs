@@ -8,7 +8,7 @@ namespace Ecommerce.Application.Features.Cart.Commands.ApplyPromoCode
 {
     public class ApplyPromoCodeCommand : IRequest<Result<CartDto>>
     {
-        public string Code { get; set; }
+        public required string Code { get; set; }
     }
 
     public class ApplyPromoCodeCommandHandler : IRequestHandler<ApplyPromoCodeCommand, Result<CartDto>>

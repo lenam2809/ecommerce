@@ -57,12 +57,20 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     return Result<Unit>.NotFound($"Không tìm thấy sản phẩm với ID: {request.Id}");
                 }
 
+                // Xử lý upload ảnh chính mới nếu có
+                string mainImageUrl = existingProduct.Image;
+                if (request.MainImage != null)
+                {
+                    mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products");
+                    // Lưu ý: Có thể cân nhắc xóa ảnh cũ trên storage ở đây nếu cần
+                }
+
                 // Cập nhật thông tin cơ bản
                 existingProduct.UpdateInfo(
                     request.Name,
                     SlugHelper.GenerateSlug(request.Name),
                     request.Description,
-                    !string.IsNullOrEmpty(request.MainImage) ? request.MainImage : existingProduct.Image,
+                    mainImageUrl,
                     request.CategoryId,
                     request.BrandId,
                     request.IsActive
@@ -80,10 +88,20 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     }
                 }
 
-                // Xử lý thêm các hình ảnh phụ mới
-                if (request.AdditionalImages != null)
+                // Xử lý thêm các hình ảnh phụ mới từ File
+                if (request.AdditionalImages != null && request.AdditionalImages.Count > 0)
                 {
-                    foreach (var imageUrl in request.AdditionalImages)
+                    foreach (var file in request.AdditionalImages)
+                    {
+                        var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery");
+                        existingProduct.AddImage(imageUrl);
+                    }
+                }
+
+                // Xử lý thêm các hình ảnh phụ từ URL (đã upload trước đó)
+                if (request.AdditionalImageUrls != null && request.AdditionalImageUrls.Count > 0)
+                {
+                    foreach (var imageUrl in request.AdditionalImageUrls)
                     {
                         existingProduct.AddImage(imageUrl);
                     }

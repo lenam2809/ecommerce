@@ -47,10 +47,14 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
             RuleFor(p => p.BrandId)
                 .NotEmpty().WithMessage("Thương hiệu sản phẩm không được để trống");
 
-            // MainImage giờ là string URL
-            //RuleFor(p => p.MainImage)
-            //    .NotEmpty().WithMessage("Hình ảnh chính là bắt buộc");
+            RuleFor(p => p.MainImage)
+                .NotNull().WithMessage("Hình ảnh chính là bắt buộc")
+                .Must(file => file == null || file.Length <= 10 * 1024 * 1024)
+                .WithMessage("Kích thước hình ảnh không được vượt quá 10MB");
 
+            RuleForEach(p => p.AdditionalImages)
+                .Must(file => file == null || file.Length <= 10 * 1024 * 1024)
+                .WithMessage("Kích thước mỗi hình ảnh phụ không được vượt quá 10MB");
         }
     }
 }

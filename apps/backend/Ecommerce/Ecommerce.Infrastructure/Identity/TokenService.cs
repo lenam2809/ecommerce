@@ -95,7 +95,7 @@ namespace Ecommerce.Infrastructure.Identity
             }
         }
 
-        public string GetUserIdFromToken(string token)
+        public string? GetUserIdFromToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtConfig.SecretKey);

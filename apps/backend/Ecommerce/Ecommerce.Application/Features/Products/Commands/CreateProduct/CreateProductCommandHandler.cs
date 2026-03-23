@@ -21,25 +21,30 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
         private readonly IMediator _mediator;
+        private readonly IFileStorageService _fileStorageService;
 
 
         public CreateProductCommandHandler(IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
             IMapper mapper,
             ICacheService cacheService,
-            IMediator mediator)
+            IMediator mediator,
+            IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
             _cacheService = cacheService;
             _mediator = mediator;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
+            // Upload Main Image
+            string mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products");
+
             // Sử dụng Factory Method của Domain Entity
-            // Các lỗi ArgumentException từ Domain sẽ được GlobalExceptionHandlingMiddleware bắt và trả về 400
             var product = Product.Create(
                 request.Code,
                 request.Name,
@@ -47,17 +52,27 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
                 request.Sku,
                 request.Price,
                 request.SalePrice,
-                request.MainImage, // Giả sử MainImage là required hoặc xử lý null ở Controller/Validator
+                mainImageUrl,
                 request.Description,
                 request.StockQuantity,
                 request.CategoryId,
                 request.BrandId
             );
 
-            // Xử lý các ảnh phụ
-            if (request.AdditionalImages != null)
+            // Xử lý các ảnh phụ từ File
+            if (request.AdditionalImages != null && request.AdditionalImages.Count > 0)
             {
-                foreach (var imageUrl in request.AdditionalImages)
+                foreach (var file in request.AdditionalImages)
+                {
+                    var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery");
+                    product.AddImage(imageUrl);
+                }
+            }
+
+            // Xử lý các ảnh phụ từ URL
+            if (request.AdditionalImageUrls != null && request.AdditionalImageUrls.Count > 0)
+            {
+                foreach (var imageUrl in request.AdditionalImageUrls)
                 {
                     product.AddImage(imageUrl);
                 }

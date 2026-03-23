@@ -107,7 +107,10 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
 
         public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
         {
-            await _context.Database.RollbackTransactionAsync(cancellationToken);
+            if (_context.Database.CurrentTransaction != null)
+            {
+                await _context.Database.RollbackTransactionAsync(cancellationToken);
+            }
         }
 
         public async Task<T> ExecuteStrategyAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
@@ -119,6 +122,8 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 verifySucceeded: null,
                 cancellationToken: cancellationToken);
         }
+
+        public bool HasActiveTransaction => _context.Database.CurrentTransaction != null;
 
         public void Dispose()
         {

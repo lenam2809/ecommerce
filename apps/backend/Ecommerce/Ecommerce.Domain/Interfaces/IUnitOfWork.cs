@@ -48,6 +48,8 @@ namespace Ecommerce.Domain.Interfaces
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 
         Task<T> ExecuteStrategyAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default);
+
+        bool HasActiveTransaction { get; }
     }
 }
 

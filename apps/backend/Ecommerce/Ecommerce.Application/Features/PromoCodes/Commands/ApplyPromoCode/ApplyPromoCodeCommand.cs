@@ -6,7 +6,7 @@ namespace Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode
 {
     public class ApplyPromoCodeCommand : IRequest<Result<PromoCodeApplyResultDto>>
     {
-        public string Code { get; set; }
+        public required string Code { get; set; }
         public decimal OrderTotal { get; set; }
     }
 }

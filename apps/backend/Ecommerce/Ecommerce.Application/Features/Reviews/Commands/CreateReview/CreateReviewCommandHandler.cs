@@ -59,7 +59,7 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
             // Upload images
             foreach (var image in command.Images)
             {
-                var imageUrl = await _fileStorage.SaveFileAsync(image, image.FileName);
+                var imageUrl = await _fileStorage.SaveFileAsync(image, "reviews");
                 review.Images.Add(new ReviewImage { Url = imageUrl });
             }
 

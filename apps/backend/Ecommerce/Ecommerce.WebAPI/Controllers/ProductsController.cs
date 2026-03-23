@@ -122,48 +122,8 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpPost]
         [Authorize(Policy = "CreateProduct")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Create([FromForm] CreateProductRequest request)
+        public async Task<IActionResult> Create([FromForm] CreateProductCommand command)
         {
-            // Upload Main Image
-            string mainImageUrl = string.Empty;
-            if (request.MainImage != null)
-            {
-                mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products");
-            }
-
-            // Upload Additional Images
-            var additionalImageUrls = new List<string>();
-            if (request.AdditionalImages != null)
-            {
-                foreach (var file in request.AdditionalImages)
-                {
-                    var url = await _fileStorageService.SaveFileAsync(file, "products/gallery");
-                    additionalImageUrls.Add(url);
-                }
-            }
-
-            var command = new CreateProductCommand
-            {
-                Code = request.Code,
-                Name = request.Name,
-                Sku = request.Sku,
-                Price = request.Price,
-                SalePrice = request.SalePrice,
-                Rating = request.Rating,
-                ReviewCount = request.ReviewCount,
-                Description = request.Description,
-                StockQuantity = request.StockQuantity,
-                PublishedDate = request.PublishedDate,
-                IsActive = request.IsActive,
-                CategoryId = request.CategoryId,
-                BrandId = request.BrandId,
-                Specifications = request.Specifications,
-                Colors = request.Colors,
-                Sizes = request.Sizes,
-                MainImage = mainImageUrl,
-                AdditionalImages = additionalImageUrls
-            };
-
             var result = await _mediator.Send(command);
             return result.IsSuccess
             ? CreatedAtAction(nameof(GetById), new { id = result.Value }, result.Value)
@@ -285,27 +245,5 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         #endregion
-    }
-
-    public class CreateProductRequest
-    {
-        public required string Code { get; set; }
-        public required string Name { get; set; }
-        public required string Sku { get; set; }
-        public decimal Price { get; set; }
-        public decimal? SalePrice { get; set; }
-        public double Rating { get; set; }
-        public int ReviewCount { get; set; }
-        public required string Description { get; set; }
-        public int StockQuantity { get; set; }
-        public DateTime? PublishedDate { get; set; }
-        public bool IsActive { get; set; } = true;
-        public Guid CategoryId { get; set; }
-        public Guid BrandId { get; set; }
-        public required IFormFile MainImage { get; set; }
-        public List<IFormFile> AdditionalImages { get; set; } = new List<IFormFile>();
-        public List<ProductSpecificationDto> Specifications { get; set; } = new List<ProductSpecificationDto>();
-        public List<string> Colors { get; set; } = new List<string>();
-        public List<string> Sizes { get; set; } = new List<string>();
     }
 }

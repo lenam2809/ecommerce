@@ -22,7 +22,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             _roleManager = roleManager;
         }
 
-        public async Task<ApplicationUser> GetByIdAsync(Guid id)
+        public async Task<ApplicationUser?> GetByIdAsync(Guid id)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user != null)
@@ -34,7 +34,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             return user;
         }
 
-        public async Task<ApplicationUser> GetByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
         }
@@ -44,7 +44,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             return await _userManager.Users.ToListAsync();
         }
 
-        public async Task<ApplicationUser> AddAsync(ApplicationUser user, string password)
+        public async Task<ApplicationUser?> AddAsync(ApplicationUser user, string password)
         {
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)

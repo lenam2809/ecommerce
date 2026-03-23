@@ -20,7 +20,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<CustomerAddress> GetDefaultAddressByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        public async Task<CustomerAddress?> GetDefaultAddressByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await _context.CustomerAddresses
                 .FirstOrDefaultAsync(a => a.ApplicationUserId == userId && a.IsDefault, cancellationToken);
