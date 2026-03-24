@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { orderService } from '@/services/order-service';
 import { toast } from '@/hooks/use-toast';
 import { EOrderStatus, GetOrderHistoryOverviewParams, GetOrderHistoryParams } from '@/types/order';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory for efficient cache management
 const orderKeys = {
@@ -54,14 +55,14 @@ export const useUpdateOrderStatus = () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Cập nhật trạng thái đơn hàng",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng. Vui lòng thử lại sau.',
-        variant: "destructive",
-      })
-    }
+      onError: (error: any) => {
+        handleApiError({
+          error,
+          context: { operation: 'updateOrderStatus' },
+          devTitle: "Lỗi",
+          notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+        })
+      }
   });
 };
 
@@ -80,11 +81,11 @@ export const useCreateOrder = () => {
       router.push('/orders');
     },
     onError: (error: any) => {
-      toast({
-        title: "Tạo đơn hàng",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại sau.',
-        variant: "destructive",
+      handleApiError({
+        error,
+        context: { operation: 'createOrder' },
+        devTitle: "Lỗi",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
       })
     }
   });
@@ -108,11 +109,11 @@ export const useUpdateOrder = () => {
       router.push('/orders');
     },
     onError: (error: any) => {
-      toast({
-        title: "Cập nhật đơn hàng",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi cập nhật đơn hàng. Vui lòng thử lại sau.',
-        variant: "destructive",
+      handleApiError({
+        error,
+        context: { operation: 'updateOrder' },
+        devTitle: "Lỗi",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
       })
     }
   });
@@ -134,11 +135,11 @@ export const useDeleteOrder = (onSuccessCallback?: () => void) => {
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Xóa đơn hàng",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi xóa đơn hàng. Vui lòng thử lại sau.',
-        variant: "destructive",
+      handleApiError({
+        error,
+        context: { operation: 'deleteOrder' },
+        devTitle: "Lỗi",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
       })
     }
   });

@@ -156,10 +156,17 @@ export function ImagesUploadSection({ form, isEditing = false, isDetail = false 
                                             />
                                             {!isDetail && (
                                                 <Button
+                                                    type="button"
                                                     variant="destructive"
                                                     size="icon"
                                                     className="absolute top-1 right-1 w-6 h-6"
-                                                    onClick={() => removeAdditionalImage(index)}
+                                                    onClick={(e) => {
+                                                        // Nút xoá nằm trong <form>, nếu không đặt type="button"
+                                                        // thì trình duyệt sẽ coi như submit và gọi onSubmit của form.
+                                                        e.preventDefault()
+                                                        e.stopPropagation()
+                                                        removeAdditionalImage(index)
+                                                    }}
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </Button>

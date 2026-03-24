@@ -7,6 +7,7 @@ import { permissionService } from '@/services/permission-service';
 import { CreatePermissionDto, UpdatePermissionDto } from '@/schemas/permission/permission-schema';
 import { OptionType } from '@/components/ui/select/single-select';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const permissionKeys = {
@@ -79,11 +80,11 @@ export const useCreatePermission = () => {
             router.push('/permissions');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới quyền",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm quyền. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createPermission' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -106,11 +107,11 @@ export const useUpdatePermission = () => {
             router.push('/permissions');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật quyền",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật quyền. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updatePermission' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -133,11 +134,11 @@ export const useDeletePermission = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa quyền",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa quyền. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deletePermission' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -158,11 +159,11 @@ export const useAssignPermissionsToUser = () => {
             queryClient.invalidateQueries({ queryKey: permissionKeys.userPermissions(variables.userId) });
         },
         onError: (error: any) => {
-            toast({
-                title: "Gán quyền",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi gán quyền cho người dùng. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'assignPermissionsToUser' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -183,11 +184,11 @@ export const useAssignPermissionsToRole = () => {
             queryClient.invalidateQueries({ queryKey: permissionKeys.rolePermissions(variables.roleId) });
         },
         onError: (error: any) => {
-            toast({
-                title: "Gán quyền",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi gán quyền cho vai trò. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'assignPermissionsToRole' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { bannerService } from '@/services/banner-service';
 import { CreateBannerDto, UpdateBannerDto } from '@/schemas/banner/banner-schema';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const bannerKeys = {
@@ -48,11 +49,11 @@ export const useCreateBanner = () => {
             router.push('/configs/banners');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới banner",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm banner. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createBanner' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -75,11 +76,11 @@ export const useUpdateBanner = () => {
             router.push('/configs/banners');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật banner",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật banner. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updateBanner' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -102,11 +103,11 @@ export const useDeleteBanner = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa banner",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa banner. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deleteBanner' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

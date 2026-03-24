@@ -7,6 +7,7 @@ import { roleService } from '@/services/role-service';
 import { CreateRoleDto, UpdateRoleDto } from '@/schemas/role/role-schema';
 import { OptionType } from '@/components/ui/select/single-select';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const roleKeys = {
@@ -69,11 +70,11 @@ export const useCreateRole = () => {
             router.push('/roles');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới vai trò",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm vai trò. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createRole' },
+                devTitle: "Thêm mới vai trò",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -96,11 +97,11 @@ export const useUpdateRole = () => {
             router.push('/roles');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật vai trò",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật vai trò. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updateRole' },
+                devTitle: "Cập nhật vai trò",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -123,11 +124,11 @@ export const useDeleteRole = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa vai trò",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa vai trò. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deleteRole' },
+                devTitle: "Xóa vai trò",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -148,11 +149,11 @@ export const useAssignRolesToUser = () => {
             queryClient.invalidateQueries({ queryKey: roleKeys.userRoles(variables.userId) });
         },
         onError: (error: any) => {
-            toast({
-                title: "Gán vai trò",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi gán vai trò cho người dùng. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'assignRolesToUser' },
+                devTitle: "Gán vai trò",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

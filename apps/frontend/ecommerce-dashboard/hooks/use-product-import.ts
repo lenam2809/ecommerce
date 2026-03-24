@@ -2,6 +2,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { productImportExportService } from '@/services/product-import-export-service';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 interface ImportResult {
     totalItems: number;
@@ -40,11 +41,12 @@ export const useProductImport = () => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: 'Nhập dữ liệu thất bại',
-                description: error.response?.data?.error || 'Có lỗi xảy ra khi nhập dữ liệu sản phẩm',
-                variant: 'destructive',
-            });
+            handleApiError({
+                error,
+                context: { operation: 'importProducts' },
+                devTitle: 'Nhập dữ liệu thất bại',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         },
     });
 

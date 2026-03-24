@@ -34,11 +34,6 @@ export function useCreateAddress() {
                 description: "Thêm địa chỉ mới thành công",
             })
         },
-        onError: () => {
-            AppToaster.error("Lỗi", {
-                description: "Thêm địa chỉ thất bại",
-            })
-        },
     });
 }
 
@@ -52,11 +47,6 @@ export function useUpdateAddress() {
             queryClient.invalidateQueries({ queryKey: ["addresses"] });
             AppToaster.success("Thành công", {
                 description: "Cập nhật địa chỉ thành công",
-            })
-        },
-        onError: () => {
-            AppToaster.error("Lỗi", {
-                description: "Cập nhật địa chỉ thất bại",
             })
         },
     });
@@ -73,11 +63,6 @@ export function useDeleteAddress() {
                 description: "Xóa địa chỉ thành công",
             })
         },
-        onError: () => {
-            AppToaster.error("Lỗi", {
-                description: "Xóa địa chỉ thất bại",
-            })
-        },
     });
 }
 
@@ -90,11 +75,6 @@ export function useSetDefaultAddress() {
             queryClient.invalidateQueries({ queryKey: ["addresses"] });
             AppToaster.success("Thành công", {
                 description: "Đặt địa chỉ mặc định thành công",
-            })
-        },
-        onError: () => {
-            AppToaster.error("Lỗi", {
-                description: "Đặt địa chỉ mặc định thất bại",
             })
         },
     });

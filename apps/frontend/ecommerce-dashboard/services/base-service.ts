@@ -5,6 +5,7 @@ import api from '@/lib/axios';
 import { logger } from '@/lib/logger';
 import { Result } from '@/types';
 import { AxiosResponse } from 'axios';
+import { handleApiError } from '@/lib/api-error';
 
 export class BaseService {
     protected endpoint: string;
@@ -20,11 +21,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error fetching data from ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: this.endpoint, operation: 'getAll' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -35,11 +37,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error fetching data from ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: `${this.endpoint}/options`, operation: 'getOptions' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -52,11 +55,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error fetching item with id ${id} from ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: `${this.endpoint}/${id}`, operation: 'getById' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -68,11 +72,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error creating item in ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: this.endpoint, operation: 'create' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -84,11 +89,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error updating item with id ${id} in ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: `${this.endpoint}/${id}`, operation: 'update' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -100,11 +106,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error deleting item with id ${id} from ${this.endpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${this.endpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: `${this.endpoint}/${id}`, operation: 'delete' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -115,11 +122,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error fetching data from ${urlEndpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi lấy dữ liệu từ ${urlEndpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: urlEndpoint, operation: 'get' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -130,11 +138,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error posting data to ${urlEndpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi gửi dữ liệu đến ${urlEndpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: urlEndpoint, operation: 'post' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }
@@ -145,11 +154,12 @@ export class BaseService {
             return response.data;
         } catch (error) {
             logger.error(`Error putting data to ${urlEndpoint}:`, error);
-            toast({
-                title: "Thông báo lỗi",
-                description: `Lỗi khi cập nhật dữ liệu đến ${urlEndpoint}`,
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { endpoint: urlEndpoint, operation: 'put' },
+                devTitle: "Thông báo lỗi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
             throw error;
         }
     }

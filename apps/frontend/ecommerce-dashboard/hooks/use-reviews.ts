@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CreateReviewReplyRequest, reviewService } from '@/services/review-service';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const reviewKeys = {
@@ -30,11 +31,12 @@ export const useLikeReview = () => {
             queryClient.invalidateQueries({ queryKey: reviewKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi thực hiện thao tác.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'likeReview' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -49,11 +51,12 @@ export const useReplyReview = () => {
             queryClient.invalidateQueries({ queryKey: reviewKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi thực hiện thao tác.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'replyReview' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         },
     });
 };
@@ -78,11 +81,12 @@ export const useCreateReview = () => {
             queryClient.invalidateQueries({ queryKey: reviewKeys.list(variables.productId) });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi gửi đánh giá.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'createReview' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };

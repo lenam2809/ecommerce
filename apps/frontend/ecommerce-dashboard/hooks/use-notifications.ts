@@ -8,6 +8,7 @@ import {
     ENotificationCategory
 } from '@/types/notification';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 const notificationKeys = {
     all: ['notifications'] as const,
@@ -92,11 +93,12 @@ export const useDeleteNotification = () => {
             queryClient.invalidateQueries({ queryKey: notificationKeys.all });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi xóa thông báo",
-                description: error.response?.data?.message || 'Không xóa được thông báo',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'deleteNotification' },
+                devTitle: 'Lỗi xóa thông báo',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -130,11 +132,12 @@ export const useSendPromotionNotification = () => {
             queryClient.invalidateQueries({ queryKey: notificationKeys.system });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi gửi thông báo khuyến mãi",
-                description: error.response?.data?.message || 'Đã có lỗi xảy ra khi gửi thông báo khuyến mãi. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'sendPromotionNotification' },
+                devTitle: "Lỗi khi gửi thông báo khuyến mãi",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -153,11 +156,12 @@ export const useSendMaintenanceNotification = () => {
             queryClient.invalidateQueries({ queryKey: notificationKeys.system });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi gửi thông báo bảo trì",
-                description: error.response?.data?.message || 'Đã có lỗi xảy ra khi gửi thông báo bảo trì. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'sendMaintenanceNotification' },
+                devTitle: "Lỗi khi gửi thông báo bảo trì",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };

@@ -140,7 +140,9 @@ export default function CheckoutPage() {
         clearCart()
         router.push(`/account/orders/${result.data}`)
       } else {
-        toast.error(result.error || "Có lỗi xảy ra khi đặt hàng")
+        const prodMsg = "Something went wrong, please try again later"
+        const devMsg = result.error || "Có lỗi xảy ra khi đặt hàng"
+        toast.error(process.env.NODE_ENV === "development" ? devMsg : prodMsg)
       }
     } catch (error) {
       console.error("Order creation error:", error)

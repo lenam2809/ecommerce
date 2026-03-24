@@ -6,6 +6,7 @@ import { categoryService } from '@/services/category-service';
 import { CreateCategoryDto, UpdateCategoryDto } from '@/schemas/category';
 import { OptionGroupType, OptionType } from '@/components/ui/select/single-select';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const categoryKeys = {
@@ -78,11 +79,11 @@ export const useCreateCategory = () => {
             router.push('/categories');
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa sản phẩm",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm danh mục. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createCategory' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -104,11 +105,11 @@ export const useUpdateCategory = () => {
             router.push('/categories');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật danh mục",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật danh mục. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updateCategory' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -131,11 +132,11 @@ export const useDeleteCategory = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa danh mục",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa danh mục. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deleteCategory' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

@@ -46,12 +46,6 @@ export function useWishlist() {
                 description: "Sản phẩm đã được thêm vào danh sách yêu thích của bạn",
             })
         },
-        onError: (error) => {
-            console.error("Thêm vào danh sách yêu thích thất bại:", error)
-            AppToaster.error("Thêm thất bại", {
-                description: "Vui lòng thử lại sau",
-            })
-        }
     })
 
     // Mutation xóa khỏi danh sách yêu thích
@@ -63,12 +57,6 @@ export function useWishlist() {
                 description: "Sản phẩm đã được xóa khỏi danh sách yêu thích của bạn",
             })
         },
-        onError: (error) => {
-            console.error("Xóa khỏi danh sách yêu thích thất bại:", error)
-            AppToaster.error("Xóa thất bại", {
-                description: "Vui lòng thử lại sau",
-            })
-        }
     })
 
     // Query kiểm tra sản phẩm có trong danh sách yêu thích không

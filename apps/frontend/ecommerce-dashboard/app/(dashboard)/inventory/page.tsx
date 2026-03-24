@@ -29,7 +29,13 @@ export default function InventoryPage() {
             if (result.success && result.data) {
                 setItems(result.data)
             } else {
-                toast({ title: "Lỗi", description: result.error || "Không tìm thấy", variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error || "Không tìm thấy"
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
                 setItems([])
             }
         } catch {

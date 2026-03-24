@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { contactService } from '@/services/contact-service';
 import { ContactDto } from '@/types/contact';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 const contactKeys = {
     all: ['contact'] as const,
@@ -47,11 +48,12 @@ export const useCreateContact = () => {
             router.push('/contact');
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi tạo Contact",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi tạo Contact',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'createContact' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -71,11 +73,12 @@ export const useUpdateContact = () => {
             queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi cập nhật Contact",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật Contact',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'updateContact' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -96,11 +99,12 @@ export const useUpdateContactStatus = () => {
             queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi cập nhật trạng thái Contact",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái Contact',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'updateContactStatus' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -119,11 +123,12 @@ export const useDeleteContact = (onSuccessCallback?: () => void) => {
             if (onSuccessCallback) onSuccessCallback();
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi xóa Contact",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi xóa Contact',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'deleteContact' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };

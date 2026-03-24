@@ -39,11 +39,6 @@ export function useCart() {
         description: "Sản phẩm đã được thêm vào giỏ hàng của bạn.",
       })
     },
-    onError: () => {
-      AppToaster.error("Thêm vào giỏ hàng thất bại", {
-        description: "Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.",
-      })
-    },
   })
 
   // Update cart item
@@ -54,11 +49,6 @@ export function useCart() {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Cập nhật giỏ hàng thành công", {
         description: "Số lượng sản phẩm đã được cập nhật.",
-      })
-    },
-    onError: () => {
-      AppToaster.error("Cập nhật giỏ hàng thất bại", {
-        description: "Có lỗi xảy ra khi cập nhật giỏ hàng.",
       })
     },
   })
@@ -72,11 +62,6 @@ export function useCart() {
         description: "Sản phẩm đã được xóa khỏi giỏ hàng.",
       })
     },
-    onError: () => {
-      AppToaster.error("Xóa sản phẩm thất bại", {
-        description: "Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ hàng.",
-      })
-    },
   })
 
   // Clear cart
@@ -88,11 +73,6 @@ export function useCart() {
         description: "Giỏ hàng của bạn đã được xóa.",
       })
     },
-    onError: () => {
-      AppToaster.error("Xóa giỏ hàng thất bại", {
-        description: "Có lỗi xảy ra khi xóa giỏ hàng.",
-      })
-    },
   })
 
   // Apply promo code
@@ -102,11 +82,6 @@ export function useCart() {
       queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Áp dụng mã giảm giá thành công", {
         description: data.data?.promoCode?.description || "Mã giảm giá đã được áp dụng.",
-      })
-    },
-    onError: (error: any) => {
-      AppToaster.error("Áp dụng mã giảm giá thất bại", {
-        description: error.response?.data?.error || "Mã giảm giá không hợp lệ.",
       })
     },
   })

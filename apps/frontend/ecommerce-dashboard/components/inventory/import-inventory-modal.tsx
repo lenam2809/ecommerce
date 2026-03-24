@@ -63,7 +63,13 @@ export function ImportInventoryModal({ open, onClose, onSuccess }: ImportInvento
                 setBatchCode("")
                 onSuccess()
             } else {
-                toast({ title: "Lỗi", description: result.error || "Không thể import", variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error || "Không thể import"
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
             }
         } catch {
             toast({ title: "Lỗi", description: "Có lỗi xảy ra khi import", variant: "destructive" })

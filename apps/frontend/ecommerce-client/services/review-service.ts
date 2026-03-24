@@ -3,7 +3,8 @@ import { BaseService } from './base-service';
 import { Result } from "@/types";
 import api from '@/lib/api';
 import { AxiosResponse } from 'axios';
-import { toast } from 'sonner';
+import { handleApiError } from '@/lib/api-error';
+import { AppToaster } from '@/components/toast/app-toaster';
 
 export interface CreateReviewRequest {
     productId: string;
@@ -54,10 +55,14 @@ class ReviewService extends BaseService {
 
             return response.data;
         } catch (error) {
-            console.error('Error creating review:', error);
-            toast.error('Lỗi khi tạo đánh giá', {
-                description: 'Không thể tạo đánh giá. Vui lòng thử lại sau.',
-            });
+            handleApiError({
+                error,
+                context: { endpoint: '/reviews', operation: 'createReview' },
+                devTitle: 'Lỗi khi tạo đánh giá',
+                notify: ({ title, description, id }) => {
+                    AppToaster.error(title, { description, id })
+                },
+            })
             throw error;
         }
     }

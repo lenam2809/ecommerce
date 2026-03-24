@@ -6,6 +6,7 @@ import { brandService } from '@/services/brand-service';
 import { CreateBrandDto, UpdateBrandDto } from '@/schemas/brand';
 import { OptionType } from '@/components/ui/select/single-select';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const brandKeys = {
@@ -60,11 +61,11 @@ export const useCreateBrand = () => {
             router.push('/brands');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới thương hiệu",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm thương hiệu. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createBrand' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -87,11 +88,11 @@ export const useUpdateBrand = () => {
             router.push('/brands');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật thương hiệu",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật thương hiệu. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updateBrand' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -114,11 +115,11 @@ export const useDeleteBrand = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa thương hiệu",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa thương hiệu. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deleteBrand' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

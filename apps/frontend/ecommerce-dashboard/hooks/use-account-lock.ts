@@ -8,6 +8,7 @@ import {
     GetAccountLocksQuery,
 } from '@/types/account-lock';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory for efficient cache management
 export const accountLockKeys = {
@@ -73,12 +74,12 @@ export const useLockUser = (onSuccessCallback?: (data: any) => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Khóa tài khoản",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi khóa tài khoản. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'lockUser' },
+                devTitle: "Khóa tài khoản",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -115,12 +116,12 @@ export const useUnlockUser = (onSuccessCallback?: (data: any) => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Mở khóa tài khoản",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi mở khóa tài khoản. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'unlockUser' },
+                devTitle: "Mở khóa tài khoản",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };

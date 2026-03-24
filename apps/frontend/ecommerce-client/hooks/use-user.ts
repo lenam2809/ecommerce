@@ -29,11 +29,6 @@ export function useUser() {
         description: "Thông tin cá nhân của bạn đã được cập nhật.",
       })
     },
-    onError: () => {
-      AppToaster.error("Cập nhật thông tin thất bại", {
-        description: "Có lỗi xảy ra khi cập nhật thông tin cá nhân.",
-      })
-    },
   })
 
   return {
@@ -66,11 +61,6 @@ export function useAddresses() {
         description: "Địa chỉ mới đã được thêm vào tài khoản của bạn.",
       })
     },
-    onError: () => {
-      AppToaster.error("Thêm địa chỉ thất bại", {
-        description: "Có lỗi xảy ra khi thêm địa chỉ mới.",
-      })
-    },
   })
 
   const updateAddressMutation = useMutation({
@@ -80,11 +70,6 @@ export function useAddresses() {
       queryClient.invalidateQueries({ queryKey: ["addresses"] })
       AppToaster.success("Cập nhật địa chỉ thành công", {
         description: "Địa chỉ của bạn đã được cập nhật.",
-      })
-    },
-    onError: () => {
-      AppToaster.error("Cập nhật địa chỉ thất bại", {
-        description: "Có lỗi xảy ra khi cập nhật địa chỉ.",
       })
     },
   })
@@ -97,11 +82,6 @@ export function useAddresses() {
         description: "Địa chỉ đã được xóa khỏi tài khoản của bạn.",
       })
     },
-    onError: () => {
-      AppToaster.error("Xóa địa chỉ thất bại", {
-        description: "Có lỗi xảy ra khi xóa địa chỉ.",
-      })
-    },
   })
 
   const setDefaultAddressMutation = useMutation({
@@ -110,11 +90,6 @@ export function useAddresses() {
       queryClient.invalidateQueries({ queryKey: ["addresses"] })
       AppToaster.success("Đặt địa chỉ mặc định thành công", {
         description: "Địa chỉ mặc định đã được cập nhật.",
-      })
-    },
-    onError: () => {
-      AppToaster.error("Đặt địa chỉ mặc định thất bại", {
-        description: "Có lỗi xảy ra khi đặt địa chỉ mặc định.",
       })
     },
   })

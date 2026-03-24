@@ -6,6 +6,7 @@ import { userService } from '@/services/user-service';
 import { FormCreateUserSchema, FormUpdateUserSchema } from '@/schemas/user';
 import { toast } from './use-toast';
 import { OptionType } from '@/components/ui/select/single-select';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory for efficient cache management
 export const userKeys = {
@@ -70,11 +71,11 @@ export const useCreateUser = () => {
             router.push('/users');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới người dùng",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm người dùng. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createUser' },
+                devTitle: "Thêm mới người dùng",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -98,11 +99,11 @@ export const useUpdateUser = () => {
             router.push('/users');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật người dùng",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật người dùng. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updateUser' },
+                devTitle: "Cập nhật người dùng",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -126,11 +127,11 @@ export const useDeleteUser = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa người dùng",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa người dùng. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deleteUser' },
+                devTitle: "Xóa người dùng",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

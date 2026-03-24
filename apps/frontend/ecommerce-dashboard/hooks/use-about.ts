@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { aboutService } from '@/services/about-service';
 import { AboutDto } from '@/types/about';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 const aboutKeys = {
     all: ['about'] as const,
@@ -46,11 +47,12 @@ export const useCreateAboutSection = () => {
             router.push('/about');
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi tạo About Section",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi tạo About Section',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'createAboutSection' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -70,11 +72,12 @@ export const useUpdateAboutSection = () => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi cập nhật About Section",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật About Section',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'updateAboutSection' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -95,11 +98,12 @@ export const useUpdateAboutStatus = () => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.lists() });
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi cập nhật trạng thái About Section",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái About Section',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'updateAboutStatus' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -118,11 +122,12 @@ export const useDeleteAboutSection = (onSuccessCallback?: () => void) => {
             if (onSuccessCallback) onSuccessCallback();
         },
         onError: (error: any) => {
-            toast({
-                title: "Lỗi khi xóa About Section",
-                description: error.response?.data?.message || 'Có lỗi xảy ra khi xóa About Section',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'deleteAboutSection' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
