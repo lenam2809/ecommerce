@@ -52,7 +52,13 @@ export function ReturnDetail({ returnRequest, onActionComplete }: ReturnDetailPr
                 setShowApprove(false)
                 onActionComplete()
             } else {
-                toast({ title: "Lỗi", description: result.error, variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
             }
         } catch {
             toast({ title: "Lỗi", description: "Có lỗi xảy ra", variant: "destructive" })
@@ -76,7 +82,13 @@ export function ReturnDetail({ returnRequest, onActionComplete }: ReturnDetailPr
                 setShowReject(false)
                 onActionComplete()
             } else {
-                toast({ title: "Lỗi", description: result.error, variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
             }
         } catch {
             toast({ title: "Lỗi", description: "Có lỗi xảy ra", variant: "destructive" })
@@ -93,7 +105,13 @@ export function ReturnDetail({ returnRequest, onActionComplete }: ReturnDetailPr
                 toast({ title: "Thành công", description: `Đã chuyển sang: ${getReturnStatusName(newStatus)}` })
                 onActionComplete()
             } else {
-                toast({ title: "Lỗi", description: result.error, variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
             }
         } catch {
             toast({ title: "Lỗi", description: "Có lỗi xảy ra", variant: "destructive" })

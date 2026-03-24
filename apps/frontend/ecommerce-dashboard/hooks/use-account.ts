@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { accountService, UpdateProfileRequest, ChangePasswordRequest } from '@/services/account-service';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory for efficient cache management
 export const accountKeys = {
@@ -35,12 +36,12 @@ export const useUpdateProfile = () => {
             });
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật thông tin",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'updateProfile' },
+                devTitle: "Cập nhật thông tin",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };
@@ -60,12 +61,12 @@ export const useChangePassword = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Đổi mật khẩu",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thay đổi mật khẩu. Vui lòng thử lại sau.',
-                variant: "destructive",
-            });
+            handleApiError({
+                error,
+                context: { operation: 'changePassword' },
+                devTitle: "Đổi mật khẩu",
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+            })
         }
     });
 };

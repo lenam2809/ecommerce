@@ -37,10 +37,6 @@ export function useCreateReview() {
                 AppToaster.success("Đánh giá được tạo thành công!");
             }
         },
-        onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || "Không tạo được đánh giá";
-            AppToaster.error(errorMessage);
-        },
     });
 }
 
@@ -58,10 +54,6 @@ export function useLikeReview() {
             if (result.success) {
                 AppToaster.success("Đã thích!");
             }
-        },
-        onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || "Lỗi khi thích đánh giá";
-            AppToaster.error(errorMessage);
         },
     });
 }
@@ -99,10 +91,6 @@ export function useCreateReviewReply(productId: string | undefined, content: str
             if (result.success) {
                 AppToaster.success("Trả lời đánh giá thành công!");
             }
-        },
-        onError: (error: any) => {
-            const errorMessage = error?.response?.data?.message || "Lỗi khi trả lời đánh giá";
-            AppToaster.error(errorMessage);
         },
     });
 }

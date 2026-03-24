@@ -6,6 +6,7 @@ import { productService } from '@/services/product-service';
 import { CreateProductDto, UpdateProductDto } from '@/schemas/product';
 import { toast } from './use-toast';
 import { OptionType } from '@/components/ui/select/single-select';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const productKeys = {
@@ -77,14 +78,14 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       router.push('/products');
     },
-    onError: (error: any) => {
-      toast({
-        title: "Thêm mới sản phẩm",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại sau.',
-        variant: "destructive",
-      })
-    }
+      onError: (error: any) => {
+        handleApiError({
+          error,
+          context: { operation: 'createProduct' },
+          devTitle: 'Lỗi',
+          notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+        })
+      }
   });
 };
 
@@ -104,14 +105,14 @@ export const useUpdateProduct = () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       router.push('/products');
     },
-    onError: (error: any) => {
-      toast({
-        title: "cập nhật sản phẩm",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi cập nhật sản phẩm. Vui lòng thử lại sau.',
-        variant: "destructive",
-      })
-    }
+      onError: (error: any) => {
+        handleApiError({
+          error,
+          context: { operation: 'updateProduct' },
+          devTitle: 'Lỗi',
+          notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+        })
+      }
   });
 };
 
@@ -132,11 +133,11 @@ export const useDeleteProduct = (onSuccessCallback?: () => void) => {
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Xóa sản phẩm",
-        description: error.response?.data?.message ||
-          'Có lỗi xảy ra khi xóa sản phẩm. Vui lòng thử lại sau.',
-        variant: "destructive",
+      handleApiError({
+        error,
+        context: { operation: 'deleteProduct' },
+        devTitle: 'Lỗi',
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
       })
     }
   });

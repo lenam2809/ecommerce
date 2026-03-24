@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
@@ -79,12 +79,34 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 existingProduct.UpdatePrice(request.Price, request.SalePrice);
                 existingProduct.UpdateStock(request.StockQuantity);
 
-                // Xử lý xóa các hình ảnh phụ
-                if (request.ImageIdsToDelete != null && request.ImageIdsToDelete.Count != 0)
+                // Replace semantics for additional images:
+                // - Frontend hiện gửi lại "toàn bộ danh sách ảnh phụ" cần có (URL cũ còn giữ + ảnh mới).
+                // - Backend trước đây chỉ AddImage mà không Clear nên ảnh cũ đã bị xoá trên UI vẫn còn trong DB.
+                bool hasAdditionalImagesPayload =
+                    (request.AdditionalImages != null && request.AdditionalImages.Count > 0) ||
+                    (request.AdditionalImageUrls != null && request.AdditionalImageUrls.Count > 0);
+
+                // Nếu request không có ảnh bổ sung nào (cả file lẫn URL) và cũng không có danh sách ID cần xoá,
+                // coi như người dùng muốn xoá hết ảnh phụ => clear toàn bộ.
+                bool wantsClearAllAdditionalImages =
+                    !hasAdditionalImagesPayload &&
+                    (request.AdditionalImages == null || request.AdditionalImages.Count == 0) &&
+                    (request.AdditionalImageUrls == null || request.AdditionalImageUrls.Count == 0) &&
+                    (request.ImageIdsToDelete == null || request.ImageIdsToDelete.Count == 0);
+
+                if (hasAdditionalImagesPayload || wantsClearAllAdditionalImages)
                 {
-                    foreach (var imageId in request.ImageIdsToDelete)
+                    existingProduct.ClearImages();
+                }
+                else
+                {
+                    // Chỉ xử lý xoá theo ID khi không phải replace/toàn bộ.
+                    if (request.ImageIdsToDelete != null && request.ImageIdsToDelete.Count != 0)
                     {
-                        existingProduct.RemoveImage(imageId);
+                        foreach (var imageId in request.ImageIdsToDelete)
+                        {
+                            existingProduct.RemoveImage(imageId);
+                        }
                     }
                 }
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { promoCodeService } from '@/services/promo-code-service';
 import { CreatePromoCodeDto, UpdatePromoCodeDto } from '@/schemas/promo-code/promo-code-schema';
 import { toast } from './use-toast';
+import { handleApiError } from '@/lib/api-error';
 
 // Key factory cho quản lý cache hiệu quả
 const promoCodeKeys = {
@@ -59,11 +60,11 @@ export const useCreatePromoCode = () => {
             router.push('/configs/promo-codes');
         },
         onError: (error: any) => {
-            toast({
-                title: "Thêm mới mã khuyến mãi",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi thêm mã khuyến mãi. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'createPromoCode' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -87,11 +88,11 @@ export const useUpdatePromoCode = () => {
             router.push('/configs/promo-codes');
         },
         onError: (error: any) => {
-            toast({
-                title: "Cập nhật mã khuyến mãi",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi cập nhật mã khuyến mãi. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'updatePromoCode' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -116,11 +117,11 @@ export const useDeletePromoCode = (onSuccessCallback?: () => void) => {
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Xóa mã khuyến mãi",
-                description: error.response?.data?.message ||
-                    'Có lỗi xảy ra khi xóa mã khuyến mãi. Vui lòng thử lại sau.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'deletePromoCode' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });
@@ -137,11 +138,11 @@ export const useApplyPromoCode = () => {
             })
         },
         onError: (error: any) => {
-            toast({
-                title: "Áp dụng mã khuyến mãi",
-                description: error.response?.data?.message ||
-                    'Mã khuyến mãi không hợp lệ hoặc đã hết hạn.',
-                variant: "destructive",
+            handleApiError({
+                error,
+                context: { operation: 'applyPromoCode' },
+                devTitle: 'Lỗi',
+                notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
             })
         }
     });

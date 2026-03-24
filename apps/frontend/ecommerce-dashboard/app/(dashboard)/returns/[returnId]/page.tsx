@@ -25,7 +25,13 @@ export default function ReturnDetailPage() {
             if (result.success && result.data) {
                 setReturnRequest(result.data)
             } else {
-                toast({ title: "Lỗi", description: result.error || "Không tìm thấy", variant: "destructive" })
+                const prodMsg = "Something went wrong, please try again later"
+                const devMsg = result.error || "Không tìm thấy"
+                toast({
+                    title: "Lỗi",
+                    description: process.env.NODE_ENV === "development" ? devMsg : prodMsg,
+                    variant: "destructive",
+                })
             }
         } catch {
             toast({ title: "Lỗi", description: "Không thể tải chi tiết", variant: "destructive" })
