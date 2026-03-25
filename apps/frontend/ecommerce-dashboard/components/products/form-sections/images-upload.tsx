@@ -16,25 +16,22 @@ export function ImagesUploadSection({ form, isEditing = false, isDetail = false 
     const [mainImagePreview, setMainImagePreview] = useState<string | null>(null);
     const [additionalImagePreviews, setAdditionalImagePreviews] = useState<string[]>([]);
 
-    // Khởi tạo preview từ dữ liệu hiện có khi chỉnh sửa hoặc xem chi tiết
+    // Theo dõi giá trị từ form để cập nhật preview khi form.reset() được gọi (async API)
+    const mainImageValue = form.watch('mainImage');
+    const additionalImagesValue = form.watch('additionalImages');
+
     useEffect(() => {
-        if (isEditing || isDetail) {
-            const mainImage = form.getValues('mainImage');
-            const additionalImages = form.getValues('additionalImages') || [];
-
-
-            console.log("mainImage: ", mainImage)
-            // Nếu mainImage là URL (string), sử dụng trực tiếp
-            if (typeof mainImage === 'string') {
-                setMainImagePreview(mainImage);
-            }
-
-            // Nếu additionalImages là mảng các URL, sử dụng chúng
-            if (Array.isArray(additionalImages)) {
-                setAdditionalImagePreviews(additionalImages.filter((img: string | File) => typeof img === 'string'));
-            }
+        if ((isEditing || isDetail) && typeof mainImageValue === 'string' && mainImageValue) {
+            setMainImagePreview(mainImageValue);
         }
-    }, [form, isEditing, isDetail]);
+    }, [mainImageValue, isEditing, isDetail]);
+
+    useEffect(() => {
+        if ((isEditing || isDetail) && Array.isArray(additionalImagesValue)) {
+            const urls = additionalImagesValue.filter((img: string | File) => typeof img === 'string');
+            if (urls.length > 0) setAdditionalImagePreviews(urls);
+        }
+    }, [additionalImagesValue, isEditing, isDetail]);
 
     const handleMainImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

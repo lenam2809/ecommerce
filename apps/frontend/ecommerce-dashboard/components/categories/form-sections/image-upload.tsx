@@ -14,19 +14,14 @@ interface ImageUploadSectionProps {
 export function ImageUploadSection({ form, isEditing = false, isDetail = false }: ImageUploadSectionProps) {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    // Khởi tạo preview từ dữ liệu hiện có khi chỉnh sửa hoặc xem chi tiết
+    // Theo dõi giá trị 'image' từ form để cập nhật preview khi form.reset() được gọi
+    const imageValue = form.watch('image');
+
     useEffect(() => {
-        if (isEditing || isDetail) {
-            const image = form.getValues('image');
-            const name = form.getValues('name');
-            console.log("image: ", image)
-            console.log("name: ", name)
-            // Nếu image là URL (string), sử dụng trực tiếp
-            if (typeof image === 'string') {
-                setImagePreview(image);
-            }
+        if ((isEditing || isDetail) && typeof imageValue === 'string' && imageValue) {
+            setImagePreview(imageValue);
         }
-    }, [form, isEditing, isDetail]);
+    }, [imageValue, isEditing, isDetail]);
 
     const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

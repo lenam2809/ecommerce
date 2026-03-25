@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -23,10 +23,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     CtaTitle = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     CtaDescription = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,10 +44,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ButtonText = table.Column<string>(type: "text", nullable: false),
                     ButtonLink = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -65,10 +65,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     LogoUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     Slug = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,10 +88,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ParentId = table.Column<Guid>(type: "uuid", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -116,10 +116,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     OfficeAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     OfficeDescription = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -135,14 +135,14 @@ namespace Ecommerce.Infrastructure.Migrations
                     Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     DiscountPercentage = table.Column<decimal>(type: "numeric(5,2)", nullable: false),
                     MaxDiscountAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UsageLimit = table.Column<int>(type: "integer", nullable: false),
                     CurrentUsageCount = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -170,10 +170,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     DefaultExpiryMinutes = table.Column<int>(type: "integer", nullable: true, comment: "Thời gian hết hạn mặc định (phút)"),
                     Variables = table.Column<string>(type: "text", nullable: true, comment: "Danh sách biến sử dụng trong template (JSON)"),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "Mô tả template"),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -188,10 +188,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Category = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,15 +209,15 @@ namespace Ecommerce.Infrastructure.Migrations
                     DiscountPercentage = table.Column<decimal>(type: "numeric(5,2)", nullable: false, defaultValue: 0m),
                     DiscountAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false, defaultValue: 0m),
                     FreeShipping = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    ValidFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ValidTo = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ValidFrom = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ValidTo = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UsageLimit = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     TimesUsed = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -250,9 +250,9 @@ namespace Ecommerce.Infrastructure.Migrations
                     CustomerLevel = table.Column<int>(type: "integer", nullable: false),
                     PromotionPoints = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastLogin = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastLogin = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -340,7 +340,7 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     BrandId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LinkedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()")
+                    LinkedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -415,16 +415,16 @@ namespace Ecommerce.Infrastructure.Migrations
                     Image = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     StockQuantity = table.Column<int>(type: "integer", nullable: false),
-                    PublishedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PublishedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     HasVariants = table.Column<bool>(type: "boolean", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     BrandId = table.Column<Guid>(type: "uuid", nullable: false),
                     DiscountId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -502,17 +502,17 @@ namespace Ecommerce.Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     LockType = table.Column<int>(type: "integer", nullable: false),
-                    LockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UnlockedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LockedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UnlockedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     LockedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     UnlockedByUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     Notes = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -546,7 +546,7 @@ namespace Ecommerce.Infrastructure.Migrations
                     ActionType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     OldValues = table.Column<string>(type: "text", nullable: false),
                     NewValues = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -572,10 +572,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     PromoCode = table.Column<string>(type: "text", nullable: true),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: true),
                     AnonymousId = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -603,10 +603,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Country = table.Column<string>(type: "text", nullable: false),
                     Phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     IsDefault = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -624,13 +624,13 @@ namespace Ecommerce.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Level = table.Column<string>(type: "text", nullable: false),
-                    Message = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    EventName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    SourceContext = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    EventName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    SourceContext = table.Column<string>(type: "text", nullable: false),
                     IpAddress = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    UserAgent = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -655,8 +655,8 @@ namespace Ecommerce.Infrastructure.Migrations
                     Category = table.Column<int>(type: "integer", nullable: false, comment: "Danh mục thông báo"),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Trạng thái đã đọc"),
-                    ReadAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "Thời gian đọc thông báo"),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "Thời gian hết hạn"),
+                    ReadAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, comment: "Thời gian đọc thông báo"),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true, comment: "Thời gian hết hạn"),
                     SenderId = table.Column<Guid>(type: "uuid", nullable: true),
                     RecipientId = table.Column<Guid>(type: "uuid", nullable: true),
                     TargetGroup = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true, comment: "Nhóm đối tượng nhận thông báo"),
@@ -668,10 +668,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     RetryCount = table.Column<int>(type: "integer", nullable: false, defaultValue: 0, comment: "Số lần thử gửi lại"),
                     LastError = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true, comment: "Lỗi cuối cùng nếu có"),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -710,10 +710,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Frequency = table.Column<int>(type: "integer", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true, comment: "Cài đặt có hoạt động không"),
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -734,18 +734,18 @@ namespace Ecommerce.Infrastructure.Migrations
                     Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ShippingAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Phone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     DiscountCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     DeliveryInstructions = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    ExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -766,9 +766,9 @@ namespace Ecommerce.Infrastructure.Migrations
                     MethodName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ClassName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ExecutionTimeMilliseconds = table.Column<long>(type: "bigint", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -788,13 +788,13 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Token = table.Column<string>(type: "text", nullable: false),
-                    ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -818,12 +818,12 @@ namespace Ecommerce.Infrastructure.Migrations
                     IpAddress = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: false),
                     UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Location = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     AdditionalData = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -952,10 +952,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     WishlistItemLimit = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -976,10 +976,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -999,10 +999,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     Url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1023,10 +1023,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Value = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1045,10 +1045,10 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1073,10 +1073,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     StockQuantity = table.Column<int>(type: "integer", nullable: false),
                     Barcode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1097,7 +1097,7 @@ namespace Ecommerce.Infrastructure.Migrations
                     UserName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Tên người dùng đánh giá"),
                     UserAvatar = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false, comment: "URL avatar người dùng"),
                     Rating = table.Column<int>(type: "integer", nullable: false, comment: "Điểm đánh giá (1-5)"),
-                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()", comment: "Thời gian đánh giá"),
+                    Date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()", comment: "Thời gian đánh giá"),
                     Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false, comment: "Nội dung đánh giá"),
                     Likes = table.Column<int>(type: "integer", nullable: false, defaultValue: 0, comment: "Số lượt thích"),
                     Replies = table.Column<int>(type: "integer", nullable: false),
@@ -1105,10 +1105,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     HelpfulCount = table.Column<int>(type: "integer", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1133,7 +1133,7 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     LogEntryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Key = table.Column<string>(type: "text", nullable: false),
+                    Key = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Value = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -1158,20 +1158,20 @@ namespace Ecommerce.Infrastructure.Migrations
                     Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     ChangedBy = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     ChangeSource = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     PreviousTotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
                     NewTotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
                     PreviousShippingAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     NewShippingAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    PreviousExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    NewExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PreviousExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    NewExpectedDeliveryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     PreviousDiscountCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     NewDiscountCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     AdditionalData = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1193,12 +1193,12 @@ namespace Ecommerce.Infrastructure.Migrations
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     PaymentMethod = table.Column<int>(type: "integer", nullable: false),
                     TransactionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     IsSuccessful = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1229,11 +1229,11 @@ namespace Ecommerce.Infrastructure.Migrations
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     RefundAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     ProcessedByStaffId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ResolvedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1257,14 +1257,14 @@ namespace Ecommerce.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ShippingMethod = table.Column<int>(type: "integer", nullable: false),
                     TrackingNumber = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    EstimatedDeliveryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EstimatedDeliveryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ShippingCost = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     ShippingProvider = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     OrderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1283,7 +1283,7 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     WishlistId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DateAdded = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    DateAdded = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1312,10 +1312,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ColorHex = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
                     ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1375,7 +1375,7 @@ namespace Ecommerce.Infrastructure.Migrations
                     Quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     Color = table.Column<string>(type: "text", nullable: true),
                     Size = table.Column<string>(type: "text", nullable: true),
-                    DateAdded = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ProductVariantSkuId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -1412,7 +1412,7 @@ namespace Ecommerce.Infrastructure.Migrations
                     Image = table.Column<string>(type: "text", nullable: false),
                     Color = table.Column<string>(type: "text", nullable: false),
                     Size = table.Column<string>(type: "text", nullable: false),
-                    DateAdded = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ProductVariantSkuId = table.Column<Guid>(type: "uuid", nullable: true),
                     SkuCode = table.Column<string>(type: "text", nullable: false),
                     VariantInfo = table.Column<string>(type: "text", nullable: false)
@@ -1445,10 +1445,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ReviewId = table.Column<Guid>(type: "uuid", nullable: false),
                     Url = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1468,10 +1468,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ReviewId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1500,13 +1500,13 @@ namespace Ecommerce.Infrastructure.Migrations
                     UserName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false, comment: "Tên người trả lời"),
                     UserAvatar = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false, comment: "URL avatar người trả lời"),
                     Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false, comment: "Nội dung trả lời"),
-                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()", comment: "Thời gian trả lời"),
+                    Date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()", comment: "Thời gian trả lời"),
                     Likes = table.Column<int>(type: "integer", nullable: false, defaultValue: 0, comment: "Số lượt thích"),
                     IsVerified = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Trả lời đã được xác minh"),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1534,10 +1534,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     FileUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     FileType = table.Column<int>(type: "integer", nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1558,11 +1558,11 @@ namespace Ecommerce.Infrastructure.Migrations
                     ReturnRequestId = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     Note = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ChangedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1608,13 +1608,13 @@ namespace Ecommerce.Infrastructure.Migrations
                     SerialNumber = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     OrderItemId = table.Column<Guid>(type: "uuid", nullable: true),
-                    ImportedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ImportedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     BatchCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1639,10 +1639,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     ReviewReplyId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
