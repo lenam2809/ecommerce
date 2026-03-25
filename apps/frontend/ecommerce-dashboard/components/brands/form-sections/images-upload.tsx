@@ -14,18 +14,14 @@ interface ImagesUploadSectionProps {
 export function ImagesUploadSection({ form, isEditing = false, isDetail = false }: ImagesUploadSectionProps) {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-    // Khởi tạo preview từ dữ liệu hiện có khi chỉnh sửa hoặc xem chi tiết
-    useEffect(() => {
-        if (isEditing || isDetail) {
-            const logo = form.getValues('logo');
+    // Theo dõi giá trị 'logo' từ form để cập nhật preview khi form.reset() được gọi
+    const logoValue = form.watch('logo');
 
-            console.log('Current logo value:', logo);
-            // Nếu logo là URL (string), sử dụng trực tiếp
-            if (typeof logo === 'string') {
-                setLogoPreview(logo);
-            }
+    useEffect(() => {
+        if ((isEditing || isDetail) && typeof logoValue === 'string' && logoValue) {
+            setLogoPreview(logoValue);
         }
-    }, [form, isEditing, isDetail]);
+    }, [logoValue, isEditing, isDetail]);
 
     const handleLogoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

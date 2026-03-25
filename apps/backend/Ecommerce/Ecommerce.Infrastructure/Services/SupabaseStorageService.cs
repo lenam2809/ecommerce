@@ -70,6 +70,11 @@ namespace Ecommerce.Infrastructure.Services
         {
             if (string.IsNullOrEmpty(filePath)) return false;
 
+            // Bỏ qua các path cũ kiểu local (uploads/...) hoặc có scheme không hợp lệ (file://, http://)
+            // để tránh lỗi "The 'file' scheme is not supported" khi data cũ chưa migrate sang Supabase
+            if (filePath.Contains("://") || filePath.StartsWith("uploads/", StringComparison.OrdinalIgnoreCase))
+                return false;
+
             try
             {
                 var storage = _supabase.Storage.From(_config.BucketName);
