@@ -14,7 +14,7 @@ export default function DashboardLayout({
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)", // Giảm từ 72 xuống 48
+          "--sidebar-width": "220px",
           "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }

@@ -13,6 +13,7 @@ import {
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconMessageCircle,
   IconReport,
   IconReportMoney,
   IconRotate,
@@ -44,88 +45,11 @@ import Link from "next/link"
 import { PermissionGroups } from "@/types/permission"
 
 const data = {
-  navMain: [
+  navOverview: [
     {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
-    },
-    {
-      title: "Danh mục",
-      url: "/",
-      icon: IconCategory,
-      permissions: [...PermissionGroups.ProductManagement],
-      items: [
-        {
-          title: "Loại sản phẩm",
-          url: "/categories",
-          icon: IconCategory,
-          permissions: [...PermissionGroups.CategoryManagement]
-        },
-        {
-          title: "Thương hiệu",
-          url: "/brands",
-          icon: IconListDetails,
-          permissions: [...PermissionGroups.BrandManagement]
-        },
-        {
-          title: "Quyền",
-          url: "/permissions",
-          icon: IconUserQuestion,
-          permissions: [...PermissionGroups.PermissionManagement]
-        },
-        {
-          title: "Vai trò",
-          url: "/roles",
-          icon: IconUserCheck,
-          permissions: [...PermissionGroups.RoleManagement]
-        },
-      ],
-    },
-    {
-      title: "Sản phẩm",
-      url: "/products",
-      icon: IconListDetails,
-      permissions: [...PermissionGroups.ProductManagement]
-    },
-    {
-      title: "Đơn hàng",
-      url: "/orders",
-      icon: IconShoppingCart,
-      permissions: [...PermissionGroups.OrderManagement]
-    },
-    {
-      title: "Kho hàng (IMEI)",
-      url: "/inventory",
-      icon: IconBarcode,
-    },
-    {
-      title: "Đổi/Trả hàng",
-      url: "/returns",
-      icon: IconRotate,
-    },
-    {
-      title: "Quản lý người dùng",
-      url: "/",
-      icon: IconUsers,
-      permissions: [...PermissionGroups.UserManagement],
-      items: [
-        {
-          title: "Danh sách người dùng",
-          url: "/users",
-          icon: IconUsers,
-        },
-        {
-          title: "Danh sách tài khoản bị khóa",
-          url: "/account-locks",
-          icon: IconUserCancel,
-        },
-        {
-          title: "Quản lý hoạt động người dùng",
-          url: "/user-activities",
-          icon: IconUserBolt,
-        },
-      ],
     },
     {
       title: "Báo cáo",
@@ -154,15 +78,111 @@ const data = {
         },
       ],
     },
+  ],
+  navCatalog: [
+    {
+      title: "Danh mục",
+      url: "/",
+      icon: IconCategory,
+      permissions: [...PermissionGroups.ProductManagement],
+      items: [
+        {
+          title: "Loại sản phẩm",
+          url: "/categories",
+          icon: IconCategory,
+          permissions: [...PermissionGroups.CategoryManagement]
+        },
+        {
+          title: "Thương hiệu",
+          url: "/brands",
+          icon: IconListDetails,
+          permissions: [...PermissionGroups.BrandManagement]
+        },
+      ],
+    },
+    {
+      title: "Sản phẩm",
+      url: "/products",
+      icon: IconListDetails,
+      permissions: [...PermissionGroups.ProductManagement]
+    },
+    {
+      title: "Kho hàng (IMEI)",
+      url: "/inventory",
+      icon: IconBarcode,
+    },
+  ],
+  navSales: [
+    {
+      title: "Đơn hàng",
+      url: "/orders",
+      icon: IconShoppingCart,
+      permissions: [...PermissionGroups.OrderManagement]
+    },
+    {
+      title: "Đổi/Trả hàng",
+      url: "/returns",
+      icon: IconRotate,
+    },
+  ],
+  navSystem: [
+    {
+      title: "Quản lý người dùng",
+      url: "/",
+      icon: IconUsers,
+      permissions: [...PermissionGroups.UserManagement],
+      items: [
+        {
+          title: "Danh sách người dùng",
+          url: "/users",
+          icon: IconUsers,
+        },
+        {
+          title: "Danh sách tài khoản bị khóa",
+          url: "/account-locks",
+          icon: IconUserCancel,
+        },
+        {
+          title: "Quản lý hoạt động người dùng",
+          url: "/user-activities",
+          icon: IconUserBolt,
+        },
+      ],
+    },
+    {
+      title: "Phân quyền",
+      url: "/",
+      icon: IconUserQuestion,
+      permissions: [...PermissionGroups.PermissionManagement],
+      items: [
+        {
+          title: "Quyền",
+          url: "/permissions",
+          icon: IconUserQuestion,
+          permissions: [...PermissionGroups.PermissionManagement]
+        },
+        {
+          title: "Vai trò",
+          url: "/roles",
+          icon: IconUserCheck,
+          permissions: [...PermissionGroups.RoleManagement]
+        },
+      ]
+    },
     {
       title: "Cấu hình",
-      url: "/reports",
+      url: "/configs",
       icon: IconDevicesCog,
       items: [
         {
           title: "Banner",
           url: "/configs/banners",
           icon: IconSlideshow,
+        },
+        {
+          title: "Marquee",
+          url: "/configs/marquee",
+          icon: IconMessageCircle,
         },
         {
           title: "Logo",
@@ -247,8 +267,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
+      <SidebarContent className="scrollbar-none">
+        <NavMain label="Overview" items={data.navOverview} showCreateProduct={true} />
+        <NavMain label="Catalog" items={data.navCatalog} />
+        <NavMain label="Sales" items={data.navSales} />
+        <NavMain label="System" items={data.navSystem} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

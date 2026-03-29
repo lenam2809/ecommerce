@@ -1,0 +1,10 @@
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Features.Marquee.DTOs;
+using MediatR;
+
+namespace Ecommerce.Application.Features.Marquee.Queries.GetPublicMarquee
+{
+    public class GetPublicMarqueeQuery : IRequest<Result<PublicMarqueeResponseDto>>
+    {
+    }
+}
