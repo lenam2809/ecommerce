@@ -81,6 +81,11 @@ namespace Ecommerce.Infrastructure.Persistence
         public DbSet<ReturnEvidence> ReturnEvidences { get; set; }
         public DbSet<ReturnStatusHistory> ReturnStatusHistories { get; set; }
 
+        // Marquee Announcement Bar
+        public DbSet<MarqueeMessage> MarqueeMessages { get; set; }
+        public DbSet<MarqueeSetting> MarqueeSettings { get; set; }
+        public DbSet<MarqueeAuditLog> MarqueeAuditLogs { get; set; }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await DispatchDomainEvents();
@@ -280,6 +285,8 @@ namespace Ecommerce.Infrastructure.Persistence
             builder.Entity<WishlistItem>()
                 .HasQueryFilter(rp => !rp.Product.IsDeleted);
 
+            // Marquee seed
+            builder.Entity<MarqueeSetting>().HasData(new MarqueeSetting { Id = 1, IsEnabled = true });
         }
     }
 }

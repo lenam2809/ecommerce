@@ -43,5 +43,13 @@ export const breadcrumbConfig: BreadcrumbConfig = {
             label: "Trợ giúp",
             parent: "/",
         },
+        "/configs/marquee": {
+            label: "Quản lý Marquee",
+            parent: "/",
+        },
+        "/configs/marquee/new": {
+            label: "Thêm tin nhắn mới",
+            parent: "/configs/marquee",
+        },
     },
 }

@@ -35,10 +35,12 @@ export type NavMainItem = {
 }
 
 export interface NavMainProps {
+  label?: string
   items: NavMainItem[]
+  showCreateProduct?: boolean
 }
 
-export function NavMain({ items }: NavMainProps) {
+export function NavMain({ label, items, showCreateProduct }: NavMainProps) {
   const pathname = usePathname()
   const { user } = useAuth()
 
@@ -69,12 +71,14 @@ export function NavMain({ items }: NavMainProps) {
     return true
   })
 
+  if (filteredItems.length === 0 && !showCreateProduct) return null;
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Chức năng chính</SidebarGroupLabel>
+      {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          {hasPermission(user?.permissions, EPermissions.CreateProduct) && (
+        {showCreateProduct && hasPermission(user?.permissions, EPermissions.CreateProduct) && (
+          <SidebarMenu>
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton
                 tooltip="Quick Create"
@@ -86,8 +90,8 @@ export function NavMain({ items }: NavMainProps) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          )}
-        </SidebarMenu>
+          </SidebarMenu>
+        )}
         <SidebarMenu>
           {filteredItems.map((item) =>
             !item.items ? (
@@ -96,6 +100,7 @@ export function NavMain({ items }: NavMainProps) {
                   asChild
                   tooltip={item.title}
                   isActive={isActive(item.url)}
+                  className="data-[active=true]:bg-[var(--color-accent-muted)] data-[active=true]:border-l-2 data-[active=true]:border-[var(--color-accent)] data-[active=true]:text-[var(--color-text-1)]"
                 >
                   <Link
                     href={item.url}
@@ -118,6 +123,7 @@ export function NavMain({ items }: NavMainProps) {
                     <SidebarMenuButton
                       tooltip={item.title}
                       isActive={hasActiveChild(item)}
+                      className="data-[active=true]:bg-[var(--color-accent-muted)] data-[active=true]:border-l-2 data-[active=true]:border-[var(--color-accent)] data-[active=true]:text-[var(--color-text-1)]"
                     >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -131,6 +137,7 @@ export function NavMain({ items }: NavMainProps) {
                           <SidebarMenuSubButton
                             asChild
                             isActive={isActive(subItem.url)}
+                            className="data-[active=true]:bg-[var(--color-accent-muted)] data-[active=true]:border-l-2 data-[active=true]:border-[var(--color-accent)] data-[active=true]:text-[var(--color-text-1)]"
                           >
                             <Link href={subItem.url}>
                               {subItem.icon && <subItem.icon className="h-4 w-4" />}

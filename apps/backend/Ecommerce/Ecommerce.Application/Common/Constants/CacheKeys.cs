@@ -162,6 +162,10 @@ namespace Ecommerce.Application.Common.Constants
         public static string GetPromoCodeById(GetPromoCodeByIdQuery request) => $"get_promo_code_by_id_{request.Id}";
         #endregion
 
+        #region marquee
+        public static string GetPublicMarquee() => "marquee:public";
+        #endregion
+
     }
 
     /// <summary>

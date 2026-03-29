@@ -43,6 +43,9 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
             services.AddScoped<IReturnRequestRepository, ReturnRequestRepository>();
 
+            // Marquee
+            services.AddScoped<IMarqueeRepository, MarqueeRepository>();
+
             return services;
         }
     }
