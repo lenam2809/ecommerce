@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Infrastructure.Persistence.Repositories.Base;
@@ -221,6 +221,12 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
         public async Task<IdentityResult> ChangePasswordAsync(ApplicationUser user, string currentPassword, string newPassword)
         {
             return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        }
+
+        public async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string newPassword)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return await _userManager.ResetPasswordAsync(user, token, newPassword);
         }
 
         public async Task<bool> HasPermissionAsync(ApplicationUser user, string permissionName)

@@ -72,7 +72,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <div className="absolute bottom-4 left-4 right-4 translate-y-12 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-            <AddToCartButton productId={product.id} className="w-full shadow-md" />
+            <AddToCartButton
+              productId={product.id}
+              stockQuantity={product.stockQuantity}
+              className="w-full shadow-md"
+            />
           </div>
         </div>
       </div>

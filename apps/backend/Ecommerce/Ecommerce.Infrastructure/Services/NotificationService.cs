@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Features.Reviews.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
@@ -146,7 +146,7 @@ namespace Ecommerce.Infrastructure.Services
             }
         }
 
-        public async Task SendOrderStatusNotificationAsync(Guid userId, Guid orderId, EOrderStatus oldStatus, EOrderStatus newStatus)
+        public async Task SendOrderStatusNotificationAsync(Guid? userId, Guid orderId, EOrderStatus oldStatus, EOrderStatus newStatus)
         {
             var payload = new
             {

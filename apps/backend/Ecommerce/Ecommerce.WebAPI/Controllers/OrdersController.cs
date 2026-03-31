@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Orders.Commands.CreateOrder;
 using Ecommerce.Application.Features.Orders.Commands.DeleteOrder;
 using Ecommerce.Application.Features.Orders.Commands.UpdateOrder;
@@ -90,11 +90,14 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> Create(CreateOrderCommand command)
         {
-            // Set the user ID from the authenticated user
-            command.ApplicationUserId = command.ApplicationUserId ?? User.GetUserId();
+            // Set the user ID from the authenticated user if logged in
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                command.ApplicationUserId = command.ApplicationUserId ?? User.GetUserId();
+            }
+
             var result = await _mediator.Send(command);
 
             return result.ToActionResult();

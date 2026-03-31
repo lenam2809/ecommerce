@@ -14,8 +14,10 @@ export function useCart() {
   } = useQuery({
     queryKey: ["cart"],
     queryFn: () => cartService.getCart(),
-    // Removed staleTime to ensure cart refetches immediately after updates
-    // Cart data should always be fresh to reflect quantity changes
+    // staleTime: 30s — dữ liệu không tự refetch trong vòng 30 giây
+    // Tất cả mutations (add/update/remove/clear/promo) đều gọi invalidateQueries
+    // → force refetch ngay sau mỗi action của user, đảm bảo dữ liệu luôn chính xác
+    staleTime: 1000 * 30,
     select: (data) => {
       return data.data
     },

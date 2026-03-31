@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Base;
 using Microsoft.AspNetCore.Identity;
 
@@ -26,6 +26,7 @@ namespace Ecommerce.Domain.Interfaces
         Task RefreshUserClaimsAsync(ApplicationUser user);
         Task RefreshUserClaimsInRoleAsync(string roleName);
         Task<IdentityResult> ChangePasswordAsync(ApplicationUser user, string currentPassword, string newPassword);
+        Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string newPassword);
         Task<IdentityResult> AccessFailedAsync(ApplicationUser user);
         Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser user);
         Task<int> GetAccessFailedCountAsync(ApplicationUser user);

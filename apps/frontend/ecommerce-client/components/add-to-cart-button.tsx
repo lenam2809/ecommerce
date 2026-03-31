@@ -1,44 +1,69 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Ban } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
-import { title } from 'process';
-
 import { cn } from '@/lib/utils';
 
 interface AddToCartButtonProps {
     productId: string;
+    stockQuantity?: number; // undefined = không check (backward-compatible), 0 = hết hàng
     title?: string;
     className?: string;
 }
 
-const AddToCartButton: React.FC<AddToCartButtonProps> = ({ productId, title, className }) => {
+const AddToCartButton: React.FC<AddToCartButtonProps> = ({ productId, stockQuantity, title, className }) => {
     const { addToCart, isAddingToCart } = useCart()
+
+    const isOutOfStock = stockQuantity !== undefined && stockQuantity === 0
+    const isDisabled = isAddingToCart || isOutOfStock
+
     const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault(); // Prevent navigating if inside a Link
+        e.preventDefault() // Prevent navigating if inside a Link
+        if (isOutOfStock) return
         addToCart({
-            productId: productId,
+            productId,
             quantity: 1,
             options: {},
         })
     }
-    if (title) {
-        return <Button
-            size="sm"
-            className={cn("bg-primary hover:bg-primary/90 text-primary-foreground", className)}
-            onClick={handleAddToCart}
-            disabled={isAddingToCart}
-            title={title}
-        >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Thêm vào giỏ
-        </Button>
+
+    if (title && !isOutOfStock) {
+        return (
+            <Button
+                size="sm"
+                className={cn("bg-primary hover:bg-primary/90 text-primary-foreground", className)}
+                onClick={handleAddToCart}
+                disabled={isDisabled}
+                title={title}
+            >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Thêm vào giỏ
+            </Button>
+        )
     }
+
+    if (isOutOfStock) {
+        return (
+            <Button
+                size="sm"
+                disabled
+                title="Sản phẩm đã hết hàng"
+                className={cn(
+                    "w-full bg-muted text-muted-foreground cursor-not-allowed border border-border/50",
+                    className
+                )}
+            >
+                <Ban className="h-4 w-4 mr-2" />
+                Hết hàng
+            </Button>
+        )
+    }
+
     return (
         <Button
             size="sm"
             onClick={handleAddToCart}
-            disabled={isAddingToCart}
+            disabled={isDisabled}
             title="Thêm vào giỏ hàng"
             className={cn("w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors", className)}
         >

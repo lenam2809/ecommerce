@@ -18,6 +18,18 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 .NotEmpty().WithMessage("Email là bắt buộc")
                 .EmailAddress().WithMessage("Định dạng email không hợp lệ");
 
+            RuleFor(o => o.GuestName)
+                .MaximumLength(100).WithMessage("Tên khách không được vượt quá 100 ký tự")
+                .When(o => !string.IsNullOrWhiteSpace(o.GuestName));
+
+            RuleFor(o => o.GuestName)
+                .NotEmpty().WithMessage("Tên khách là bắt buộc cho đơn hàng guest")
+                .When(o => !o.ApplicationUserId.HasValue);
+
+            RuleFor(o => o.GuestId)
+                .MaximumLength(64).WithMessage("Guest ID không được vượt quá 64 ký tự")
+                .When(o => !string.IsNullOrWhiteSpace(o.GuestId));
+
             RuleFor(o => o.DeliveryInstructions)
                 .MaximumLength(500).WithMessage("Hướng dẫn giao hàng không được vượt quá 500 ký tự");
 

@@ -1,10 +1,11 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Exceptions;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
+using Ecommerce.Application.Common.Interfaces;
 using MediatR;
 
 namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
@@ -14,12 +15,18 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
         private readonly IPublisher _publisher;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CreateOrderCommandHandler(IUnitOfWork unitOfWork, IEnhancedLogger logger, IPublisher publisher)
+        public CreateOrderCommandHandler(
+            IUnitOfWork unitOfWork,
+            IEnhancedLogger logger,
+            IPublisher publisher,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _publisher = publisher;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -32,24 +39,53 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     return Result<Guid>.BadRequest("Đơn hàng phải có ít nhất một sản phẩm");
                 }
 
-                // Get Customer
-                var customer = await _unitOfWork.Users.GetByIdAsync(request.ApplicationUserId.Value);
-                if (customer == null)
-                {
-                    return Result<Guid>.BadRequest("Không tìm thấy khách hàng");
-                }
+                Order order;
+                string customerNameForEvent;
 
-                // Create Order using Factory Method (Domain Logic)
-                var order = Order.Create(
-                    request.ApplicationUserId.Value,
-                    $"{customer.FirstName} {customer.LastName}".Trim(),
-                    request.Email ?? customer.Email, // Prefer request email
-                    request.Phone,
-                    request.ShippingAddress,
-                    request.DiscountCode,
-                    request.DeliveryInstructions,
-                    request.ExpectedDeliveryDate
-                );
+                if (request.ApplicationUserId.HasValue)
+                {
+                    // Get Customer
+                    var customer = await _unitOfWork.Users.GetByIdAsync(request.ApplicationUserId.Value);
+                    if (customer == null)
+                    {
+                        return Result<Guid>.BadRequest("Không tìm thấy khách hàng");
+                    }
+
+                    customerNameForEvent = $"{customer.FirstName} {customer.LastName}".Trim();
+
+                    // Create User Order
+                    order = Order.Create(
+                        request.ApplicationUserId.Value,
+                        customerNameForEvent,
+                        request.Email ?? customer.Email, // Prefer request email
+                        request.Phone,
+                        request.ShippingAddress,
+                        request.DiscountCode,
+                        request.DeliveryInstructions,
+                        request.ExpectedDeliveryDate
+                    );
+                }
+                else
+                {
+                    // Create Guest Order
+                    if (string.IsNullOrWhiteSpace(request.GuestName) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Phone))
+                    {
+                        return Result<Guid>.BadRequest("Cần cung cấp thông tin liên hệ (Tên, Email, SĐT) cho đơn hàng khách.");
+                    }
+
+                    customerNameForEvent = request.GuestName.Trim();
+
+                    order = Order.CreateGuestOrder(
+                        request.Email,
+                        customerNameForEvent,
+                        request.Phone,
+                        request.ShippingAddress,
+                        request.DiscountCode,
+                        request.DeliveryInstructions,
+                        request.ExpectedDeliveryDate,
+                        string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim()
+                    );
+                }
 
                 // Process Items
                 foreach (var item in request.OrderItems)
@@ -84,7 +120,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 }
 
                 // Finalize Order Creation (Domain Validation & Event Generation)
-                order.FinalizeCreation($"{customer.FirstName} {customer.LastName}".Trim());
+                order.FinalizeCreation(customerNameForEvent);
 
                 // Persist
                 await _unitOfWork.Orders.AddAsync(order, cancellationToken);

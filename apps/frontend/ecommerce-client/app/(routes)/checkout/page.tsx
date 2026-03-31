@@ -16,6 +16,9 @@ import { PaymentMethod } from "@/components/checkout/payment-method"
 import { OrderSummary } from "@/components/checkout/order-summary"
 import { useAuth } from "@/hooks/use-auth"
 import { Form } from "@/components/ui/form"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
@@ -30,17 +33,21 @@ const checkoutSchema = z.object({
 })
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>
+type CheckoutMode = "guest" | "login"
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart()
   const createOrder = useCreateOrder()
   const { user } = useAuth()
   const router = useRouter()
+  const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>("guest")
 
   const cartItems = cart?.items || []
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
   const shippingCost = subtotal > 500000 ? 0 : 30000
   const total = subtotal + shippingCost
+
+  const isLoginModeForGuest = !user && checkoutMode === "login"
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -58,27 +65,33 @@ export default function CheckoutPage() {
   })
 
   useEffect(() => {
-    if (user) {
-      form.reset({
-        fullName: `${user.lastName || ''} ${user.firstName || ''}`.trim(),
-        email: user.email || "",
-        phoneNumber: user.phoneNumber || "",
-        address: "",
-        city: "",
-        district: "",
-        ward: "",
-        paymentMethod: "cod",
-        note: "",
-      })
-    } else {
-      // Optional: Redirect if not logged in, but better to show empty form or login prompt
-      // The original code redirected.
-      // toast.error("Vui lòng đăng nhập để tiếp tục")
-      // router.push("/login")
+    if (!user) {
+      return
     }
+
+    form.reset({
+      fullName: `${user.lastName || ""} ${user.firstName || ""}`.trim(),
+      email: user.email || "",
+      phoneNumber: user.phoneNumber || "",
+      address: "",
+      city: "",
+      district: "",
+      ward: "",
+      paymentMethod: "cod",
+      note: "",
+    })
   }, [user, form])
 
+  const handleLoginRedirect = () => {
+    router.push("/login?from=/checkout")
+  }
+
   const onSubmit = async (values: CheckoutFormValues) => {
+    if (isLoginModeForGuest) {
+      handleLoginRedirect()
+      return
+    }
+
     if (cartItems.length === 0) {
       toast.error("Giỏ hàng trống")
       return
@@ -89,6 +102,7 @@ export default function CheckoutPage() {
         shippingAddress: `${values.address}, ${values.ward}, ${values.district}, ${values.city}`,
         phone: values.phoneNumber,
         email: values.email,
+        ...(user ? {} : { guestName: values.fullName.trim() }),
         deliveryInstructions: values.note || undefined,
         orderItems: cartItems.map((item) => ({
           productId: item.productId,
@@ -101,44 +115,44 @@ export default function CheckoutPage() {
       const result = await createOrder.mutateAsync(orderData)
 
       if (result.success) {
-        if (values.paymentMethod === 'vnpay') {
+        if (values.paymentMethod === "vnpay") {
           try {
             const paymentData = {
               orderType: "billpayment",
               amount: total,
               orderDescription: `Thanh toan don hang ${result.data}`,
               name: values.fullName,
-              orderId: result.data
-            };
-            // Dynamically import to avoid circular dep if any, or just direct import
-            // Assuming paymentService is imported
-            const { default: paymentService } = await import("@/services/payment-service");
-            const paymentResponse = await paymentService.createVnPayUrl(paymentData);
+              orderId: result.data,
+            }
 
-            // Check if paymentResponse has paymentUrl directly or inside data
-            // Based on my service implementation: response.data
-            // But valid response from controller is { paymentUrl: "..." }
-            // Axios wrapper might return { data: { paymentUrl: ... } } or just data. 
-            // api.post returns AxiosResponse. response.data in service returns the body.
-            // So paymentResponse is { paymentUrl: "..." }
+            const { default: paymentService } = await import("@/services/payment-service")
+            const paymentResponse = await paymentService.createVnPayUrl(paymentData)
 
-            if (paymentResponse && paymentResponse.paymentUrl) {
-              window.location.href = paymentResponse.paymentUrl;
-              return;
+            if (paymentResponse?.paymentUrl) {
+              window.location.href = paymentResponse.paymentUrl
+              return
             }
           } catch (paymentError) {
-            console.error("VNPay URL creation failed", paymentError);
-            toast.error("Lỗi tạo link thanh toán VNPay");
-            // Fallback to order success page? Or stay here?
-            // Since order is created, maybe redirect to order detail but say payment pending?
-            router.push(`/account/orders/${result.data}`)
-            return;
+            console.error("VNPay URL creation failed", paymentError)
+            toast.error("Lỗi tạo link thanh toán VNPay")
+            if (user) {
+              router.push(`/account/orders/${result.data}`)
+            } else {
+              router.push("/")
+            }
+            return
           }
         }
 
-        toast.success("Đặt hàng thành công!")
+        toast.success("Đặt hàng thành công")
         clearCart()
-        router.push(`/account/orders/${result.data}`)
+
+        if (user) {
+          router.push(`/account/orders/${result.data}`)
+          return
+        }
+
+        router.push("/")
       } else {
         const prodMsg = "Something went wrong, please try again later"
         const devMsg = result.error || "Có lỗi xảy ra khi đặt hàng"
@@ -150,37 +164,43 @@ export default function CheckoutPage() {
     }
   }
 
-  // Redirect if not logged in (keep original logic)
-  useEffect(() => {
-    // Only redirect if explicitly required to be logged in to access page
-    // For better UX, might allow guest checkout or show login modal.
-    // Keeping original logic for now
-    const checkAuth = setTimeout(() => {
-      if (!user &&
-        // Add condition to wait for auth check (isLoading) if available from useAuth
-        // Assuming useAuth might not have isLoading exposed here or it was not used before.
-        true
-      ) {
-        // Original logic was simple user check.
-      }
-    }, 1000)
-    return () => clearTimeout(checkAuth)
-  }, [user])
-
-  // Original logic directly in useEffect
-  useEffect(() => {
-    // We already handle form reset.
-    // If strict login required:
-    if (user === null) { // Assuming useAuth returns null when not logged in (and validation finished)
-      // toast.error("Vui lòng đăng nhập để tiếp tục")
-      // router.push("/login")
-    }
-  }, [user, router])
-
   return (
     <>
       <CheckoutBreadcrumbs />
       <h1 className="text-2xl md:text-3xl font-bold mb-6">Thanh toán</h1>
+
+      {!user && (
+        <div className="mb-6 rounded-lg border border-border/20 bg-card p-4">
+          <p className="mb-3 text-sm font-medium">Bạn muốn tiếp tục theo cách nào?</p>
+          <RadioGroup
+            value={checkoutMode}
+            onValueChange={(value) => setCheckoutMode(value as CheckoutMode)}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2 rounded-md border border-border/20 p-3">
+              <RadioGroupItem id="checkout-mode-guest" value="guest" />
+              <Label htmlFor="checkout-mode-guest" className="cursor-pointer">
+                Mua như khách
+              </Label>
+            </div>
+            <div className="flex items-center gap-2 rounded-md border border-border/20 p-3">
+              <RadioGroupItem id="checkout-mode-login" value="login" />
+              <Label htmlFor="checkout-mode-login" className="cursor-pointer">
+                Đăng nhập để sử dụng tài khoản
+              </Label>
+            </div>
+          </RadioGroup>
+
+          {isLoginModeForGuest && (
+            <div className="mt-4 flex items-center justify-between rounded-md border border-primary/30 bg-primary/5 p-3">
+              <p className="text-sm text-muted-foreground">Đăng nhập để theo dõi đơn hàng trong tài khoản của bạn.</p>
+              <Button type="button" onClick={handleLoginRedirect}>
+                Đăng nhập
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -198,6 +218,8 @@ export default function CheckoutPage() {
                 total={total}
                 isSubmitting={form.formState.isSubmitting}
                 isEmpty={cartItems.length === 0}
+                isSubmitDisabled={isLoginModeForGuest}
+                submitButtonText={isLoginModeForGuest ? "Đăng nhập để tiếp tục" : "Hoàn tất đơn hàng"}
               />
             </div>
           </div>

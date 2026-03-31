@@ -26,6 +26,15 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.Property(o => o.Email)
                    .HasMaxLength(100);
 
+            builder.Property(o => o.GuestEmail)
+                   .HasMaxLength(200);
+
+            builder.Property(o => o.GuestName)
+                   .HasMaxLength(100);
+
+            builder.Property(o => o.GuestId)
+                   .HasMaxLength(64);
+
             // Cấu hình quan hệ
             builder.HasOne(o => o.ApplicationUser)
                    .WithMany(u => u.Orders)
@@ -40,6 +49,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             // Index hóa
             builder.HasIndex(o => new { o.ApplicationUserId, o.OrderDate });
+            builder.HasIndex(o => new { o.GuestId, o.OrderDate });
         }
     }
 }

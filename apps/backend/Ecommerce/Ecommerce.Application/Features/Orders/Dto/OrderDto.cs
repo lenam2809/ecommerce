@@ -9,8 +9,12 @@ namespace Ecommerce.Application.Features.Orders.Dto
     {
         public Guid Id { get; set; }
         public string Code { get; set; } = string.Empty;
-        public Guid ApplicationUserId { get; set; }
+        public Guid? ApplicationUserId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
+        public bool IsGuestOrder { get; set; }
+        public string? GuestName { get; set; }
+        public string? GuestEmail { get; set; }
+        public string? GuestId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime OrderDate { get; set; }
         public string ShippingAddress { get; set; } = string.Empty;
@@ -28,7 +32,9 @@ namespace Ecommerce.Application.Features.Orders.Dto
         {
             profile.CreateMap<Order, OrderDto>()
                 .ForMember(d => d.CustomerName, opt => opt.MapFrom(s =>
-                    s.ApplicationUser != null ? $"{s.ApplicationUser.FirstName} {s.ApplicationUser.LastName}" : string.Empty))
+                    s.ApplicationUser != null
+                        ? $"{s.ApplicationUser.FirstName} {s.ApplicationUser.LastName}".Trim()
+                        : (s.GuestName ?? string.Empty)))
                 .ForMember(d => d.RowVersion, opt => opt.MapFrom(s => s.ConcurrencyToken != null ? Convert.ToBase64String(s.ConcurrencyToken) : null));
         }
     }

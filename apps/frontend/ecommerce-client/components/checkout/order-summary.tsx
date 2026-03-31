@@ -12,6 +12,8 @@ interface OrderSummaryProps {
     total: number
     isSubmitting: boolean
     isEmpty: boolean
+    isSubmitDisabled?: boolean
+    submitButtonText?: string
 }
 
 export function OrderSummary({
@@ -21,6 +23,8 @@ export function OrderSummary({
     total,
     isSubmitting,
     isEmpty,
+    isSubmitDisabled = false,
+    submitButtonText = "Hoàn tất đơn hàng",
 }: OrderSummaryProps) {
     return (
         <div className="bg-card text-card-foreground rounded-lg border border-border/20 overflow-hidden sticky top-20">
@@ -30,7 +34,6 @@ export function OrderSummary({
 
             <div className="p-4">
                 <div className="space-y-4">
-                    {/* Order Items */}
                     <div className="space-y-3 max-h-80 overflow-y-auto">
                         {cartItems.map((item) => (
                             <OrderItem key={`${item.productId}-${item.color}-${item.size}`} item={item} />
@@ -57,9 +60,9 @@ export function OrderSummary({
                     <Button
                         type="submit"
                         className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-12"
-                        disabled={isSubmitting || isEmpty}
+                        disabled={isSubmitting || isEmpty || isSubmitDisabled}
                     >
-                        {isSubmitting ? "Đang xử lý..." : "Hoàn tất đơn hàng"}
+                        {isSubmitting ? "Đang xử lý..." : submitButtonText}
                     </Button>
 
                     <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">

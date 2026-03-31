@@ -11,8 +11,12 @@ export interface OrderItem {
 export interface Order {
     id: string;
     code: string;
-    applicationUserId: string;
+    applicationUserId?: string | null;
     userName?: string;
+    isGuestOrder?: boolean;
+    guestName?: string;
+    guestEmail?: string;
+    guestId?: string;
     orderDate: string;
     status: string;
     totalAmount: number;
@@ -58,6 +62,8 @@ export interface CreateOrderRequest {
     shippingAddress: string;
     phone: string;
     email: string;
+    guestName?: string;
+    guestId?: string;
     discountCode?: string;
     deliveryInstructions?: string;
     expectedDeliveryDate?: string;

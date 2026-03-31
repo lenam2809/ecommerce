@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Features.Reviews.Dto;
+using Ecommerce.Application.Features.Reviews.Dto;
 using Ecommerce.Domain.Enums;
 
 namespace Ecommerce.Application.Common.Interfaces
@@ -12,7 +12,7 @@ namespace Ecommerce.Application.Common.Interfaces
         /// <param name="orderId">ID của đơn hàng</param>
         /// <param name="oldStatus">Trạng thái cũ của đơn hàng</param>
         /// <param name="newStatus">Trạng thái mới của đơn hàng</param>
-        Task SendOrderStatusNotificationAsync(Guid userId, Guid orderId, EOrderStatus oldStatus, EOrderStatus newStatus);
+        Task SendOrderStatusNotificationAsync(Guid? userId, Guid orderId, EOrderStatus oldStatus, EOrderStatus newStatus);
 
         /// <summary>
         /// Gửi email xác nhận đơn hàng cho khách hàng
