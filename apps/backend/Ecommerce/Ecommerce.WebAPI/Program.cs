@@ -139,6 +139,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseRateLimiter();
 
+app.UseSecurityHeaders();
+
 app.UseRequestLogging();
 
 app.UseGlobalExceptionHandling();
