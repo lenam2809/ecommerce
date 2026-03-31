@@ -113,9 +113,33 @@ namespace Ecommerce.Infrastructure.Services
 
         private static bool IsImageFile(IFormFile file)
         {
-            // Kiểm tra định dạng file có phải là ảnh không
+            // 1. Kiểm tra extension
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            if (!allowedExts.Contains(ext)) return false;
+
+            // 2. Kiểm tra Content-Type
             var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
-            return allowedTypes.Contains(file.ContentType.ToLower());
+            if (!allowedTypes.Contains(file.ContentType.ToLower())) return false;
+
+            // 3. Kiểm tra magic bytes (file signature) để chống file giả mạo MIME type
+            using var stream = file.OpenReadStream();
+            var header = new byte[12];
+            var bytesRead = stream.Read(header, 0, header.Length);
+            if (bytesRead < 4) return false;
+
+            // JPEG: FF D8 FF
+            var isJpeg = header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            var isPng = header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
+            // GIF: 47 49 46 38 (GIF8)
+            var isGif = header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x38;
+            // WebP: 52 49 46 46 ?? ?? ?? ?? 57 45 42 50 (RIFF....WEBP)
+            var isWebp = bytesRead >= 12
+                && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+                && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50;
+
+            return isJpeg || isPng || isGif || isWebp;
         }
 
         private static async Task OptimizeAndSaveImageAsync(IFormFile file, string filePath)
