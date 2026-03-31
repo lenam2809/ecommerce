@@ -53,6 +53,16 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             // Index hóa
             builder.HasIndex(p => new { p.Name, p.Price })
                    .IncludeProperties(p => p.StockQuantity);
+
+            builder.HasIndex(p => p.Slug)
+                   .IsUnique()
+                   .HasDatabaseName("IX_Products_Slug");
+
+            builder.HasIndex(p => p.CategoryId)
+                   .HasDatabaseName("IX_Products_CategoryId");
+
+            builder.HasIndex(p => p.BrandId)
+                   .HasDatabaseName("IX_Products_BrandId");
         }
     }
 }

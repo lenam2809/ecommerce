@@ -66,7 +66,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrder
 
                 if (currentUserRoles.Contains(EUserRoles.Staff) && !currentUserRoles.Contains(EUserRoles.Admin))
                 {
-                    var orderUser = await _unitOfWork.Users.GetByIdAsync(order.ApplicationUserId);
+                    var orderUser = await _unitOfWork.Users.GetByIdAsync(order.ApplicationUserId!.Value);
                     var orderUserRoles = await _unitOfWork.Users.GetRolesAsync(orderUser);
                     if (orderUserRoles.Contains(EUserRoles.Admin))
                     {
