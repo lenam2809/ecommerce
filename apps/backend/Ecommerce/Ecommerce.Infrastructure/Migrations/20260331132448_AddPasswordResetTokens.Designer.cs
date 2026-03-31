@@ -3,6 +3,7 @@ using System;
 using Ecommerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ecommerce.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260331132448_AddPasswordResetTokens")]
+    partial class AddPasswordResetTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,9 +218,6 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerLevel");
-
-                    b.HasIndex("Email")
-                        .HasDatabaseName("IX_AspNetUsers_Email");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1313,7 +1313,7 @@ namespace Ecommerce.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ApplicationUserId")
+                    b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Code")
@@ -1344,14 +1344,6 @@ namespace Ecommerce.Infrastructure.Migrations
 
                     b.Property<DateTime?>("ExpectedDeliveryDate")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("GuestEmail")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("GuestName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1791,17 +1783,11 @@ namespace Ecommerce.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrandId")
-                        .HasDatabaseName("IX_Products_BrandId");
+                    b.HasIndex("BrandId");
 
-                    b.HasIndex("CategoryId")
-                        .HasDatabaseName("IX_Products_CategoryId");
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("DiscountId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Products_Slug");
 
                     b.HasIndex("Name", "Price");
 
@@ -3537,7 +3523,8 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.HasOne("Ecommerce.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("Orders")
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });

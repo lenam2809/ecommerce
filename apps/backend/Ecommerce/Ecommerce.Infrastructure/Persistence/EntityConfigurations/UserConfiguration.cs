@@ -22,6 +22,10 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             // Index for faster lookups
             builder.HasIndex(u => u.CustomerLevel);
+
+            // Email lookup index (NormalizedEmail index đã được Identity tạo — index này hỗ trợ case-sensitive queries)
+            builder.HasIndex(u => u.Email)
+                   .HasDatabaseName("IX_AspNetUsers_Email");
         }
     }
 }
