@@ -7,7 +7,9 @@ using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using OfficeOpenXml;
+using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -30,6 +32,40 @@ builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPa
 // Configure Auth Settings (for cookie-based auth)
 builder.Services.Configure<AuthConfig>(builder.Configuration.GetSection("AuthConfig"));
 builder.Services.Configure<CookieSettings>(builder.Configuration.GetSection("CookieSettings"));
+
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    // Global default: 100 requests/minute per IP
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? ctx.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Stricter policy for auth endpoints: 10 requests/minute per IP
+    options.AddFixedWindowLimiter("AuthPolicy", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.Headers["Retry-After"] = "60";
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { error = "Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút." },
+            cancellationToken);
+    };
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -100,6 +136,8 @@ using (var scope = app.Services.CreateScope())
         await ApplicationDbContextSeed.SeedAsync(services);
     }
 }
+
+app.UseRateLimiter();
 
 app.UseRequestLogging();
 
