@@ -196,6 +196,22 @@ class AuthService {
     public syncAuthState(): void {
         // No-op - cookies are managed by the browser
     }
+
+    /**
+     * Gửi yêu cầu đặt lại mật khẩu
+     */
+    public async forgotPassword(email: string): Promise<{ success: boolean; message?: string }> {
+        const response = await api.post("/auth/forgot-password", { email })
+        return response.data
+    }
+
+    /**
+     * Đặt lại mật khẩu với token
+     */
+    public async resetPassword(data: any): Promise<{ success: boolean; message?: string }> {
+        const response = await api.post("/auth/reset-password", data)
+        return response.data
+    }
 }
 
 const authService = new AuthService()

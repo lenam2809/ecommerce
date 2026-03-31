@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace Ecommerce.Domain.Events
 {
@@ -9,7 +9,7 @@ namespace Ecommerce.Domain.Events
     {
         public Guid OrderId { get; }
         public string OrderCode { get; }
-        public Guid CustomerId { get; }
+        public Guid? CustomerId { get; }
         public string CustomerEmail { get; }
         public string CustomerName { get; }
         public decimal TotalAmount { get; }
@@ -19,7 +19,7 @@ namespace Ecommerce.Domain.Events
         public OrderCreatedEvent(
             Guid orderId,
             string orderCode,
-            Guid customerId,
+            Guid? customerId,
             string customerEmail,
             string customerName,
             decimal totalAmount,

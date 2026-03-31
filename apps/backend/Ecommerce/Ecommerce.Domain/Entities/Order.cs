@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;
@@ -20,7 +20,19 @@ namespace Ecommerce.Domain.Entities
         public string Code { get; private set; } = string.Empty;
 
         [ForeignKey(nameof(ApplicationUser))]
-        public Guid ApplicationUserId { get; private set; }
+        public Guid? ApplicationUserId { get; private set; } // Nullable cho guest
+
+        [StringLength(200)]
+        public string? GuestEmail { get; private set; }
+
+        [StringLength(100)]
+        public string? GuestName { get; private set; }
+
+        [StringLength(64)]
+        public string? GuestId { get; private set; }
+
+        [NotMapped]
+        public bool IsGuestOrder => !ApplicationUserId.HasValue;
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; private set; }
@@ -73,11 +85,40 @@ namespace Ecommerce.Domain.Entities
                 DiscountCode = discountCode,
                 DeliveryInstructions = deliveryInstructions,
                 Status = EOrderStatus.Pending,
-                OrderDate = DateTime.Now,
-                ExpectedDeliveryDate = expectedDeliveryDate ?? DateTime.Now.AddDays(3)
+                OrderDate = DateTime.UtcNow,
+                ExpectedDeliveryDate = expectedDeliveryDate ?? DateTime.UtcNow.AddDays(3)
             };
             
             return order;
+        }
+
+        public static Order CreateGuestOrder(
+            string guestEmail,
+            string guestName,
+            string phone,
+            string shippingAddress,
+            string? discountCode,
+            string? deliveryInstructions,
+            DateTime? expectedDeliveryDate,
+            string? guestId = null)
+        {
+            return new Order
+            {
+                Id = Guid.NewGuid(),
+                Code = GenerateOrderCode(),
+                ApplicationUserId = null,
+                GuestEmail = guestEmail,
+                GuestName = guestName,
+                GuestId = guestId,
+                Email = guestEmail,
+                Phone = phone,
+                ShippingAddress = shippingAddress,
+                DiscountCode = discountCode,
+                DeliveryInstructions = deliveryInstructions,
+                Status = EOrderStatus.Pending,
+                OrderDate = DateTime.UtcNow,
+                ExpectedDeliveryDate = expectedDeliveryDate ?? DateTime.UtcNow.AddDays(3)
+            };
         }
 
         public void AddOrderItem(Guid productId, string name, string image, decimal unitPrice, int quantity, string? color, string? size)

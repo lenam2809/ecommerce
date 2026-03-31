@@ -86,6 +86,9 @@ namespace Ecommerce.Infrastructure.Persistence
         public DbSet<MarqueeSetting> MarqueeSettings { get; set; }
         public DbSet<MarqueeAuditLog> MarqueeAuditLogs { get; set; }
 
+        // Password Reset
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await DispatchDomainEvents();

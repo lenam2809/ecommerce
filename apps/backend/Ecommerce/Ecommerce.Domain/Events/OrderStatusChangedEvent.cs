@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Domain.Enums;
 using MediatR;
 
 namespace Ecommerce.Domain.Events
@@ -7,7 +7,7 @@ namespace Ecommerce.Domain.Events
     {
         public Guid OrderId { get; }
         public string OrderCode { get; }
-        public Guid UserId { get; }
+        public Guid? UserId { get; }
         public EOrderStatus OldStatus { get; }
         public EOrderStatus NewStatus { get; }
         public string CustomerEmail { get; }
@@ -16,7 +16,7 @@ namespace Ecommerce.Domain.Events
         public OrderStatusChangedEvent(
             Guid orderId,
             string orderCode,
-            Guid userId,
+            Guid? userId,
             EOrderStatus oldStatus,
             EOrderStatus newStatus,
             string customerEmail,
