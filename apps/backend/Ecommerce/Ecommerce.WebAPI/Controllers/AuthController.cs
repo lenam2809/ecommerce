@@ -1,19 +1,23 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Features.Auth.Commands.LoginUser;
 using Ecommerce.Application.Features.Auth.Commands.RefreshToken;
 using Ecommerce.Application.Features.Auth.Commands.RegisterUser;
 using Ecommerce.Application.Features.Auth.Commands.RevokeToken;
+using Ecommerce.Application.Features.Auth.Commands.ForgotPassword;
+using Ecommerce.Application.Features.Auth.Commands.ResetPassword;
 using Ecommerce.Application.Features.Auth.Queries.GetProfile;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthPolicy")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -217,6 +221,28 @@ namespace Ecommerce.WebAPI.Controllers
                 cookiesEnabled = true,
                 hasCookie = hasCookie
             });
+        }
+
+        /// <summary>
+        /// Request a password reset link
+        /// </summary>
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Reset user password with token
+        /// </summary>
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
         }
     }
 }
