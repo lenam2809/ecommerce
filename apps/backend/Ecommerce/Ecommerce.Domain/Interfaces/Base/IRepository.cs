@@ -142,11 +142,14 @@ namespace Ecommerce.Domain.Interfaces.Base
             CancellationToken cancellationToken = default);
 
 
-        // Thực thi stored procedure hoặc raw SQL
-        Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, object? parameters = null, CancellationToken cancellationToken = default);
+        // Thực thi stored procedure hoặc raw SQL với tham số đã được parameterized.
+        // CẢNH BÁO: KHÔNG được nối chuỗi user input vào tham số sql.
+        // Dùng placeholder {0}, {1}... trong sql và truyền giá trị qua parameters[].
+        Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, object[]? parameters = null, CancellationToken cancellationToken = default);
 
-        // Thực thi command
-        Task<int> ExecuteCommandAsync(string sql, object? parameters = null, CancellationToken cancellationToken = default);
+        // Thực thi command với tham số đã được parameterized.
+        // CẢNH BÁO: KHÔNG được nối chuỗi user input vào tham số sql.
+        Task<int> ExecuteCommandAsync(string sql, object[]? parameters = null, CancellationToken cancellationToken = default);
     }
 }
 
