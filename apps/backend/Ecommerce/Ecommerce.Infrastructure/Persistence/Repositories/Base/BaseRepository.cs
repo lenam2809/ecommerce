@@ -279,20 +279,18 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories.Base
             return await query.Select(selector).ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, object? parameters = null, CancellationToken cancellationToken = default)
+        // SECURITY: sql phải dùng placeholder {0},{1}... — KHÔNG concat user input vào sql string
+        public async Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, object[]? parameters = null, CancellationToken cancellationToken = default)
         {
-            if (parameters == null)
-                return await _context.Database.SqlQueryRaw<TResult>(sql).ToListAsync(cancellationToken);
-            else
-                return await _context.Database.SqlQueryRaw<TResult>(sql, parameters).ToListAsync(cancellationToken);
+            var safeParams = parameters ?? Array.Empty<object>();
+            return await _context.Database.SqlQueryRaw<TResult>(sql, safeParams).ToListAsync(cancellationToken);
         }
 
-        public async Task<int> ExecuteCommandAsync(string sql, object? parameters = null, CancellationToken cancellationToken = default)
+        // SECURITY: sql phải dùng placeholder {0},{1}... — KHÔNG concat user input vào sql string
+        public async Task<int> ExecuteCommandAsync(string sql, object[]? parameters = null, CancellationToken cancellationToken = default)
         {
-            if (parameters == null)
-                return await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
-            else
-                return await _context.Database.ExecuteSqlRawAsync(sql, new[] { parameters }, cancellationToken);
+            var safeParams = parameters ?? Array.Empty<object>();
+            return await _context.Database.ExecuteSqlRawAsync(sql, safeParams, cancellationToken);
         }
 
         private IQueryable<T> ApplySpecification(ISpecification<T> spec)
