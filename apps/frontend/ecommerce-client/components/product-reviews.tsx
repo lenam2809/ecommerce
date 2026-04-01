@@ -134,7 +134,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       const response = await fetch(`/api/reviews/${reviewId}/like`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       })

@@ -23,6 +23,10 @@ namespace Ecommerce.Domain.Entities
         [StringLength(256)]
         public string Token { get; set; } = string.Empty;
 
+        /// <summary>HMAC-SHA256 hash of Token (64 hex chars). Used for DB lookups — raw token is never persisted.</summary>
+        [StringLength(64)]
+        public string? TokenHash { get; set; }
+
         /// <summary>
         /// Thời điểm tạo token
         /// </summary>

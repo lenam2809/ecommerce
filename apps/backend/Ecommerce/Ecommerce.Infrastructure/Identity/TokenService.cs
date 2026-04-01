@@ -1,6 +1,7 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Domain.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,10 +14,12 @@ namespace Ecommerce.Infrastructure.Identity
     public class TokenService : ITokenService
     {
         private readonly JwtConfig _jwtConfig;
+        private readonly IConfiguration _configuration;
 
-        public TokenService(IOptions<JwtConfig> jwtConfig)
+        public TokenService(IOptions<JwtConfig> jwtConfig, IConfiguration configuration)
         {
             _jwtConfig = jwtConfig.Value;
+            _configuration = configuration;
         }
 
         public string GenerateAccessToken(ApplicationUser user, IEnumerable<string> roles, IEnumerable<string> permissions)
@@ -34,13 +37,11 @@ namespace Ecommerce.Infrastructure.Identity
                 new Claim("CustomerLevel", user.CustomerLevel.ToString())
             };
 
-            // Add roles to claims
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            // Add permissions to claims
             foreach (var permission in permissions)
             {
                 claims.Add(new Claim("Permission", permission));
@@ -67,6 +68,18 @@ namespace Ecommerce.Infrastructure.Identity
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
+        }
+
+        /// <inheritdoc />
+        public string HashToken(string rawToken)
+        {
+            var secret = _configuration["Auth:TokenHashSecret"]
+                ?? throw new InvalidOperationException("Auth:TokenHashSecret is not configured.");
+            var keyBytes = Encoding.UTF8.GetBytes(secret);
+            var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
+            using var hmac = new HMACSHA256(keyBytes);
+            var hashBytes = hmac.ComputeHash(tokenBytes);
+            return Convert.ToHexString(hashBytes).ToLowerInvariant(); // 64 hex chars
         }
 
         public bool ValidateToken(string token)
@@ -123,4 +136,3 @@ namespace Ecommerce.Infrastructure.Identity
         }
     }
 }
-
