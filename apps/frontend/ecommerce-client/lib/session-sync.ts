@@ -12,6 +12,7 @@ interface SessionEvent {
     payload?: {
         user?: unknown;
         timestamp?: number;
+        returnUrl?: string;  // Added for preserving redirect URL
     };
 }
 
@@ -31,12 +32,15 @@ class SessionSync {
 
         switch (type) {
             case 'LOGOUT':
-                // Clear local state and redirect
+                // Clear local state and redirect with returnUrl if provided
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('user');
                     // Only redirect if not already on login page
                     if (!window.location.pathname.includes('/login')) {
-                        window.location.href = '/login';
+                        const targetUrl = payload?.returnUrl 
+                            ? `/login?returnUrl=${payload.returnUrl}`
+                            : '/login';
+                        window.location.href = targetUrl;
                     }
                 }
                 break;

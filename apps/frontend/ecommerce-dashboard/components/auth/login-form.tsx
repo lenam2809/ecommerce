@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -26,9 +26,14 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const { login } = useAuth()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
+
+  // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
+  const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/dashboard"
+  const redirectUrl = decodeURIComponent(returnUrl)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,7 +59,8 @@ export function LoginForm() {
         localStorage.removeItem("savedEmail")
       }
 
-      router.push("/dashboard")
+      // Redirect to the requested page or default dashboard
+      router.push(redirectUrl)
     } catch (error) {
       toast({
         title: "Thất bại",
