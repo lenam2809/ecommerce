@@ -25,8 +25,9 @@ export default function LoginPage() {
     const searchParams = useSearchParams()
     const { login } = useAuth()
 
-    // Get redirect URL from query params or default to homepage
-    const redirectUrl = searchParams.get("redirect") || "/"
+    // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
+    const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/"
+    const redirectUrl = decodeURIComponent(returnUrl)
 
     const validateForm = () => {
         const newErrors: { email?: string; password?: string } = {}
