@@ -1,46 +1,101 @@
-# Root environment files
+```
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+target/
+
+# Environment variables
 .env
+.env.local
 .env.*
 
-# Docker compose local environment
-/docker-compose/.env
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+.python-version
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.pot
+*.po
+*~
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
 
-# Frontend local environment files
-/apps/frontend/**/.env
-/apps/frontend/**/.env.*
-/apps/frontend/**/.env.local
+# Node.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+dist/
+build/
+.nyc_output
+coverage/
+.nyc_output/
+istanbul-reports/
+.jscpd/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+webpack.config.js
+.webpack.config.js
+babel.config.js
+.babelrc
+.eslintcache
+.stylelintcache
+.pnp.*
+.pnp.js
+.yarn-integrity
+.yarn/
+!.yarn/cache
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/tools
 
-# Backend local configuration and secrets
-/apps/backend/**/appsettings.json
-/apps/backend/**/appsettings.Development.json
-/apps/backend/**/appsettings.Production.json
-/apps/backend/**/appsettings.Local.json
-/apps/backend/**/secrets.json
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
-# Build and package artifacts
-**/bin/
-**/obj/
-**/.next/
-**/node_modules/
-**/coverage/
-**/dist/
-**/build/
-**/out/
+# Logs
+*.log
 
-# IDE and local tooling
-**/.vs/
-**/.idea/
-**/.vscode/
-**/TemplateEngineHost/vs/
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
 
-# Generated local reports
-**/build_output.txt
-**/eslint_report.json
-apps/backend/Ecommerce/.dotnet/.dotnet/10.0.201.aspNetCertificateSentinel
-apps/backend/Ecommerce/.dotnet/.dotnet/10.0.201.dotnetFirstUseSentinel
-apps/backend/Ecommerce/.dotnet/.dotnet/10.0.201.toolpath.sentinel
-.claude/settings.local.json
-apps/frontend/ecommerce-dashboard/.claudeignore
-apps/frontend/ecommerce-dashboard/CLAUDE.md
-CLAUDE.md
-.claudeignore
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+iTunesDB
+```

@@ -58,7 +58,8 @@ function getCsrfToken(): string | undefined {
 }
 
 /**
- * Clear user data - don't redirect for guest users on soft endpoints
+ * Clear user data and redirect to login with returnUrl
+ * Only call this for actual authentication failures (401/403)
  */
 function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
   if (typeof window === "undefined") return
@@ -75,9 +76,15 @@ function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
     return // Don't redirect guests for soft endpoints
   }
 
+  // Save current URL as returnUrl before clearing data
+  const currentPath = window.location.pathname + window.location.search
+  const returnUrl = encodeURIComponent(currentPath)
+  
   localStorage.removeItem("user")
-  sessionSync.broadcast('LOGOUT')
-  window.location.href = "/login"
+  sessionSync.broadcast('LOGOUT', { returnUrl })
+  
+  // Redirect to login with returnUrl
+  window.location.href = `/login?returnUrl=${returnUrl}`
 }
 
 // Request interceptor - Add CSRF token and Guest ID
@@ -105,14 +112,20 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor for 401 handling and token refresh
+// Response interceptor for 401/403 handling and token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+    const status = error.response?.status
 
-    // Handle 401 Unauthorized with token refresh attempt
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // ONLY handle 401 Unauthorized and 403 Forbidden - let other errors pass through
+    if (status !== 401 && status !== 403) {
+      return Promise.reject(error)
+    }
+
+    // Handle 401/403 with token refresh attempt (only for 401)
+    if (status === 401 && !originalRequest._retry) {
       // Check if we're already refreshing
       if (isRefreshing) {
         // Wait for the ongoing refresh
@@ -155,8 +168,8 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Handle other 401 errors (already retried or different reason)
-    if (error.response?.status === 401 && originalRequest._retry) {
+    // Handle other 401/403 errors (already retried or different reason)
+    if ((status === 401 && originalRequest._retry) || status === 403) {
       handleAuthFailure(originalRequest)
     }
 
