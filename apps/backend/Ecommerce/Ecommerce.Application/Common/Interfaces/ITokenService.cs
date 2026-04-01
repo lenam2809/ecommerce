@@ -9,6 +9,11 @@ namespace Ecommerce.Application.Common.Interfaces
     public interface ITokenService
     {
         /// <summary>
+        /// HMAC-SHA256 hash of a raw token using Auth:TokenHashSecret.
+        /// Store the hash in the DB; compare hash-to-hash on lookup — never store the raw token.
+        /// </summary>
+        string HashToken(string rawToken);
+        /// <summary>
         /// Tạo access token (JWT) cho người dùng dựa trên thông tin người dùng, vai trò và quyền hạn.
         /// </summary>
         /// <param name="user">Người dùng đăng nhập.</param>

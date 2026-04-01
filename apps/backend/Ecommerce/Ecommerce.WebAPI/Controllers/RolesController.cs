@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Features.Roles.Commands.AssignRoleToUser;
+using Ecommerce.Application.Features.Roles.Commands.AssignRoleToUser;
 using Ecommerce.Application.Features.Roles.Commands.CreateRole;
 using Ecommerce.Application.Features.Roles.Commands.DeleteRole;
 using Ecommerce.Application.Features.Roles.Commands.UpdateRole;
@@ -6,15 +6,16 @@ using Ecommerce.Application.Features.Roles.Queries.GetAllRoles;
 using Ecommerce.Application.Features.Roles.Queries.GetRoleById;
 using Ecommerce.Application.Features.Roles.Queries.GetRoles;
 using Ecommerce.Application.Features.Roles.Queries.GetRolesByUserId;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
     public class RolesController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -28,7 +29,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tất cả các vai trò theo trang
         /// </summary>
         [HttpGet("paged")]
-        //[Authorize(Policy = "ViewRoles")]
+        [Authorize(Policy = EPermissions.ViewRoles)]
         public async Task<IActionResult> GetAll([FromQuery] GetRolesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -39,7 +40,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tất cả các vai trò
         /// </summary>
         [HttpGet]
-        //[Authorize(Policy = "ViewRoles")]
+        [Authorize(Policy = EPermissions.ViewRoles)]
         public async Task<IActionResult> GetAllRoles()
         {
             var result = await _mediator.Send(new GetAllRolesQuery());
@@ -50,7 +51,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy thông tin của một vai trò theo ID
         /// </summary>
         [HttpGet("{id}")]
-        //[Authorize(Policy = "ViewRoles")]
+        [Authorize(Policy = EPermissions.ViewRoles)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _mediator.Send(new GetRoleByIdQuery { Id = id });
@@ -61,7 +62,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Thêm mới một vai trò
         /// </summary>
         [HttpPost]
-        //[Authorize(Policy = "CreateRole")]
+        [Authorize(Policy = EPermissions.CreateRole)]
         public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
         {
             var result = await _mediator.Send(command);
@@ -74,7 +75,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Cập nhật thông tin của một vai trò
         /// </summary>
         [HttpPut("{id}")]
-        //[Authorize(Policy = "EditRole")]
+        [Authorize(Policy = EPermissions.EditRole)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id)
@@ -88,7 +89,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa một vai trò theo ID
         /// </summary>
         [HttpDelete("{id}")]
-        //[Authorize(Policy = "DeleteRole")]
+        [Authorize(Policy = EPermissions.DeleteRole)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteRoleCommand { Id = id });
@@ -99,7 +100,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách vai trò của người dùng
         /// </summary>
         [HttpGet("user/{userId}")]
-        //[Authorize(Policy = "ViewRoles")]
+        [Authorize(Policy = EPermissions.ViewRoles)]
         public async Task<IActionResult> GetByUserId(Guid userId)
         {
             var result = await _mediator.Send(new GetRolesByUserIdQuery { UserId = userId });
@@ -110,7 +111,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Gán vai trò cho người dùng
         /// </summary>
         [HttpPost("assign/user/{userId}")]
-        //[Authorize(Policy = "AssignRole")]
+        [Authorize(Policy = EPermissions.EditRole)]
         public async Task<IActionResult> AssignToUser(Guid userId, [FromBody] List<Guid> roleIds)
         {
             var result = await _mediator.Send(new AssignRoleToUserCommand

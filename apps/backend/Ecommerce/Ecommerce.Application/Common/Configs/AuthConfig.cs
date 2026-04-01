@@ -14,7 +14,7 @@ namespace Ecommerce.Application.Common.Configs
         /// Allow Authorization header as fallback during transition period
         /// Set to false after migration is complete
         /// </summary>
-        public bool AllowHeaderFallback { get; set; } = true;
+        public bool AllowHeaderFallback { get; set; } = false;
 
         /// <summary>
         /// Enable CSRF protection for cookie-based auth
@@ -25,7 +25,7 @@ namespace Ecommerce.Application.Common.Configs
         /// Include tokens in response body (for backward compatibility)
         /// Set to false after frontend migration is complete
         /// </summary>
-        public bool IncludeTokensInResponse { get; set; } = true;
+        public bool IncludeTokensInResponse { get; set; } = false;
     }
 
     /// <summary>

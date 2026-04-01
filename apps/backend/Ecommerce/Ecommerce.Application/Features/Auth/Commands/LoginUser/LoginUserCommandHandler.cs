@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Auth.Dto;
 using Ecommerce.Domain.Enums;
@@ -58,20 +58,15 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 var passwordValid = await _unitOfWork.Users.CheckPasswordAsync(user, request.Password);
                 if (!passwordValid)
                 {
-                    // Tăng số lần đăng nhập sai
                     await _unitOfWork.Users.AccessFailedAsync(user);
                     var failCount = await _unitOfWork.Users.GetAccessFailedCountAsync(user);
 
-                    if (failCount >= 5) // Ngưỡng khóa
+                    if (failCount >= 5)
                     {
                         var expiresAt = DateTime.Now.AddMinutes(30);
                         await _unitOfWork.AccountLocks.LockUserAsync(user.Id, "Đăng nhập sai quá nhiều lần", ELockType.Temporary, expiresAt);
-
-                        // Phát sự kiện UserLockedEvent
                         user.AddDomainEvent(new Domain.Events.UserLockedEvent(user.Id, user.Email, "Đăng nhập sai quá nhiều lần", expiresAt));
-
                         await _unitOfWork.CompleteAsync(cancellationToken);
-
                         return Result<AuthResponseDto>.BadRequest("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.");
                     }
 
@@ -87,12 +82,14 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 var permissionNames = permissions.Select(p => p.Name).ToList();
 
                 var accessToken = _tokenService.GenerateAccessToken(user, roles, permissionNames);
-                var refreshToken = _tokenService.GenerateRefreshToken();
+                var rawRefreshToken = _tokenService.GenerateRefreshToken();
+                var refreshTokenHash = _tokenService.HashToken(rawRefreshToken);
 
-                // Save refresh token
+                // Persist only the hash — raw token lives only in memory/cookie
                 user.RefreshTokens.Add(new Domain.Entities.RefreshToken
                 {
-                    Token = refreshToken,
+                    Token = refreshTokenHash, // kept for backward compat until column drop migration
+                    TokenHash = refreshTokenHash,
                     ExpiryDate = DateTime.Now.AddDays(7),
                     IsRevoked = false
                 });
@@ -100,7 +97,6 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 await _unitOfWork.Users.UpdateAsync(user);
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
-                // Merge guest cart if GuestId exists
                 if (!string.IsNullOrEmpty(_currentUserService.GuestId))
                 {
                     await _mergeCartService.MergeGuestCartToUserAsync(user.Id, _currentUserService.GuestId, cancellationToken);
@@ -117,10 +113,11 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                     CustomerLevel = user.CustomerLevel,
                     Roles = [.. roles],
                     AccessToken = accessToken,
-                    RefreshToken = refreshToken,
+                    RefreshToken = rawRefreshToken, // raw token goes to cookie only
                     Permissions = permissionNames,
                     Avatar = await _fileStorageService.GetFileUrlAsync(user.Avatar)
                 };
+
                 await _logger.LogAsync(ELogLevel.Information,
                     $"Người dùng {user.Email} đã đăng nhập thành công.",
                     "Đăng nhập thành công");
@@ -139,4 +136,3 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
         }
     }
 }
-

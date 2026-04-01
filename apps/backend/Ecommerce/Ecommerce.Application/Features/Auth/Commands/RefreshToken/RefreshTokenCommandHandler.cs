@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Auth.Dto;
 using Ecommerce.Domain.Interfaces;
@@ -45,14 +45,16 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
                 return Result<AuthResponseDto>.NotFound("Không tìm thấy người dùng.");
             }
 
-            // Find the refresh token
-            var storedToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == request.RefreshToken && !rt.IsRevoked);
+            // Hash the incoming token and look up by hash
+            var incomingHash = _tokenService.HashToken(request.RefreshToken);
+            var storedToken = user.RefreshTokens.FirstOrDefault(
+                rt => (rt.TokenHash == incomingHash || rt.Token == incomingHash) && !rt.IsRevoked);
+
             if (storedToken == null)
             {
                 return Result<AuthResponseDto>.BadRequest("Refresh token không hợp lệ.");
             }
 
-            // Check if the refresh token is expired
             if (storedToken.ExpiryDate < DateTime.Now)
             {
                 storedToken.IsRevoked = true;
@@ -67,28 +69,29 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
             var permissionNames = permissions.Select(p => p.Name).ToList();
 
             var newAccessToken = _tokenService.GenerateAccessToken(user, roles, permissionNames);
-            var newRefreshToken = _tokenService.GenerateRefreshToken();
+            var newRawRefreshToken = _tokenService.GenerateRefreshToken();
+            var newRefreshTokenHash = _tokenService.HashToken(newRawRefreshToken);
 
             // Revoke old refresh token
             storedToken.IsRevoked = true;
 
-            // Add new refresh token
-            var refreshTokenEntity = new Domain.Entities.RefreshToken
+            // Add new refresh token — store only the hash
+            user.RefreshTokens.Add(new Domain.Entities.RefreshToken
             {
-                Token = newRefreshToken,
+                Token = newRefreshTokenHash, // kept for backward compat until column drop migration
+                TokenHash = newRefreshTokenHash,
                 ApplicationUserId = user.Id,
                 ExpiryDate = DateTime.Now.AddDays(7),
                 IsRevoked = false
-            };
+            });
 
-            user.RefreshTokens.Add(refreshTokenEntity);
             await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.CompleteAsync(cancellationToken);
 
             return Result<AuthResponseDto>.Success(new AuthResponseDto
             {
                 AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
+                RefreshToken = newRawRefreshToken, // raw token goes to cookie only
                 UserId = user.Id,
                 Email = user.Email ?? string.Empty,
                 FirstName = user.FirstName ?? string.Empty,
@@ -101,4 +104,3 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
         }
     }
 }
-

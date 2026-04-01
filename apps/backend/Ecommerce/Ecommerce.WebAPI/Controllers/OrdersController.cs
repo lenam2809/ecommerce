@@ -7,6 +7,7 @@ using Ecommerce.Application.Features.Orders.Queries.GetOrderById;
 using Ecommerce.Application.Features.Orders.Queries.GetOrderHistory;
 using Ecommerce.Application.Features.Orders.Queries.GetOrders;
 using Ecommerce.Application.Features.Orders.Queries.GetOrdersByUser;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +27,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("paged")]
-        //[Authorize(Policy = "ViewOrders")]
+        [Authorize(Policy = EPermissions.ViewOrders)]
         public async Task<IActionResult> GetPaged([FromQuery] GetOrdersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -104,7 +105,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Policy = EPermissions.EditOrder)]
         public async Task<IActionResult> Update(Guid id, UpdateOrderCommand command)
         {
             if (id != command.Id)
@@ -114,7 +115,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPut("{id}/status")]
-        //[Authorize]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
         {
             command.Id = id;
@@ -123,7 +124,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "DeleteOrders")]
+        [Authorize(Policy = EPermissions.DeleteOrder)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteOrderCommand { Id = id });
@@ -174,16 +175,13 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin endpoint: Lấy thống kê tổng quan lịch sử đơn hàng
         /// </summary>
         [HttpGet("history-overview")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetOrderHistoryOverview([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
         {
-            // Implementation sẽ cần thêm repository method để lấy dữ liệu thống kê
-            // Đây chỉ là structure cơ bản
-
             var query = new GetOrdersQuery
             {
                 PageNumber = 1,
-                PageSize = int.MaxValue // Lấy tất cả để tính thống kê
+                PageSize = int.MaxValue
             };
 
             var result = await _mediator.Send(query);
