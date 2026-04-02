@@ -102,3 +102,4 @@ iTunesDB
 .claudeignore
 CLAUDE.md
 .claude/settings.local.json
+/apps/backend/Ecommerce/Ecommerce.WebAPI/build_output.txt
