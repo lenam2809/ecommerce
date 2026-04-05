@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import { LoginForm } from "@/components/auth/login-form"
@@ -48,9 +49,11 @@ export default function LoginPage() {
               Chào mừng bạn quay trở lại! Vui lòng đăng nhập để tiếp tục.
             </p>
           </div>
-          <LoginForm />
+          <Suspense fallback={<div className="h-[300px] flex items-center justify-center">Đang tải...</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>
   )
-}
+}

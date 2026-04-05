@@ -108,6 +108,7 @@ services:
       - Jwt__Issuer=${JWT_ISSUER:-Ecommerce}
       - Jwt__Audience=${JWT_AUDIENCE:-EcommerceUsers}
       - Jwt__AccessTokenExpirationMinutes=${JWT_EXPIRATION:-60}
+      - Auth__TokenHashSecret=${AUTH_TOKEN_HASH_SECRET}
       - FileStorage__AppUrl=${FILE_STORAGE_APP_URL}
       - FileStorage__UploadFolder=${FILE_STORAGE_UPLOAD_FOLDER:-uploads}
       - AppUrl=${BACKEND_URL:-http://localhost:5000}

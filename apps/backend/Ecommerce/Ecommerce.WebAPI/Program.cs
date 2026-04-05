@@ -8,6 +8,7 @@ using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Threading.RateLimiting;
 
@@ -128,7 +129,7 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
 
     // Always apply migrations
-    //await context.Database.MigrateAsync();
+    await context.Database.MigrateAsync();
 
     // Only seed data in Development
     if (app.Environment.IsDevelopment())

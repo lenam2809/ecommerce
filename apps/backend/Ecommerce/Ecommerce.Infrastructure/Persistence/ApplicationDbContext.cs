@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 using System.Reflection;
+using System.Linq.Expressions;
+using Ecommerce.Domain.Interfaces.Base;
 
 namespace Ecommerce.Infrastructure.Persistence
 {
@@ -61,6 +64,7 @@ namespace Ecommerce.Infrastructure.Persistence
         public DbSet<About> Abouts { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<PromoCode> PromoCodes { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<ReviewLike> ReviewLikes { get; set; }
 
         public DbSet<CustomerAddress> CustomerAddresses { get; set; }
@@ -94,6 +98,7 @@ namespace Ecommerce.Infrastructure.Persistence
             await DispatchDomainEvents();
             NormalizeDateTimesToUtc();
             RefreshConcurrencyTokens();
+            RefreshRowVersions();
             return await base.SaveChangesAsync(cancellationToken);
         }
 
@@ -132,6 +137,15 @@ namespace Ecommerce.Infrastructure.Persistence
                          .Where(e => e.State is EntityState.Added or EntityState.Modified))
             {
                 entry.Entity.ConcurrencyToken = Guid.NewGuid().ToByteArray();
+            }
+        }
+
+        private void RefreshRowVersions()
+        {
+            foreach (var entry in ChangeTracker.Entries<Product>()
+                         .Where(e => e.State is EntityState.Added or EntityState.Modified))
+            {
+                entry.Property(nameof(Product.RowVersion)).CurrentValue = Guid.NewGuid().ToByteArray();
             }
         }
 
@@ -288,8 +302,38 @@ namespace Ecommerce.Infrastructure.Persistence
             builder.Entity<WishlistItem>()
                 .HasQueryFilter(rp => !rp.Product.IsDeleted);
 
+            ApplySoftDeleteQueryFilters(builder);
+
             // Marquee seed
             builder.Entity<MarqueeSetting>().HasData(new MarqueeSetting { Id = 1, IsEnabled = true });
+        }
+
+        private static void ApplySoftDeleteQueryFilters(ModelBuilder builder)
+        {
+            var softDeleteType = typeof(ISoftDelete);
+            var falseConstant = Expression.Constant(false);
+
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                if (entityType.ClrType == null || !softDeleteType.IsAssignableFrom(entityType.ClrType))
+                {
+                    continue;
+                }
+
+                var parameter = Expression.Parameter(entityType.ClrType, "e");
+                var isDeletedProperty = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
+                var notDeletedExpression = Expression.Equal(isDeletedProperty, falseConstant);
+
+                var existingFilter = entityType.GetQueryFilter();
+                if (existingFilter != null)
+                {
+                    var replacedBody = ReplacingExpressionVisitor.Replace(existingFilter.Parameters.Single(), parameter, existingFilter.Body);
+                    notDeletedExpression = Expression.AndAlso(replacedBody, notDeletedExpression);
+                }
+
+                var lambda = Expression.Lambda(notDeletedExpression, parameter);
+                builder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+            }
         }
     }
 }

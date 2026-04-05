@@ -6,7 +6,8 @@
         DebitCard,
         PayPal,
         BankTransfer,
-        CashOnDelivery
+        CashOnDelivery,
+        VNPay
     }
 }
 

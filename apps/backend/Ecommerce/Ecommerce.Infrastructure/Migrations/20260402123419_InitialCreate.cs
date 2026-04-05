@@ -150,6 +150,58 @@ namespace Ecommerce.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MarqueeAuditLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Action = table.Column<string>(type: "text", nullable: false),
+                    OldData = table.Column<string>(type: "text", nullable: true),
+                    NewData = table.Column<string>(type: "text", nullable: true),
+                    ChangedBy = table.Column<string>(type: "text", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MarqueeAuditLogs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MarqueeMessages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    LinkUrl = table.Column<string>(type: "text", nullable: true),
+                    Icon = table.Column<string>(type: "text", nullable: true),
+                    Speed = table.Column<int>(type: "integer", nullable: false),
+                    Priority = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MarqueeMessages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MarqueeSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IsEnabled = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MarqueeSettings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "NotificationTemplates",
                 columns: table => new
                 {
@@ -178,6 +230,23 @@ namespace Ecommerce.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NotificationTemplates", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PasswordResetTokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Token = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PasswordResetTokens", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -732,7 +801,10 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    GuestEmail = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    GuestName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    GuestId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     TotalAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     ShippingAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
@@ -788,6 +860,7 @@ namespace Ecommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Token = table.Column<string>(type: "text", nullable: false),
+                    TokenHash = table.Column<string>(type: "text", nullable: true),
                     ExpiryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -1661,6 +1734,11 @@ namespace Ecommerce.Infrastructure.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.InsertData(
+                table: "MarqueeSettings",
+                columns: new[] { "Id", "IsEnabled" },
+                values: new object[] { 1, true });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Abouts_CreatedAt",
                 table: "Abouts",
@@ -1973,6 +2051,11 @@ namespace Ecommerce.Infrastructure.Migrations
                 columns: new[] { "ApplicationUserId", "OrderDate" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_GuestId_OrderDate",
+                table: "Orders",
+                columns: new[] { "GuestId", "OrderDate" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Payments_OrderId",
                 table: "Payments",
                 column: "OrderId");
@@ -2040,6 +2123,12 @@ namespace Ecommerce.Infrastructure.Migrations
                 table: "Products",
                 columns: new[] { "Name", "Price" })
                 .Annotation("Npgsql:IndexInclude", new[] { "StockQuantity" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_Slug",
+                table: "Products",
+                column: "Slug",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductSizes_ProductVariantId",
@@ -2300,6 +2389,11 @@ namespace Ecommerce.Infrastructure.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_Email",
+                table: "Users",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_CustomerLevel",
                 table: "Users",
                 column: "CustomerLevel");
@@ -2364,6 +2458,15 @@ namespace Ecommerce.Infrastructure.Migrations
                 name: "LogProperties");
 
             migrationBuilder.DropTable(
+                name: "MarqueeAuditLogs");
+
+            migrationBuilder.DropTable(
+                name: "MarqueeMessages");
+
+            migrationBuilder.DropTable(
+                name: "MarqueeSettings");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
@@ -2374,6 +2477,9 @@ namespace Ecommerce.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrderHistories");
+
+            migrationBuilder.DropTable(
+                name: "PasswordResetTokens");
 
             migrationBuilder.DropTable(
                 name: "Payments");

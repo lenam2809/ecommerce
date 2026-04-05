@@ -73,8 +73,11 @@ namespace Ecommerce.Infrastructure.Identity
         /// <inheritdoc />
         public string HashToken(string rawToken)
         {
-            var secret = _configuration["Auth:TokenHashSecret"]
-                ?? throw new InvalidOperationException("Auth:TokenHashSecret is not configured.");
+            var secret = _configuration["Auth:TokenHashSecret"];
+            if (string.IsNullOrWhiteSpace(secret))
+            {
+                throw new InvalidOperationException("Auth:TokenHashSecret is not configured.");
+            }
             var keyBytes = Encoding.UTF8.GetBytes(secret);
             var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
             using var hmac = new HMACSHA256(keyBytes);

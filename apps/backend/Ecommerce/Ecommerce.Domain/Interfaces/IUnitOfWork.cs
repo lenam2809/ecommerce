@@ -50,6 +50,8 @@ namespace Ecommerce.Domain.Interfaces
         Task<T> ExecuteStrategyAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default);
 
         bool HasActiveTransaction { get; }
+
+        void ClearTracking();
     }
 }
 

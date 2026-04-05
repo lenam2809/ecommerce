@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Domain.Entities
 {
-    public abstract class BaseEntity : IHasDomainEvents
+    public abstract class BaseEntity : IHasDomainEvents, ISoftDelete
     {
         [Key]
         public Guid Id { get; set; }
