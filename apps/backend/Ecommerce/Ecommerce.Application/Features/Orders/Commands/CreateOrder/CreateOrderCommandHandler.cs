@@ -1,12 +1,12 @@
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
-using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Exceptions;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
-using Ecommerce.Application.Common.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 {
@@ -33,114 +33,149 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         {
             try
             {
-                // Validate request data (basic validation)
                 if (request.OrderItems == null || request.OrderItems.Count == 0)
                 {
-                    return Result<Guid>.BadRequest("Đơn hàng phải có ít nhất một sản phẩm");
+                    return Result<Guid>.BadRequest("Don hang phai co it nhat mot san pham");
                 }
 
-                Order order;
-                string customerNameForEvent;
-
-                if (request.ApplicationUserId.HasValue)
+                for (var attempt = 1; attempt <= 3; attempt++)
                 {
-                    // Get Customer
-                    var customer = await _unitOfWork.Users.GetByIdAsync(request.ApplicationUserId.Value);
-                    if (customer == null)
+                    try
                     {
-                        return Result<Guid>.BadRequest("Không tìm thấy khách hàng");
+                        var orderContext = await BuildOrderContextAsync(request, cancellationToken);
+                        if (orderContext.ErrorResult != null)
+                        {
+                            return orderContext.ErrorResult;
+                        }
+
+                        var order = orderContext.Order!;
+                        var customerNameForEvent = orderContext.CustomerNameForEvent;
+
+                        foreach (var item in request.OrderItems)
+                        {
+                            var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId, cancellationToken);
+                            if (product == null)
+                            {
+                                return Result<Guid>.BadRequest($"Khong tim thay san pham voi ID {item.ProductId}");
+                            }
+
+                            if (product.StockQuantity < item.Quantity)
+                            {
+                                return Result<Guid>.BadRequest($"Khong du hang trong kho cho san pham: {product.Name}");
+                            }
+
+                            order.AddOrderItem(
+                                product.Id,
+                                product.Name,
+                                product.Image,
+                                product.SalePrice.HasValue && product.SalePrice.Value > 0 ? product.SalePrice.Value : product.Price,
+                                item.Quantity,
+                                item.Color,
+                                item.Size);
+
+                            // Optimistic concurrency is enforced by Product.RowVersion.
+                            product.AdjustStock(-item.Quantity);
+                            _unitOfWork.Products.Update(product);
+                        }
+
+                        order.FinalizeCreation(customerNameForEvent);
+
+                        await _unitOfWork.Orders.AddAsync(order, cancellationToken);
+                        await _unitOfWork.CompleteAsync(cancellationToken);
+
+                        await _logger.LogAsync(
+                            ELogLevel.Information,
+                            $"Da tao don hang thanh cong. ID: {order.Id}, Ma: {order.Code}",
+                            "Tao don hang");
+
+                        return Result<Guid>.Success(order.Id);
                     }
-
-                    customerNameForEvent = $"{customer.FirstName} {customer.LastName}".Trim();
-
-                    // Create User Order
-                    order = Order.Create(
-                        request.ApplicationUserId.Value,
-                        customerNameForEvent,
-                        request.Email ?? customer.Email, // Prefer request email
-                        request.Phone,
-                        request.ShippingAddress,
-                        request.DiscountCode,
-                        request.DeliveryInstructions,
-                        request.ExpectedDeliveryDate
-                    );
-                }
-                else
-                {
-                    // Create Guest Order
-                    if (string.IsNullOrWhiteSpace(request.GuestName) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Phone))
+                    catch (DbUpdateConcurrencyException ex) when (attempt < 3)
                     {
-                        return Result<Guid>.BadRequest("Cần cung cấp thông tin liên hệ (Tên, Email, SĐT) cho đơn hàng khách.");
+                        foreach (var entry in ex.Entries)
+                        {
+                            await entry.ReloadAsync(cancellationToken);
+                        }
+
+                        _unitOfWork.ClearTracking();
                     }
-
-                    customerNameForEvent = request.GuestName.Trim();
-
-                    order = Order.CreateGuestOrder(
-                        request.Email,
-                        customerNameForEvent,
-                        request.Phone,
-                        request.ShippingAddress,
-                        request.DiscountCode,
-                        request.DeliveryInstructions,
-                        request.ExpectedDeliveryDate,
-                        string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim()
-                    );
-                }
-
-                // Process Items
-                foreach (var item in request.OrderItems)
-                {
-                    var product = await _unitOfWork.Products
-                        .GetByIdAsync(item.ProductId, cancellationToken);
-
-                    if (product == null)
+                    catch (DbUpdateConcurrencyException)
                     {
-                        return Result<Guid>.BadRequest($"Không tìm thấy sản phẩm với ID {item.ProductId}");
+                        _unitOfWork.ClearTracking();
+                        return Result<Guid>.BadRequest("Out of stock");
                     }
-
-                    if (product.StockQuantity < item.Quantity)
-                    {
-                        return Result<Guid>.BadRequest($"Không đủ hàng trong kho cho sản phẩm: {product.Name}");
-                    }
-
-                    // Add Item via Domain Method (Encapsulates logic/calculations)
-                    order.AddOrderItem(
-                        product.Id,
-                        product.Name,
-                        product.Image,
-                        product.SalePrice.HasValue && product.SalePrice.Value > 0 ? product.SalePrice.Value : product.Price,
-                        item.Quantity,
-                        item.Color,
-                        item.Size
-                    );
-
-                    // Update Stock (Keep in Application Service or move to Domain Service)
-                    product.AdjustStock(-item.Quantity);
-                    _unitOfWork.Products.Update(product);
                 }
 
-                // Finalize Order Creation (Domain Validation & Event Generation)
-                order.FinalizeCreation(customerNameForEvent);
-
-                // Persist
-                await _unitOfWork.Orders.AddAsync(order, cancellationToken);
-                await _unitOfWork.CompleteAsync(cancellationToken);
-
-                await _logger.LogAsync(ELogLevel.Information,
-                    $"Đã tạo đơn hàng thành công. ID: {order.Id}, Mã: {order.Code}",
-                    "Tạo đơn hàng");
-
-                return Result<Guid>.Success(order.Id);
+                return Result<Guid>.BadRequest("Out of stock");
             }
             catch (DomainException dex)
             {
-                 return Result<Guid>.BadRequest(dex.Message);
+                return Result<Guid>.BadRequest(dex.Message);
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, "Lỗi xảy ra khi tạo đơn hàng");
-                return Result<Guid>.BadRequest($"Tạo đơn hàng thất bại: {ex.Message}");
+                await _logger.LogExceptionAsync(ex, "Loi xay ra khi tao don hang");
+                return Result<Guid>.BadRequest($"Tao don hang that bai: {ex.Message}");
             }
+        }
+
+        private async Task<CreateOrderContext> BuildOrderContextAsync(CreateOrderCommand request, CancellationToken cancellationToken)
+        {
+            if (request.ApplicationUserId.HasValue)
+            {
+                var customer = await _unitOfWork.Users.GetByIdAsync(request.ApplicationUserId.Value);
+                if (customer == null)
+                {
+                    return CreateOrderContext.WithError(Result<Guid>.BadRequest("Khong tim thay khach hang"));
+                }
+
+                var customerNameForEvent = $"{customer.FirstName} {customer.LastName}".Trim();
+
+                var order = Order.Create(
+                    request.ApplicationUserId.Value,
+                    customerNameForEvent,
+                    request.Email ?? customer.Email,
+                    request.Phone,
+                    request.ShippingAddress,
+                    request.DiscountCode,
+                    request.DeliveryInstructions,
+                    request.ExpectedDeliveryDate);
+
+                return CreateOrderContext.WithOrder(order, customerNameForEvent);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.GuestName) ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Phone))
+            {
+                return CreateOrderContext.WithError(Result<Guid>.BadRequest("Can cung cap thong tin lien he cho don hang khach"));
+            }
+
+            var guestName = request.GuestName.Trim();
+            var guestOrder = Order.CreateGuestOrder(
+                request.Email,
+                guestName,
+                request.Phone,
+                request.ShippingAddress,
+                request.DiscountCode,
+                request.DeliveryInstructions,
+                request.ExpectedDeliveryDate,
+                string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim());
+
+            return CreateOrderContext.WithOrder(guestOrder, guestName);
+        }
+
+        private sealed class CreateOrderContext
+        {
+            public Order? Order { get; private init; }
+            public string CustomerNameForEvent { get; private init; } = string.Empty;
+            public Result<Guid>? ErrorResult { get; private init; }
+
+            public static CreateOrderContext WithOrder(Order order, string customerName) =>
+                new() { Order = order, CustomerNameForEvent = customerName };
+
+            public static CreateOrderContext WithError(Result<Guid> errorResult) =>
+                new() { ErrorResult = errorResult };
         }
     }
 }

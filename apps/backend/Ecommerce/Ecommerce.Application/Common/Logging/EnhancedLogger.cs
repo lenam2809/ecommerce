@@ -1,14 +1,22 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace Ecommerce.Application.Common.Logging
 {
     public class EnhancedLogger : IEnhancedLogger
     {
+        private static readonly Regex BearerTokenRegex = new(@"(?i)\bBearer\s+[A-Za-z0-9\-\._~\+\/]+=*", RegexOptions.Compiled);
+        private static readonly Regex JwtRegex = new(@"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b", RegexOptions.Compiled);
+        private static readonly Regex PasswordRegex = new(@"(?i)(password|pwd|pass)\s*[:=]\s*([^\s,;]+)", RegexOptions.Compiled);
+        private static readonly Regex EmailRegex = new(@"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex PhoneRegex = new(@"\b(?:\+?\d{1,3}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{3,4}[\s\-.]?\d{3,4}\b", RegexOptions.Compiled);
+        private static readonly Regex CreditCardRegex = new(@"\b(?:\d[ -]*?){13,19}\b", RegexOptions.Compiled);
+
         private readonly ILogger<EnhancedLogger> _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly IPerformanceLogger _performanceLogger;
@@ -35,8 +43,6 @@ namespace Ecommerce.Application.Common.Logging
             _seriLogger = seriLogger;
         }
 
-        // Triển khai các phương thức từ các interface
-
         public async Task LogAuditAsync(
             string entityName,
             string actionType,
@@ -45,7 +51,11 @@ namespace Ecommerce.Application.Common.Logging
             Guid? userId = null)
         {
             await _auditLogger.LogAuditAsync(
-                entityName, actionType, oldValues, newValues, userId);
+                entityName,
+                actionType,
+                SanitizeSensitiveData(oldValues),
+                SanitizeSensitiveData(newValues),
+                userId);
         }
 
         public async Task LogPerformanceAsync(
@@ -58,15 +68,16 @@ namespace Ecommerce.Application.Common.Logging
                 methodName, className, executionTimeMs, userId);
         }
 
-        // Các phương thức khác từ IBusinessLogger
         public void Log(ELogLevel level, string message,
             string eventName,
             Dictionary<string, object>? properties = null)
         {
+            var sanitizedMessage = SanitizeSensitiveData(message);
+
             var logEntry = new LogEntry
             {
                 Level = level,
-                Message = message,
+                Message = sanitizedMessage,
                 SourceContext = eventName,
                 EventName = eventName,
                 Timestamp = DateTime.Now,
@@ -76,22 +87,23 @@ namespace Ecommerce.Application.Common.Logging
                 Properties = properties?.Select(p => new LogProperty
                 {
                     Key = p.Key,
-                    Value = p.Value?.ToString() // Chuyển object thành chuỗi để lưu
+                    Value = SanitizeSensitiveData(p.Value?.ToString())
                 }).ToList() ?? new List<LogProperty>()
             };
-            LogSerilog(level, message);
+
+            LogSerilog(level, sanitizedMessage);
             _ = _logRepository.SaveLogAsync(logEntry);
         }
 
         public async Task LogAsync(
-    ELogLevel level,
-    string message,
-    string eventName,
-    ELogType logType = ELogType.Default,
-    Dictionary<string, object>? properties = null)
+            ELogLevel level,
+            string message,
+            string eventName,
+            ELogType logType = ELogType.Default,
+            Dictionary<string, object>? properties = null)
         {
-            // Ghi log vào Serilog cho mọi loại
-            LogSerilog(level, message);
+            var sanitizedMessage = SanitizeSensitiveData(message);
+            LogSerilog(level, sanitizedMessage);
 
             switch (logType)
             {
@@ -99,23 +111,19 @@ namespace Ecommerce.Application.Common.Logging
                 case ELogType.Transaction:
                 case ELogType.AccessControl:
                 case ELogType.Configuration:
-                    // Những log có thay đổi dữ liệu quan trọng --> AuditLog
                     await LogAuditAsync(
                         entityName: eventName,
                         actionType: logType.ToString(),
-                        oldValues: "", // có thể custom sau nếu cần
-                        newValues: message
-                    );
+                        oldValues: string.Empty,
+                        newValues: sanitizedMessage);
                     break;
 
                 case ELogType.UserActivity:
                 case ELogType.Performance:
-                    // Log hiệu năng hoặc hành vi người dùng → PerformanceLog
                     await LogPerformanceAsync(
                         methodName: eventName,
                         className: logType.ToString(),
-                        executionTimeMs: properties?.GetValueOrDefault("ExecutionTime") as long? ?? 0
-                    );
+                        executionTimeMs: properties?.GetValueOrDefault("ExecutionTime") as long? ?? 0);
                     break;
 
                 case ELogType.System:
@@ -125,11 +133,10 @@ namespace Ecommerce.Application.Common.Logging
                 case ELogType.Validation:
                 case ELogType.Default:
                 default:
-                    // Log tổng quát → LogEntry
                     var logEntry = new LogEntry
                     {
                         Level = level,
-                        Message = message,
+                        Message = sanitizedMessage,
                         SourceContext = eventName,
                         EventName = eventName,
                         Timestamp = DateTime.Now,
@@ -139,7 +146,7 @@ namespace Ecommerce.Application.Common.Logging
                         Properties = properties?.Select(p => new LogProperty
                         {
                             Key = p.Key,
-                            Value = p.Value?.ToString()
+                            Value = SanitizeSensitiveData(p.Value?.ToString())
                         }).ToList() ?? new List<LogProperty>()
                     };
 
@@ -148,10 +155,17 @@ namespace Ecommerce.Application.Common.Logging
             }
         }
 
-
-
         public async Task SaveLogAsync(LogEntry logEntry)
         {
+            logEntry.Message = SanitizeSensitiveData(logEntry.Message);
+            if (logEntry.Properties != null)
+            {
+                foreach (var property in logEntry.Properties)
+                {
+                    property.Value = SanitizeSensitiveData(property.Value);
+                }
+            }
+
             await _logRepository.SaveLogAsync(logEntry);
         }
 
@@ -177,6 +191,8 @@ namespace Ecommerce.Application.Common.Logging
 
         private void LogSerilog(ELogLevel level, string message)
         {
+            _logger.LogInformation("{Level} {Message}", level, message);
+
             switch (level)
             {
                 case ELogLevel.Debug:
@@ -199,8 +215,10 @@ namespace Ecommerce.Application.Common.Logging
 
         public async Task LogExceptionAsync(Exception ex, string eventName)
         {
-            var stackTrace = ex.StackTrace ?? "Không có StackTrace, lỗi không xác định.";
-            var message = ex.Message ?? "Không có thông tin lỗi chi tiết.";
+            var stackTrace = SanitizeSensitiveData(ex.StackTrace ?? "No stack trace available.");
+            var message = SanitizeSensitiveData(ex.Message ?? "No exception details available.");
+            var innerException = SanitizeSensitiveData(ex.InnerException?.ToString() ?? "N/A");
+
             var logEntry = new LogEntry
             {
                 Id = Guid.NewGuid(),
@@ -215,7 +233,7 @@ namespace Ecommerce.Application.Common.Logging
                 Properties =
                 [
                     new LogProperty { Key = "StackTrace", Value = stackTrace },
-                    new LogProperty { Key = "InnerException", Value = message }
+                    new LogProperty { Key = "InnerException", Value = innerException }
                 ]
             };
 
@@ -223,6 +241,50 @@ namespace Ecommerce.Application.Common.Logging
             await _logRepository.SaveLogAsync(logEntry);
         }
 
+        private static string SanitizeSensitiveData(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return input ?? string.Empty;
+            }
+
+            var sanitized = input;
+            sanitized = BearerTokenRegex.Replace(sanitized, "Bearer [REDACTED_TOKEN]");
+            sanitized = JwtRegex.Replace(sanitized, "[REDACTED_JWT]");
+            sanitized = PasswordRegex.Replace(sanitized, "$1=[REDACTED_PASSWORD]");
+            sanitized = EmailRegex.Replace(sanitized, "[REDACTED_EMAIL]");
+            sanitized = PhoneRegex.Replace(sanitized, "[REDACTED_PHONE]");
+            sanitized = CreditCardRegex.Replace(sanitized, match => IsLikelyCreditCard(match.Value) ? "[REDACTED_CARD]" : match.Value);
+            return sanitized;
+        }
+
+        private static bool IsLikelyCreditCard(string rawValue)
+        {
+            var digits = new string(rawValue.Where(char.IsDigit).ToArray());
+            if (digits.Length < 13 || digits.Length > 19)
+            {
+                return false;
+            }
+
+            var sum = 0;
+            var alternate = false;
+            for (var i = digits.Length - 1; i >= 0; i--)
+            {
+                var n = digits[i] - '0';
+                if (alternate)
+                {
+                    n *= 2;
+                    if (n > 9)
+                    {
+                        n -= 9;
+                    }
+                }
+
+                sum += n;
+                alternate = !alternate;
+            }
+
+            return sum % 10 == 0;
+        }
     }
 }
-

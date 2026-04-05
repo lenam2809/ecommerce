@@ -33,6 +33,9 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.Property(p => p.Image)
                    .HasMaxLength(500);
 
+            builder.Property(p => p.RowVersion)
+                   .IsRowVersion();
+
             // Cấu hình quan hệ
             builder.HasOne(p => p.Category)
                    .WithMany(c => c.Products)

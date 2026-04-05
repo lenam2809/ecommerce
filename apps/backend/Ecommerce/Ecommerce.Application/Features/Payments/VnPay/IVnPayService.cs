@@ -6,6 +6,6 @@ namespace Ecommerce.Application.Features.Payments.VnPay
     public interface IVnPayService
     {
         string CreatePaymentUrl(PaymentInformationModel model, HttpContext context);
-        PaymentResponseModel PaymentExecute(IQueryCollection collections);
+        Task<PaymentResponseModel> PaymentExecuteAsync(IQueryCollection collections, CancellationToken cancellationToken = default);
     }
 }

@@ -25,9 +25,9 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("vnpay/return")]
-        public IActionResult PaymentCallback()
+        public async Task<IActionResult> PaymentCallback(CancellationToken cancellationToken)
         {
-            var response = _vnPayService.PaymentExecute(Request.Query);
+            var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
             
             // Redirect to frontend with status
             var feBaseUrl = "http://localhost:3000"; // Should come from config
@@ -37,10 +37,10 @@ namespace Ecommerce.WebAPI.Controllers
         }
         
         [HttpGet("vnpay/ipn")]
-        public IActionResult PaymentIpn()
+        public async Task<IActionResult> PaymentIpn(CancellationToken cancellationToken)
         {
              // Optional: Handle Server to Server notification
-             var response = _vnPayService.PaymentExecute(Request.Query);
+             var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
              if (response.Success)
              {
                  // Update order status in database here

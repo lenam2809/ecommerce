@@ -21,34 +21,51 @@ namespace Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode
 
         public async Task<Result<PromoCodeApplyResultDto>> Handle(ApplyPromoCodeCommand request, CancellationToken cancellationToken)
         {
+            var startedLocalTransaction = false;
             try
             {
-                // Kiểm tra mã giảm giá có hợp lệ không
+                if (!_unitOfWork.HasActiveTransaction)
+                {
+                    await _unitOfWork.BeginTransactionAsync(cancellationToken);
+                    startedLocalTransaction = true;
+                }
+
+                var now = DateTime.UtcNow;
+
+                // Ensure promo usage limit is incremented atomically in DB
+                var rowsAffected = await _unitOfWork
+                    .BaseRepository<Domain.Entities.PromoCode>()
+                    .ExecuteCommandAsync(
+                        "UPDATE \"PromoCodes\" " +
+                        "SET \"TimesUsed\" = \"TimesUsed\" + 1 " +
+                        "WHERE \"Code\" = {0} " +
+                        "AND \"IsActive\" = TRUE " +
+                        "AND \"ValidFrom\" <= {1} " +
+                        "AND \"ValidTo\" >= {1} " +
+                        "AND (\"UsageLimit\" = 0 OR \"TimesUsed\" < \"UsageLimit\")",
+                        [request.Code, now],
+                        cancellationToken);
+
+                if (rowsAffected == 0)
+                {
+                    if (startedLocalTransaction)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                    }
+
+                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá không hợp lệ hoặc đã đạt giới hạn sử dụng");
+                }
+
+                // Read back current state after successful atomic increment
                 var promoCode = await _unitOfWork.PromoCodes.GetByCodeAsync(request.Code);
 
                 if (promoCode == null)
                 {
-                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá không tồn tại");
-                }
-
-                if (!promoCode.IsActive)
-                {
-                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá không còn hiệu lực");
-                }
-
-                if (promoCode.ValidFrom > DateTime.Now)
-                {
-                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá chưa đến thời hạn sử dụng");
-                }
-
-                if (promoCode.ValidTo < DateTime.Now)
-                {
-                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá đã hết hạn");
-                }
-
-                if (promoCode.UsageLimit > 0 && promoCode.TimesUsed >= promoCode.UsageLimit)
-                {
-                    return Result<PromoCodeApplyResultDto>.BadRequest("Mã giảm giá đã đạt giới hạn sử dụng");
+                    if (startedLocalTransaction)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                    }
+                    throw new InvalidOperationException("Promo code state changed during transaction");
                 }
 
                 // Tính toán số tiền giảm giá
@@ -97,11 +114,22 @@ namespace Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode
                     PromoCode = _mapper.Map<PromoCodeDto>(promoCode)
                 };
 
+                if (startedLocalTransaction)
+                {
+                    await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                }
+
                 return Result<PromoCodeApplyResultDto>.Success(result);
             }
             catch (Exception ex)
             {
-                return Result<PromoCodeApplyResultDto>.BadRequest($"Lỗi khi áp dụng mã giảm giá: {ex.Message}");
+                if (startedLocalTransaction)
+                {
+                    await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                    return Result<PromoCodeApplyResultDto>.BadRequest($"Lỗi khi áp dụng mã giảm giá: {ex.Message}");
+                }
+
+                throw;
             }
         }
     }

@@ -125,6 +125,11 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
 
         public bool HasActiveTransaction => _context.Database.CurrentTransaction != null;
 
+        public void ClearTracking()
+        {
+            _context.ChangeTracker.Clear();
+        }
+
         public void Dispose()
         {
             // _context.Dispose(); // Tạm thời để DI container tự quản lý vòng đời

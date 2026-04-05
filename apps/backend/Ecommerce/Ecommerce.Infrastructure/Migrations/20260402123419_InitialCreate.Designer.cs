@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ecommerce.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260331152025_AddPerformanceIndexes")]
-    partial class AddPerformanceIndexes
+    [Migration("20260402123419_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1352,6 +1352,10 @@ namespace Ecommerce.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("GuestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("GuestName")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1384,6 +1388,8 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId", "OrderDate");
+
+                    b.HasIndex("GuestId", "OrderDate");
 
                     b.ToTable("Orders", (string)null);
                 });
@@ -1570,6 +1576,10 @@ namespace Ecommerce.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime?>("UsedAt")
                         .HasColumnType("timestamp without time zone");
@@ -2212,6 +2222,9 @@ namespace Ecommerce.Infrastructure.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TokenHash")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
