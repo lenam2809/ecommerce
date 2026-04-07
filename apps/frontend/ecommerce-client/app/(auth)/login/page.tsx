@@ -81,7 +81,7 @@ export default function LoginPage() {
     return (
         <div className="glass-card p-8 rounded-2xl w-full text-left">
             <div className="text-center mb-8">
-                <h1 className="text-3xl tech-heading mb-2 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+                <h1 className="text-3xl tech-heading mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#2A5CAA] to-[#1e4785] dark:from-blue-400 dark:to-blue-600">
                     Đăng nhập
                 </h1>
                 <p className="text-muted-foreground text-sm">

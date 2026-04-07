@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/hooks/use-auth"
 import { SignalRProvider } from "@/hubs/signalr-context"
+import { AnalyticsProvider } from "@/components/analytics-provider"
 
 interface ProvidersProps {
   children: ReactNode
@@ -29,7 +30,9 @@ export default function Providers({ children }: ProvidersProps) {
       <AuthProvider>
         <SignalRProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            {children}
+            <AnalyticsProvider>
+              {children}
+            </AnalyticsProvider>
           </ThemeProvider>
         </SignalRProvider>
       </AuthProvider>
