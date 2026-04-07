@@ -27,21 +27,35 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Toggle theme">
-          {theme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          aria-label={`Toggle theme (current: ${theme})`}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md"
+        >
+          {theme === "dark" ? <Moon className="h-5 w-5" aria-hidden="true" /> : <Sun className="h-5 w-5" aria-hidden="true" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={() => setTheme("light")}
+          aria-current={theme === "light" ? "true" : "false"}
+        >
+          <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
           <span>Sáng</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={() => setTheme("dark")}
+          aria-current={theme === "dark" ? "true" : "false"}
+        >
+          <Moon className="mr-2 h-4 w-4" aria-hidden="true" />
           <span>Tối</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <span className="mr-2">💻</span>
+        <DropdownMenuItem 
+          onClick={() => setTheme("system")}
+          aria-current={theme === "system" ? "true" : "false"}
+        >
+          <span className="mr-2" aria-hidden="true">💻</span>
           <span>Hệ thống</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

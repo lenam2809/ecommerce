@@ -74,14 +74,18 @@ export function Header() {
                     ? "bg-background/80 backdrop-blur-xl border-b border-border shadow-sm" 
                     : "bg-transparent border-b border-transparent"
             }`}
+            role="banner"
         >
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:left-0 focus:z-51 focus:p-4 focus:bg-primary focus:text-primary-foreground focus:rounded">
+                Skip to main content
+            </a>
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center">
+                    <Link href="/" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md">
                         <Image
                             src="/logo.png?height=40&width=120"
-                            alt="ShopViet Logo"
+                            alt="ShopViet - Home"
                             width={120}
                             height={40}
                             className="h-8 md:h-10 w-auto dark:invert transition-transform duration-300 hover:scale-105"
@@ -107,28 +111,38 @@ export function Header() {
                             size="icon"
                             className="md:hidden"
                             onClick={() => setShowSuggestions(!showSuggestions)}
+                            aria-label={showSuggestions ? "Close search" : "Open search"}
+                            aria-expanded={showSuggestions}
                         >
                             <Search className="h-5 w-5" />
                         </Button>
 
                         {/* Wishlist */}
-                        <Link href="/wishlist" className="relative hidden md:block">
-                            <Button variant="ghost" size="icon">
+                        <Link href="/wishlist" className="relative hidden md:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md">
+                            <Button 
+                                variant="ghost" 
+                                size="icon"
+                                aria-label={`Wishlist ${wishlistItemCount > 0 ? `with ${wishlistItemCount} items` : "is empty"}`}
+                            >
                                 <Heart className="h-5 w-5" />
                             </Button>
                             {wishlistItemCount > 0 && (
-                                <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                                <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full" aria-label={`${wishlistItemCount} items in wishlist`}>
                                     {wishlistItemCount}
                                 </Badge>
                             )}
                         </Link>
 
                         {/* Cart */}
-                        <Link href="/cart" className="relative">
-                            <Button variant="ghost" size="icon">
+                        <Link href="/cart" className="relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md">
+                            <Button 
+                                variant="ghost" 
+                                size="icon"
+                                aria-label={`Shopping cart ${cartItemCount > 0 ? `with ${cartItemCount} items` : "is empty"}`}
+                            >
                                 <ShoppingCart className="h-5 w-5" />
                                 {cartItemCount > 0 && (
-                                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                                    <Badge className="absolute -top-1 -right-1 bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full" aria-label={`${cartItemCount} items in cart`}>
                                         {cartItemCount}
                                     </Badge>
                                 )}
@@ -149,6 +163,9 @@ export function Header() {
                             size="icon"
                             className="md:hidden"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                            aria-expanded={isMobileMenuOpen}
+                            aria-controls="mobile-menu"
                         >
                             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                         </Button>
