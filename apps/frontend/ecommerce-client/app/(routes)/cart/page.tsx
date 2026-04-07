@@ -25,6 +25,7 @@ export default function CartPage() {
     isClearingCart,
     applyPromoCode,
     isApplyingPromoCode,
+    promoCodeError,
   } = useCart()
 
   // Notification handling for cart operations
@@ -76,6 +77,7 @@ export default function CartPage() {
           isRemovingCartItem={isRemovingCartItem}
           isClearingCart={isClearingCart}
           isApplyingPromoCode={isApplyingPromoCode}
+          promoCodeError={promoCodeError}
         />
       ) : (
         <EmptyCart />

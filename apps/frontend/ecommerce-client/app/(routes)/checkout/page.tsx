@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -11,14 +12,24 @@ import { useCart } from "@/hooks/use-cart"
 import { useCreateOrder } from "@/hooks/use-orders"
 import { CreateOrderRequest } from "@/types/order"
 import { CheckoutBreadcrumbs } from "@/components/checkout/checkout-breadcrumbs"
-import { ShippingInformation } from "@/components/checkout/shipping-information"
-import { PaymentMethod } from "@/components/checkout/payment-method"
-import { OrderSummary } from "@/components/checkout/order-summary"
 import { useAuth } from "@/hooks/use-auth"
 import { Form } from "@/components/ui/form"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+
+// Lazy load non-critical components for faster initial page load
+const ShippingInformation = dynamic(() => import("@/components/checkout/shipping-information").then(m => ({ default: m.ShippingInformation })), {
+  loading: () => <div className="h-96 bg-muted/30 rounded-lg animate-pulse" />,
+})
+
+const PaymentMethod = dynamic(() => import("@/components/checkout/payment-method").then(m => ({ default: m.PaymentMethod })), {
+  loading: () => <div className="h-96 bg-muted/30 rounded-lg animate-pulse" />,
+})
+
+const OrderSummary = dynamic(() => import("@/components/checkout/order-summary").then(m => ({ default: m.OrderSummary })), {
+  loading: () => <div className="h-96 bg-muted/30 rounded-lg animate-pulse" />,
+})
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
