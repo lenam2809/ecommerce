@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -18,8 +19,12 @@ import { ProductPrice } from "@/components/products/product-price"
 import { ProductVariantSelector } from "@/components/products/product-variant-selector"
 import { ProductQuantitySelector } from "@/components/products/product-quantity-selector"
 import { ProductActions } from "@/components/products/product-actions"
-import { ProductTabs } from "@/components/products/product-tabs"
 import { ChevronRight } from "lucide-react"
+
+// Lazy load tabs component - user typically doesn't need it immediately
+const ProductTabs = dynamic(() => import("@/components/products/product-tabs").then(m => ({ default: m.ProductTabs })), {
+    loading: () => <div className="h-96 bg-muted/30 rounded-lg animate-pulse" />,
+})
 
 export default function ProductDetailPage() {
     const params = useParams()

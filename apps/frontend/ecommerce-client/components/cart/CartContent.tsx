@@ -15,6 +15,7 @@ type CartContentProps = {
     isRemovingCartItem: boolean;
     isClearingCart: boolean;
     isApplyingPromoCode: boolean;
+    promoCodeError?: any;
 };
 
 const CartContent = ({
@@ -27,6 +28,7 @@ const CartContent = ({
     isRemovingCartItem,
     isClearingCart,
     isApplyingPromoCode,
+    promoCodeError,
 }: CartContentProps) => {
     const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
         if (newQuantity < 1) return;
@@ -59,6 +61,7 @@ const CartContent = ({
                     itemCount={itemCount}
                     onApplyPromoCode={applyPromoCode}
                     isApplyingPromoCode={isApplyingPromoCode}
+                    promoCodeError={promoCodeError}
                 />
             </div>
         </div>

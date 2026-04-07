@@ -1,10 +1,13 @@
 // use-cart.ts
+import { useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import cartService from "@/services/cart-service"
 import { AppToaster } from "@/components/toast/app-toaster"
+import { useAuth } from "@/hooks/use-auth"
 
 export function useCart() {
   const queryClient = useQueryClient()
+  const { isAuthenticated } = useAuth()
 
   // Get cart
   const {
@@ -86,7 +89,20 @@ export function useCart() {
         description: data.data?.promoCode?.description || "Mã giảm giá đã được áp dụng.",
       })
     },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || "Mã giảm giá không hợp lệ"
+      AppToaster.error("Lỗi mã giảm giá", {
+        description: errorMessage,
+      })
+    },
   })
+
+  // Sync cart when user logs in (invalidate cart query to force refetch from server)
+  useEffect(() => {
+    if (isAuthenticated) {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
+    }
+  }, [isAuthenticated, queryClient])
 
   return {
     cart,
@@ -102,5 +118,6 @@ export function useCart() {
     isClearingCart: clearCartMutation.isPending,
     applyPromoCode: applyPromoCodeMutation.mutate,
     isApplyingPromoCode: applyPromoCodeMutation.isPending,
+    promoCodeError: applyPromoCodeMutation.error,
   }
 }
