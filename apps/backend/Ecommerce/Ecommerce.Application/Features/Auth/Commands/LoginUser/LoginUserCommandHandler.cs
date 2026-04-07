@@ -6,6 +6,8 @@ using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
 {
@@ -19,7 +21,8 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
         private readonly IMergeCartService _mergeCartService;
         private readonly ICurrentUserService _currentUserService;
 
-        public LoginUserCommandHandler(IUnitOfWork unitOfWork,
+        public LoginUserCommandHandler(
+            IUnitOfWork unitOfWork,
             ITokenService tokenService,
             IFileStorageService fileStorageService,
             IEnhancedLogger logger,
@@ -43,18 +46,19 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
                 if (user == null)
                 {
-                    return Result<AuthResponseDto>.BadRequest("Email hoặc mật khẩu không hợp lệ.");
+                    return Result<AuthResponseDto>.BadRequest("Invalid email or password.");
                 }
 
-                // 1. Kiểm tra khóa tài khoản (Custom Lock)
                 if (await _unitOfWork.AccountLocks.IsUserLockedAsync(user.Id))
                 {
                     var activeLock = await _unitOfWork.AccountLocks.GetActiveLockAsync(user.Id);
-                    return Result<AuthResponseDto>.BadRequest($"Tài khoản đã bị khóa. Lý do: {activeLock.Reason}. " +
-                        (activeLock.ExpiresAt.HasValue ? $"Hết hạn lúc: {activeLock.ExpiresAt.Value}" : "Khóa vĩnh viễn."));
+                    return Result<AuthResponseDto>.BadRequest(
+                        $"Account is locked. Reason: {activeLock.Reason}. " +
+                        (activeLock.ExpiresAt.HasValue
+                            ? $"Unlocks at: {activeLock.ExpiresAt.Value:u}"
+                            : "Permanent lock."));
                 }
 
-                // 2. Kiểm tra mật khẩu
                 var passwordValid = await _unitOfWork.Users.CheckPasswordAsync(user, request.Password);
                 if (!passwordValid)
                 {
@@ -64,34 +68,47 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                     if (failCount >= 5)
                     {
                         var expiresAt = DateTime.Now.AddMinutes(30);
-                        await _unitOfWork.AccountLocks.LockUserAsync(user.Id, "Đăng nhập sai quá nhiều lần", ELockType.Temporary, expiresAt);
-                        user.AddDomainEvent(new Domain.Events.UserLockedEvent(user.Id, user.Email, "Đăng nhập sai quá nhiều lần", expiresAt));
+                        await _unitOfWork.AccountLocks.LockUserAsync(
+                            user.Id,
+                            "Too many failed login attempts",
+                            ELockType.Temporary,
+                            expiresAt);
+
+                        user.AddDomainEvent(new Domain.Events.UserLockedEvent(
+                            user.Id,
+                            user.Email,
+                            "Too many failed login attempts",
+                            expiresAt));
+
                         await _unitOfWork.CompleteAsync(cancellationToken);
-                        return Result<AuthResponseDto>.BadRequest("Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.");
+                        return Result<AuthResponseDto>.BadRequest("Account locked for 30 minutes due to too many failed attempts.");
                     }
 
-                    return Result<AuthResponseDto>.BadRequest($"Email hoặc mật khẩu không hợp lệ. Còn {5 - failCount} lần thử.");
+                    return Result<AuthResponseDto>.BadRequest($"Invalid email or password. Remaining attempts: {5 - failCount}.");
                 }
 
-                // 3. Đăng nhập thành công, reset số lần sai
                 await _unitOfWork.Users.ResetAccessFailedCountAsync(user);
 
                 var roles = await _unitOfWork.Users.GetRolesAsync(user);
-                var permissions = await _unitOfWork.Users.GetPermissionsQuery(user)
-                    .ToListAsync(cancellationToken: cancellationToken);
+                var permissions = await _unitOfWork.Users
+                    .GetPermissionsQuery(user)
+                    .ToListAsync(cancellationToken);
                 var permissionNames = permissions.Select(p => p.Name).ToList();
 
                 var accessToken = _tokenService.GenerateAccessToken(user, roles, permissionNames);
                 var rawRefreshToken = _tokenService.GenerateRefreshToken();
                 var refreshTokenHash = _tokenService.HashToken(rawRefreshToken);
+                var tokenFamilyId = Guid.NewGuid();
 
-                // Persist only the hash — raw token lives only in memory/cookie
                 user.RefreshTokens.Add(new Domain.Entities.RefreshToken
                 {
-                    Token = refreshTokenHash, // kept for backward compat until column drop migration
+                    Token = refreshTokenHash,
                     TokenHash = refreshTokenHash,
+                    UserAgentHash = HashUserAgent(request.UserAgent),
+                    IpSubnet = ExtractIpSubnet(request.IpAddress),
+                    FamilyId = tokenFamilyId,
                     ExpiryDate = DateTime.Now.AddDays(7),
-                    IsRevoked = false
+                    IsRevoked = false,
                 });
 
                 await _unitOfWork.Users.UpdateAsync(user);
@@ -105,34 +122,57 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 var response = new AuthResponseDto
                 {
                     UserId = user.Id,
-                    Email = user.Email ?? "",
+                    Email = user.Email ?? string.Empty,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     FullName = user.FullName,
-                    PhoneNumber = user.PhoneNumber ?? "",
+                    PhoneNumber = user.PhoneNumber ?? string.Empty,
                     CustomerLevel = user.CustomerLevel,
-                    Roles = [.. roles],
+                    Roles = [..roles],
                     AccessToken = accessToken,
-                    RefreshToken = rawRefreshToken, // raw token goes to cookie only
+                    RefreshToken = rawRefreshToken,
                     Permissions = permissionNames,
-                    Avatar = await _fileStorageService.GetFileUrlAsync(user.Avatar)
+                    Avatar = await _fileStorageService.GetFileUrlAsync(user.Avatar),
                 };
 
-                await _logger.LogAsync(ELogLevel.Information,
-                    $"Người dùng {user.Email} đã đăng nhập thành công.",
-                    "Đăng nhập thành công");
-                await _userActivityService.LogActivityAsync("Login", "Đăng nhập thành công", "", response.UserId);
+                await _logger.LogAsync(ELogLevel.Information, $"User {user.Email} logged in successfully.", "LoginSuccess");
+                await _userActivityService.LogActivityAsync("Login", "Login successful", string.Empty, response.UserId);
 
                 return Result<AuthResponseDto>.Success(response);
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, "Đã xảy ra lỗi khi đăng nhập");
-                await _logger.LogAsync(ELogLevel.Information,
-                    $"Người dùng {request.Email} đã đăng nhập thất bại.",
-                    "Đăng nhập thất bại");
-                return Result<AuthResponseDto>.BadRequest($"Lỗi khi đăng nhập: {ex.Message}");
+                await _logger.LogExceptionAsync(ex, "Login failed with exception");
+                await _logger.LogAsync(ELogLevel.Warning, $"Login failed for {request.Email}", "LoginFailed");
+                return Result<AuthResponseDto>.BadRequest($"Login failed: {ex.Message}");
             }
+        }
+
+        private static string? HashUserAgent(string? userAgent)
+        {
+            if (string.IsNullOrWhiteSpace(userAgent))
+            {
+                return null;
+            }
+
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(userAgent));
+            return Convert.ToHexString(bytes).ToLowerInvariant();
+        }
+
+        private static string? ExtractIpSubnet(string? ipAddress)
+        {
+            if (string.IsNullOrWhiteSpace(ipAddress))
+            {
+                return null;
+            }
+
+            var parts = ipAddress.Split('.', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 4)
+            {
+                return $"{parts[0]}.{parts[1]}.{parts[2]}";
+            }
+
+            return ipAddress;
         }
     }
 }

@@ -18,8 +18,8 @@ export interface User {
 export interface AuthResponse {
     success: boolean
     data: {
-        accessToken?: string      // Optional - only present if IncludeTokensInResponse is true
-        refreshToken?: string     // Optional - only present if IncludeTokensInResponse is true
+        accessToken?: string
+        refreshToken?: string
         userId: string
         email: string
         firstName: string
@@ -47,55 +47,24 @@ export interface RegisterRequest {
     confirmPassword?: string
 }
 
+interface MeProfileResponse {
+    userId: string
+    email: string
+    roles: string[]
+    permissions: string[]
+}
+
 class AuthService {
     /**
-     * Store user data in localStorage (NOT tokens - those are in httpOnly cookies)
-     */
-    private storeUser(user: User): void {
-        if (typeof window !== "undefined") {
-            localStorage.setItem("user", JSON.stringify(user))
-        }
-    }
-
-    /**
-     * Get the current user from localStorage
-     */
-    public getStoredUser(): User | null {
-        if (typeof window === "undefined") return null
-        const userData = localStorage.getItem("user")
-        return userData ? JSON.parse(userData) : null
-    }
-
-    /**
-     * Clear user data from localStorage
-     */
-    public clearUser(): void {
-        if (typeof window !== "undefined") {
-            localStorage.removeItem("user")
-        }
-    }
-
-    /**
-     * Get the auth token - now just checks if user is stored
-     * Actual token is in httpOnly cookie, not accessible from JS
-     */
-    public getAuthToken(): string | null {
-        // Return a placeholder if user is authenticated
-        // The actual token is in httpOnly cookies
-        return this.getStoredUser() ? "cookie-based-auth" : null
-    }
-
-    /**
-     * Login user - cookies are set by backend automatically
+     * Login user - cookies are set by backend automatically.
      */
     public async login(email: string, password: string): Promise<AuthResponse> {
         const { data } = await api.post<AuthResponse>("/auth/login", {
             email,
-            password
+            password,
         } as LoginRequest)
 
         if (data.success && data.data) {
-            // Store only user info - tokens are in httpOnly cookies
             const user: User = {
                 id: data.data.userId,
                 firstName: data.data.firstName,
@@ -105,100 +74,72 @@ class AuthService {
                 email: data.data.email,
                 roles: data.data.roles,
                 permissions: data.data.permissions,
-                customerLevel: data.data.customerLevel
+                customerLevel: data.data.customerLevel,
+                avatar: data.data.avatar,
             }
-            this.storeUser(user)
 
-            // Notify other tabs about login
-            sessionSync.broadcast('LOGIN', { user })
+            sessionSync.broadcast("LOGIN", { user })
         }
 
         return data
     }
 
     /**
-     * Register new user
+     * Register new user.
      */
     public async register(registerData: RegisterRequest): Promise<AuthResponse> {
         const { data } = await api.post<AuthResponse>("/auth/register", registerData)
-        // Registration may or may not set cookies depending on backend implementation
-        // For this app, registration returns user ID and user needs to login
         return data
     }
 
     /**
-     * Logout user - cookies are cleared by backend
+     * Logout user - cookies are cleared by backend.
      */
     public async logout(): Promise<void> {
         try {
             await api.post("/auth/logout")
-        } catch (error) {
-            console.error("Error during logout:", error)
         } finally {
-            this.clearUser()
-            // Notify other tabs about logout
-            sessionSync.broadcast('LOGOUT')
+            sessionSync.broadcast("LOGOUT")
         }
     }
 
     /**
-     * Get current authenticated user from server
+     * Get current authenticated user from server (cookie-based session rehydration).
      */
     public async getCurrentUser(): Promise<Result<User>> {
-        const { data } = await api.get("/auth/profile")
+        const { data } = await api.get<MeProfileResponse>("/auth/me/profile")
 
-        if (data.success && data.data) {
-            const user: User = {
-                id: data.data.id,
-                firstName: data.data.firstName || "",
-                lastName: data.data.lastName || "",
-                fullName: data.data.fullName || "",
-                phoneNumber: data.data.phoneNumber || "",
-                email: data.data.email,
-                avatar: data.data.avatar,
-                roles: data.data.roles || [],
-                permissions: data.data.permissions || [],
-                customerLevel: data.data.customerLevel || 0
-            }
-            this.storeUser(user)
+        return {
+            success: true,
+            data: {
+                id: data.userId,
+                firstName: "",
+                lastName: "",
+                fullName: "",
+                email: data.email,
+                avatar: "",
+                phoneNumber: "",
+                roles: data.roles || [],
+                permissions: data.permissions || [],
+                customerLevel: 0,
+            },
         }
-
-        return data
     }
 
     /**
-     * Check if user is authenticated (based on stored user data)
-     * Note: Only backend can truly verify if cookies are valid
-     */
-    public isAuthenticated(): boolean {
-        if (typeof window === "undefined") return false
-        return this.getStoredUser() !== null
-    }
-
-    /**
-     * Verify authentication by calling the profile endpoint
-     * This will fail if cookies are invalid/expired
+     * Verify authentication by calling profile endpoint.
      */
     public async verifyAuthentication(): Promise<boolean> {
         try {
             await this.getCurrentUser()
             return true
         } catch {
-            this.clearUser()
             return false
         }
     }
 
     /**
-     * Sync auth state - no longer needed with httpOnly cookies
-     * Kept for backward compatibility, does nothing now
-     */
-    public syncAuthState(): void {
-        // No-op - cookies are managed by the browser
-    }
-
-    /**
-     * Gửi yêu cầu đặt lại mật khẩu
+     * Request password reset email.
      */
     public async forgotPassword(email: string): Promise<{ success: boolean; message?: string }> {
         const response = await api.post("/auth/forgot-password", { email })
@@ -206,9 +147,25 @@ class AuthService {
     }
 
     /**
-     * Đặt lại mật khẩu với token
+     * Verify reset-password request id and set short-lived reset context cookie.
      */
-    public async resetPassword(data: any): Promise<{ success: boolean; message?: string }> {
+    public async verifyResetPasswordRequest(requestId: string): Promise<{ success: boolean; error?: string }> {
+        const response = await api.post("/auth/reset-password/verify", { requestId })
+        return response.data
+    }
+
+    /**
+     * Confirm reset-password using reset context cookie only.
+     */
+    public async confirmResetPassword(newPassword: string): Promise<{ success: boolean; message?: string; error?: string }> {
+        const response = await api.post("/auth/reset-password/confirm", { newPassword })
+        return response.data
+    }
+
+    /**
+     * Legacy reset endpoint kept for backward compatibility.
+     */
+    public async resetPassword(data: unknown): Promise<{ success: boolean; message?: string }> {
         const response = await api.post("/auth/reset-password", data)
         return response.data
     }

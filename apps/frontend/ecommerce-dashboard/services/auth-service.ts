@@ -7,8 +7,8 @@ import { sessionSync } from "@/lib/session-sync"
 export interface AuthResponse {
     success: boolean
     data: {
-        accessToken?: string      // Optional - only present if IncludeTokensInResponse is true
-        refreshToken?: string     // Optional - only present if IncludeTokensInResponse is true
+        accessToken?: string
+        refreshToken?: string
         userId: string
         email: string
         firstName: string
@@ -32,52 +32,36 @@ export interface RegisterRequest {
     confirmPassword: string
 }
 
+interface MeProfileResponse {
+    userId: string
+    email: string
+    roles: string[]
+    permissions: string[]
+}
+
 class AuthService {
-    /**
-     * Store user data in localStorage (NOT tokens - those are in httpOnly cookies)
-     */
-    private storeUser(user: User): void {
-        if (typeof window !== "undefined") {
-            localStorage.setItem("user", JSON.stringify(user))
-        }
+    private user: User | null = null
+
+    public isAuthenticated(): boolean {
+        return !!this.user
     }
 
-    /**
-     * Get the current user from localStorage
-     */
-    public getStoredUser(): User | null {
-        if (typeof window === "undefined") return null
-        const userData = localStorage.getItem("user")
-        return userData ? JSON.parse(userData) : null
-    }
-
-    /**
-     * Clear user data from localStorage
-     */
-    private clearUser(): void {
-        if (typeof window !== "undefined") {
-            localStorage.removeItem("user")
-        }
-    }
-
-    /**
-     * Login user - cookies are set by backend automatically
-     */
     public async login(email: string, password: string): Promise<AuthResponse> {
         const { data } = await api.post<AuthResponse>("/auth/login", {
             email,
-            password
+            password,
         } as LoginRequest)
 
         logger.debug("Login response:", data.data)
 
         if (data.success && data.data) {
-            // Check if user has Admin role
-            if (!data.data.roles.includes('Admin')) {
+            const hasAdminRole = data.data.roles.includes("Admin") || data.data.roles.includes("Manager")
+            if (!hasAdminRole) {
                 toast({
                     title: "Thất bại",
                     description: "Bạn không có quyền truy cập.",
                 })
+
                 return {
                     success: false,
                     data: {
@@ -87,8 +71,8 @@ class AuthService {
                         lastName: "",
                         roles: [],
                         permissions: [],
-                        customerLevel: 0
-                    }
+                        customerLevel: 0,
+                    },
                 }
             }
 
@@ -97,102 +81,68 @@ class AuthService {
                 description: "Bạn đã đăng nhập thành công.",
             })
 
-            // Store only user info - tokens are in httpOnly cookies
-            const user: User = {
+            this.user = {
                 id: data.data.userId,
                 firstName: data.data.firstName,
                 lastName: data.data.lastName,
                 email: data.data.email,
                 roles: data.data.roles,
                 permissions: data.data.permissions,
-                customerLevel: data.data.customerLevel
+                customerLevel: data.data.customerLevel,
             }
-            this.storeUser(user)
 
-            // Notify other tabs about login
-            sessionSync.broadcast('LOGIN', { user })
+            sessionSync.broadcast("LOGIN", { user: this.user })
         }
 
         return data
     }
 
-    /**
-     * Register new user
-     */
     public async register(registerData: RegisterRequest): Promise<{ success: boolean; data?: unknown }> {
         const { data } = await api.post("/auth/register", registerData)
-        // Registration doesn't set cookies - user needs to login after registration
         return data
     }
 
-    /**
-     * Logout user - cookies are cleared by backend
-     */
     public async logout(): Promise<void> {
         try {
             await api.post("/auth/logout")
         } catch (error) {
             logger.error("Error during logout:", error)
         } finally {
-            this.clearUser()
-            // Notify other tabs about logout
-            sessionSync.broadcast('LOGOUT')
+            this.user = null
+            sessionSync.broadcast("LOGOUT")
         }
     }
 
-    /**
-     * Get current authenticated user from server
-     */
     public async getCurrentUser(): Promise<User> {
-        const { data } = await api.get("/auth/profile")
+        const { data } = await api.get<MeProfileResponse>("/auth/me/profile")
 
-        if (!data.success || !data.data) {
-            throw new Error("Invalid response from server")
+        this.user = {
+            id: data.userId,
+            firstName: "",
+            lastName: "",
+            email: data.email,
+            roles: data.roles || [],
+            permissions: data.permissions || [],
+            customerLevel: 0,
+            phone: "",
+            avatar: "",
+            fullName: "",
+            phoneNumber: "",
+            promotionPoints: 0,
+            status: 0,
+            createdAt: "",
+            updatedAt: "",
+            lastLogin: null,
         }
 
-        const userData = data.data
-        const user: User = {
-            id: userData.id,
-            firstName: userData.firstName || "",
-            lastName: userData.lastName || "",
-            email: userData.email,
-            roles: userData.roles || [],
-            permissions: userData.permissions || [],
-            customerLevel: userData.customerLevel || 0,
-            phone: userData.phoneNumber || userData.phone || "",
-            avatar: userData.avatar || "",
-            fullName: userData.fullName || "",
-            phoneNumber: userData.phoneNumber || "",
-            promotionPoints: userData.promotionPoints || 0,
-            status: userData.status || 0,
-            createdAt: userData.createdAt || "",
-            updatedAt: userData.updatedAt || "",
-            lastLogin: userData.lastLogin || null,
-        }
-
-        this.storeUser(user)
-        return user
+        return this.user
     }
 
-    /**
-     * Check if user is authenticated (based on stored user data)
-     * Note: Only backend can truly verify if cookies are valid
-     */
-    public isAuthenticated(): boolean {
-        if (typeof window === "undefined") return false
-        return this.getStoredUser() !== null
-    }
-
-    /**
-     * Verify authentication by calling the profile endpoint
-     * This will fail if cookies are invalid/expired
-     */
     public async verifyAuthentication(): Promise<boolean> {
         try {
             await this.getCurrentUser()
             return true
         } catch {
-            this.clearUser()
             return false
         }
     }

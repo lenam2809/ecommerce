@@ -2261,11 +2261,20 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IpSubnet")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ParentTokenId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -2274,12 +2283,17 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.Property<string>("TokenHash")
                         .HasColumnType("text");
 
+                    b.Property<string>("UserAgentHash")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("FamilyId");
 
                     b.ToTable("RefreshTokens");
                 });

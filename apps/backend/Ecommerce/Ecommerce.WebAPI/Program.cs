@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using System.Globalization;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -33,6 +34,16 @@ builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPa
 // Configure Auth Settings (for cookie-based auth)
 builder.Services.Configure<AuthConfig>(builder.Configuration.GetSection("AuthConfig"));
 builder.Services.Configure<CookieSettings>(builder.Configuration.GetSection("CookieSettings"));
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Path = "/admin";
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Products.Delete", policy =>
+        policy.RequireRole("Admin", "Manager"));
+});
 
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -49,19 +60,51 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Stricter policy for auth endpoints: 10 requests/minute per IP
-    options.AddFixedWindowLimiter("AuthPolicy", opt =>
-    {
-        opt.PermitLimit = 10;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
+    options.AddPolicy("AuthPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    options.AddPolicy("LoginPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    options.AddPolicy("PasswordResetPolicy", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(10),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
 
     options.OnRejected = async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.Headers["Retry-After"] = "60";
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers["Retry-After"] =
+                Math.Ceiling(retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            context.HttpContext.Response.Headers["Retry-After"] = "60";
+        }
         await context.HttpContext.Response.WriteAsJsonAsync(
             new { error = "Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút." },
             cancellationToken);
@@ -130,12 +173,13 @@ using (var scope = app.Services.CreateScope())
 
     // Always apply migrations
     await context.Database.MigrateAsync();
+    await ApplicationDbContextSeed.SeedAsync(services);
 
-    // Only seed data in Development
-    if (app.Environment.IsDevelopment())
-    {
-        await ApplicationDbContextSeed.SeedAsync(services);
-    }
+    // // Only seed data in Development
+    // if (app.Environment.IsDevelopment())
+    // {
+    //     await ApplicationDbContextSeed.SeedAsync(services);
+    // }
 }
 
 app.UseRateLimiter();

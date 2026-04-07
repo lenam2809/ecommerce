@@ -17,43 +17,48 @@ namespace Ecommerce.Application.Features.Auth.Commands.ResetPassword
 
         public async Task<Result<string>> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
+            const string invalidLinkError = "Invalid or expired link";
+
             if (request.NewPassword != request.ConfirmPassword)
             {
-                return Result<string>.BadRequest("Mật khẩu và xác nhận mật khẩu không khớp.");
+                return Result<string>.BadRequest("Password and confirmation do not match.");
             }
 
-            var tokenRecord = await _unitOfWork.BaseRepository<PasswordResetToken>()
-                .GetQueryable()
-                .FirstOrDefaultAsync(t => t.Token == request.Token, cancellationToken);
+            var tokenQuery = _unitOfWork.BaseRepository<PasswordResetToken>().GetQueryable();
+            PasswordResetToken? tokenRecord = null;
+
+            if (!string.IsNullOrWhiteSpace(request.RequestId) && Guid.TryParse(request.RequestId, out var requestGuid))
+            {
+                tokenRecord = await tokenQuery.FirstOrDefaultAsync(t => t.Id == requestGuid, cancellationToken);
+            }
+            else if (!string.IsNullOrWhiteSpace(request.Token))
+            {
+                tokenRecord = await tokenQuery.FirstOrDefaultAsync(t => t.Token == request.Token, cancellationToken);
+            }
 
             if (tokenRecord == null || !tokenRecord.IsValid)
             {
-                var errorMsg = tokenRecord == null ? "Link không hợp lệ." :
-                               tokenRecord.IsExpired ? "Link đặt lại mật khẩu đã hết hạn, vui lòng yêu cầu lại." :
-                               "Link này đã được sử dụng.";
-                               
-                return Result<string>.BadRequest(errorMsg);
+                return Result<string>.BadRequest(invalidLinkError);
             }
 
             var user = await _unitOfWork.Users.GetByEmailAsync(tokenRecord.Email);
             if (user == null)
             {
-                return Result<string>.BadRequest("Người dùng không tồn tại.");
+                return Result<string>.BadRequest(invalidLinkError);
             }
 
             var resetResult = await _unitOfWork.Users.ResetPasswordAsync(user, request.NewPassword);
-            
             if (!resetResult.Succeeded)
             {
                 var errors = string.Join(", ", resetResult.Errors.Select(e => e.Description));
-                return Result<string>.BadRequest($"Lỗi khi đặt lại mật khẩu: {errors}");
+                return Result<string>.BadRequest($"Password reset failed: {errors}");
             }
 
             tokenRecord.UsedAt = DateTime.UtcNow;
             _unitOfWork.BaseRepository<PasswordResetToken>().Update(tokenRecord);
             await _unitOfWork.CompleteAsync(cancellationToken);
 
-            return Result<string>.Success("Mật khẩu đã được đặt lại thành công.");
+            return Result<string>.Success("Password reset successful.");
         }
     }
 }
