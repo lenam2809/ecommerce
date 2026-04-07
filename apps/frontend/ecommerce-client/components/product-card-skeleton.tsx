@@ -2,14 +2,33 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ProductCardSkeleton() {
   return (
-    <div className="flex flex-col h-full bg-card rounded-2xl border border-white/5 overflow-hidden">
-      <Skeleton className="relative aspect-square sm:aspect-[4/5] bg-secondary/30 w-full rounded-none" />
-      <div className="p-4 flex flex-col flex-grow gap-3 bg-card">
-        <Skeleton className="h-5 w-3/4 bg-secondary/30" />
-        <Skeleton className="h-4 w-12 mt-auto bg-secondary/30" />
-        <div className="flex items-end justify-between gap-2 h-8">
-          <Skeleton className="h-6 w-24 bg-secondary/30" />
+    <div className="group relative flex flex-col h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300">
+      {/* Image placeholder with proper aspect ratio */}
+      <div className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0">
+        <Skeleton className="w-full h-full rounded-none" />
+      </div>
+
+      <div className="p-4 flex flex-col flex-grow gap-3">
+        {/* Title skeleton - 2 lines */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full rounded-md" />
+          <Skeleton className="h-4 w-4/5 rounded-md" />
         </div>
+
+        {/* Rating skeleton */}
+        <div className="flex items-center gap-1 mt-auto">
+          <Skeleton className="h-4 w-4 rounded-full" />
+          <Skeleton className="h-4 w-12 rounded-md" />
+        </div>
+
+        {/* Price section skeleton */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-16 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-md" />
+        </div>
+
+        {/* Button skeleton */}
+        <Skeleton className="h-10 w-full rounded-lg mt-auto" />
       </div>
     </div>
   )

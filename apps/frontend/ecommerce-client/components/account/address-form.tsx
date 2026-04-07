@@ -5,6 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CreateAddressDto } from "@/types/address";
 import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { getAddressSuggestions, getPostalCodeByCity, getStateByCity } from "@/lib/address-suggestions";
+import { CheckCircle2 } from "lucide-react";
 
 import {
     Form,
@@ -52,6 +55,10 @@ export function AddressForm({
     initialValues
 }: AddressFormProps) {
     const router = useRouter();
+    const [cityQuery, setCityQuery] = useState("");
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     const form = useForm<AddressFormValues>({
         resolver: zodResolver(addressFormSchema),
@@ -68,6 +75,48 @@ export function AddressForm({
             ...initialValues,
         },
     });
+
+    // Handle city suggestions
+    useEffect(() => {
+        if (cityQuery.length > 0) {
+            const results = getAddressSuggestions(cityQuery);
+            setSuggestions(results);
+            setShowSuggestions(true);
+        } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+        }
+    }, [cityQuery]);
+
+    // Handle click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSelectSuggestion = (suggestion: any) => {
+        form.setValue("city", suggestion.city);
+        form.setValue("state", suggestion.state);
+        form.setValue("postalCode", suggestion.postalCode);
+        setCityQuery("");
+        setShowSuggestions(false);
+    };
+
+    const handleCityChange = (value: string) => {
+        setCityQuery(value);
+        form.setValue("city", value);
+        
+        // Auto-fill state and postal code if exact match
+        const state = getStateByCity(value);
+        const postalCode = getPostalCodeByCity(value);
+        if (state) form.setValue("state", state);
+        if (postalCode) form.setValue("postalCode", postalCode);
+    };
 
     function handleSubmit(data: AddressFormValues) {
         onSubmit(data);
@@ -146,11 +195,41 @@ export function AddressForm({
                         control={form.control}
                         name="city"
                         render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="relative">
                                 <FormLabel>Thành phố/Quận</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Hà Nội" {...field} />
+                                    <div className="relative">
+                                        <Input 
+                                            placeholder="Hà Nội, Hồ Chí Minh..." 
+                                            value={cityQuery || field.value}
+                                            onChange={(e) => handleCityChange(e.target.value)}
+                                            onFocus={() => cityQuery && setShowSuggestions(true)}
+                                            className="pr-8"
+                                        />
+                                        {form.getValues("postalCode") && (
+                                            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                                        )}
+                                    </div>
                                 </FormControl>
+                                {/* Suggestions dropdown */}
+                                {showSuggestions && suggestions.length > 0 && (
+                                    <div
+                                        ref={suggestionsRef}
+                                        className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+                                    >
+                                        {suggestions.map((suggestion, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => handleSelectSuggestion(suggestion)}
+                                                className="w-full px-4 py-2 text-left hover:bg-accent transition-colors text-sm"
+                                            >
+                                                <div className="font-medium">{suggestion.city}</div>
+                                                <div className="text-xs text-muted-foreground">{suggestion.state} - {suggestion.postalCode}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                                 <FormMessage />
                             </FormItem>
                         )}

@@ -29,6 +29,9 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                             alt={product.name}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            priority={false}
+                            loading="lazy"
+                            sizes="(max-width: 768px) 100vw, 192px"
                         />
                     </Link>
                 </div>
