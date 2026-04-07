@@ -25,6 +25,8 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<IOrderHistoryService, OrderHistoryService>();
             services.AddScoped<IUserActivityService, UserActivityService>();
             services.AddScoped<IAccountLockService, AccountLockService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IPushNotificationService, PushNotificationService>();
             services.AddScoped<CustomerLevelService>();
             services.AddScoped<PromoCodeService>();
             services.AddScoped<IMergeCartService, MergeCartService>();

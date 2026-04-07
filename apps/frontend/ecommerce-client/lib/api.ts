@@ -68,10 +68,10 @@ function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
   const requestUrl = originalRequest.url || ""
 
   // List of endpoints that should not trigger a redirect for guests
-  const softEndpoints = ["wishlist", "user/profile", "products", "cart"]
+  const softEndpoints = ["wishlist", "me/profile", "products", "cart", "categories", "banner"]
   const isSoftEndpoint = softEndpoints.some(ep => requestUrl.includes(ep))
 
-  if (guestId && isSoftEndpoint) {
+  if (isSoftEndpoint) {
     console.log("Guest 401 suppressed for:", requestUrl)
     return // Don't redirect guests for soft endpoints
   }
@@ -83,7 +83,7 @@ function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
   sessionSync.broadcast('LOGOUT', { returnUrl })
   
   // Redirect to login with returnUrl
-  window.location.href = `/login?returnUrl=${returnUrl}`
+  if (window.location.pathname !== '/login') window.location.href = `/login?returnUrl=${returnUrl}`
 }
 
 // Request interceptor - Add CSRF token and Guest ID
@@ -157,10 +157,10 @@ api.interceptors.response.use(
       // For guests on soft endpoints, return empty data instead of rejecting
       const guestId = typeof window !== "undefined" ? localStorage.getItem("guest_id") : null
       const requestUrl = originalRequest.url || ""
-      const softEndpoints = ["wishlist", "user/profile", "products", "cart"]
+      const softEndpoints = ["wishlist", "me/profile", "products", "cart", "categories", "banner"]
       const isSoftEndpoint = softEndpoints.some(ep => requestUrl.includes(ep))
 
-      if (guestId && isSoftEndpoint) {
+      if (isSoftEndpoint) {
         return Promise.resolve({ data: null })
       }
 

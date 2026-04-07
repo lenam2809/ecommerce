@@ -71,7 +71,10 @@ function clearAuthAndRedirect() {
         sessionSync.broadcast('LOGOUT', { returnUrl })
         
         // Redirect to login with returnUrl
-        window.location.href = `/login?returnUrl=${returnUrl}`
+        // Prevent infinite redirects if already on the login page
+        if (window.location.pathname !== '/login') {
+            window.location.href = `/login?returnUrl=${returnUrl}`
+        }
     }
 }
 
