@@ -5,18 +5,22 @@ import { useRouter } from "next/navigation"
 import { clearGuestId } from "@/lib/guest-id"
 
 interface AuthContextType {
-    token: string | null
     user: User | null
     loading: boolean
     error: string | null
     isAuthenticated: boolean
     login: (email: string, password: string) => Promise<void>
-    register: (registerData: { firstName: string; lastName: string; email: string; phoneNumber?: string, password: string, confirmPassword?: string }) => Promise<void>
+    register: (registerData: { firstName: string; lastName: string; email: string; phoneNumber?: string; password: string; confirmPassword?: string }) => Promise<void>
     logout: () => Promise<void>
     clearError: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+const getApiErrorMessage = (error: unknown, fallback: string): string => {
+    const maybeError = error as { response?: { data?: { message?: string } } }
+    return maybeError.response?.data?.message || fallback
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null)
@@ -24,35 +28,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
 
-    // Check for existing authentication on mount
     useEffect(() => {
         const initAuth = async () => {
             setLoading(true)
+            setError(null)
+
             try {
-                // Try to get stored user first
-                const storedUser = authService.getStoredUser()
-
-                if (storedUser && authService.isAuthenticated()) {
-                    setUser(storedUser)
-
-                    // Optionally verify with the server
-                    try {
-                        const currentUser = await authService.getCurrentUser()
-                        if (currentUser.success && currentUser.data) {
-                            setUser(currentUser.data)
-                        }
-
-                    } catch (err) {
-                        // Chỉ clear nếu là 401, không phải network error
-                        if (err?.response?.status === 401) {
-                            authService.clearUser()
-                            setUser(null)
-                        }
-                        // Network error → giữ user đã có trong localStorage
-                    }
+                const currentUser = await authService.getCurrentUser()
+                if (currentUser.success && currentUser.data) {
+                    setUser(currentUser.data)
+                } else {
+                    setUser(null)
                 }
-            } catch (err) {
-                console.error("Auth initialization error:", err)
+            } catch {
                 setUser(null)
             } finally {
                 setLoading(false)
@@ -60,9 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         initAuth()
-
-        // Listen for session sync handled by session-sync.ts
-        // No manual event listeners needed here
     }, [])
 
     const login = async (email: string, password: string) => {
@@ -73,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const data = await authService.login(email, password)
 
             if (data.success && data.data) {
-                const user: User = {
+                const nextUser: User = {
                     id: data.data.userId,
                     firstName: data.data.firstName,
                     lastName: data.data.lastName,
@@ -83,16 +68,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     roles: data.data.roles,
                     permissions: data.data.permissions,
                     customerLevel: data.data.customerLevel,
-                    avatar: data.data.avatar
+                    avatar: data.data.avatar,
                 }
-                setUser(user)
-                clearGuestId() // Clear guest ID after successful login
+
+                setUser(nextUser)
+                clearGuestId()
                 router.push("/")
             } else {
                 setError("Login failed. Please check your credentials.")
             }
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials."
+        } catch (err: unknown) {
+            const errorMessage = getApiErrorMessage(err, "Login failed. Please check your credentials.")
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -104,20 +90,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastName: string
         email: string
         phoneNumber?: string
-        password: string,
-        confirmPassword?: string,
+        password: string
+        confirmPassword?: string
     }) => {
         setLoading(true)
         setError(null)
 
         try {
             await authService.register(registerData)
-
-            // Registration successful - redirect to login
-            // Note: register endpoint returns Result<Guid>, not auth tokens
             router.push("/login")
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || "Registration failed. Please try again."
+        } catch (err: unknown) {
+            const errorMessage = getApiErrorMessage(err, "Registration failed. Please try again.")
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -131,8 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await authService.logout()
             setUser(null)
             router.push("/login")
-        } catch (err) {
-            console.error("Logout error:", err)
+        } catch {
+            setUser(null)
+            router.push("/login")
         } finally {
             setLoading(false)
         }
@@ -142,10 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError(null)
     }
 
-    const token = authService.getAuthToken()
-
     const value = {
-        token,
         user,
         loading,
         error,
@@ -153,13 +134,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
-        clearError
+        clearError,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// Custom hook to use auth context
 export const useAuth = () => {
     const context = useContext(AuthContext)
 

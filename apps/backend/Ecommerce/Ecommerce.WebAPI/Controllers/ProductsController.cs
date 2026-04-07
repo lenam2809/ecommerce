@@ -143,7 +143,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Policy = "DeleteProduct")]
+        [Authorize(Policy = "Products.Delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteProductCommand { Id = id });
@@ -210,7 +210,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost("bulk-delete")]
-        [Authorize(Policy = "DeleteProduct")]
+        [Authorize(Policy = "Products.Delete")]
         public async Task<IActionResult> BulkDelete([FromBody] List<Guid> ids)
         {
             if (ids == null || ids.Count == 0)

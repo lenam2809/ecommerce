@@ -29,14 +29,15 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
             try
             {
                 // Luôn trả về thành công để tránh tiết lộ email có tồn tại hay không (user enumeration prevention)
-                var user = await _unitOfWork.Users.GetByEmailAsync(request.Email.Trim().ToLower());
+                var normalizedEmail = request.Email.Trim().ToLower();
+                var user = await _unitOfWork.Users.GetByEmailAsync(normalizedEmail);
 
                 if (user != null)
                 {
                     // Xóa các token cũ chưa dùng của email này
                     var oldTokens = _unitOfWork.BaseRepository<PasswordResetToken>()
                         .GetQueryable()
-                        .Where(t => t.Email == request.Email && t.UsedAt == null);
+                        .Where(t => t.Email == normalizedEmail && t.UsedAt == null);
 
                     foreach (var oldToken in oldTokens)
                     {
@@ -50,10 +51,10 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
 
                     var resetToken = new PasswordResetToken
                     {
-                        Email = request.Email.Trim().ToLower(),
+                        Email = normalizedEmail,
                         Token = token,
                         CreatedAt = DateTime.UtcNow,
-                        ExpiresAt = DateTime.UtcNow.AddHours(1)
+                        ExpiresAt = DateTime.UtcNow.AddMinutes(15)
                     };
 
                     await _unitOfWork.BaseRepository<PasswordResetToken>().AddAsync(resetToken, cancellationToken);
@@ -61,7 +62,7 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
 
                     // Gửi email với link reset
                     var frontendUrl = _configuration["AppUrl:Frontend"] ?? "http://localhost:3000";
-                    var resetLink = $"{frontendUrl}/reset-password/{token}";
+                    var resetLink = $"{frontendUrl}/reset-password?requestId={resetToken.Id:D}";
 
                     var htmlBody = BuildResetEmailHtml(user.FirstName ?? "Bạn", resetLink);
                     await _emailService.SendEmailAsync(
@@ -121,7 +122,7 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
                                 </a>
                               </div>
                               <p style="color:#9ca3af;font-size:13px;line-height:1.5;margin:0 0 12px;">
-                                Link này sẽ hết hạn sau <strong>1 giờ</strong>.
+                                Link này sẽ hết hạn sau <strong>15 phút</strong>.
                               </p>
                               <p style="color:#9ca3af;font-size:13px;line-height:1.5;margin:0;">
                                 Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này. Tài khoản của bạn vẫn an toàn.

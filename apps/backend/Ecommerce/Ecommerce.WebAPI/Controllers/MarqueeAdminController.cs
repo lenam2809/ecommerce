@@ -13,7 +13,7 @@ namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/admin/marquee")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Manager")]
     public class MarqueeAdminController : ControllerBase
     {
         private readonly IMediator _mediator;

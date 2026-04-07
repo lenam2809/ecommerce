@@ -68,7 +68,6 @@ function clearAuthAndRedirect() {
         const currentPath = window.location.pathname + window.location.search
         const returnUrl = encodeURIComponent(currentPath)
         
-        localStorage.removeItem("user")
         sessionSync.broadcast('LOGOUT', { returnUrl })
         
         // Redirect to login with returnUrl

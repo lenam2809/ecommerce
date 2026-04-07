@@ -8,6 +8,8 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
     {
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public string? UserAgent { get; set; }
+        public string? IpAddress { get; set; }
     }
 }
 

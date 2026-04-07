@@ -6,5 +6,6 @@ namespace Ecommerce.Application.Features.Auth.Commands.ResetPassword
     public record ResetPasswordCommand(
         string Token,
         string NewPassword,
-        string ConfirmPassword) : IRequest<Result<string>>;
+        string ConfirmPassword,
+        string? RequestId = null) : IRequest<Result<string>>;
 }

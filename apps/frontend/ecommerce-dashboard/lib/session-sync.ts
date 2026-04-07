@@ -12,7 +12,7 @@ interface SessionEvent {
     payload?: {
         user?: unknown;
         timestamp?: number;
-        returnUrl?: string;  // Added for preserving redirect URL
+        returnUrl?: string;
     };
 }
 
@@ -32,87 +32,63 @@ class SessionSync {
 
         switch (type) {
             case 'LOGOUT':
-                // Clear local state and redirect with returnUrl if provided
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('user');
-                    // Only redirect if not already on login page
-                    if (!window.location.pathname.includes('/login')) {
-                        const targetUrl = payload?.returnUrl 
-                            ? `/login?returnUrl=${payload.returnUrl}`
-                            : '/login';
-                        window.location.href = targetUrl;
-                    }
+                if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+                    const targetUrl = payload?.returnUrl
+                        ? `/login?returnUrl=${payload.returnUrl}`
+                        : '/login';
+                    window.location.href = targetUrl;
                 }
                 break;
 
             case 'LOGIN':
-                // Refresh user data if provided
-                if (payload?.user && typeof window !== 'undefined') {
-                    localStorage.setItem('user', JSON.stringify(payload.user));
-                }
+                // No local storage sync for auth state.
                 break;
 
             case 'SESSION_REFRESH':
-                // Token refreshed in another tab
-                // Cookie is already updated, no action needed
-                console.debug('[SessionSync] Token refreshed in another tab');
+                // Cookie is already refreshed by backend/browser.
                 break;
         }
 
-        // Notify custom listeners
         const eventListeners = this.listeners.get(type);
         if (eventListeners) {
-            eventListeners.forEach(listener => listener(payload));
+            eventListeners.forEach((listener) => listener(payload));
         }
     }
 
-    /**
-     * Broadcast a session event to all other tabs
-     */
     broadcast(type: SessionEventType, payload?: SessionEvent['payload']) {
         const event: SessionEvent = {
             type,
             payload: {
                 ...payload,
-                timestamp: Date.now()
-            }
+                timestamp: Date.now(),
+            },
         };
+
         this.channel?.postMessage(event);
     }
 
-    /**
-     * Add a custom listener for session events
-     */
     on(type: SessionEventType, callback: (payload?: unknown) => void) {
         if (!this.listeners.has(type)) {
             this.listeners.set(type, new Set());
         }
+
         this.listeners.get(type)!.add(callback);
     }
 
-    /**
-     * Remove a custom listener
-     */
     off(type: SessionEventType, callback: (payload?: unknown) => void) {
         this.listeners.get(type)?.delete(callback);
     }
 
-    /**
-     * Clean up the broadcast channel
-     */
     destroy() {
         this.channel?.close();
         this.listeners.clear();
     }
 }
 
-// Singleton instance
 export const sessionSync = new SessionSync();
 
-// Auto-cleanup on page unload
 if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', () => {
-        // Don't destroy on refresh/navigation, only on actual tab close
-        // This is handled automatically by the browser
+        // Browser handles BroadcastChannel cleanup for tab unload.
     });
 }
