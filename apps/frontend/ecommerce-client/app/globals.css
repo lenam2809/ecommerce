@@ -263,3 +263,76 @@
 .group:hover .animate-progress-linear {
   animation-play-state: paused !important;
 }
+
+/* 6. DARK MODE ENHANCEMENTS */
+
+/* Ensure proper contrast for text in dark mode */
+.dark {
+  color-scheme: dark;
+}
+
+/* Improve focus visibility in dark mode */
+.dark *:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Dark mode optimizations for form elements */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--primary));
+}
+
+/* Improve dark mode shadow visibility */
+.dark {
+  --shadow-color: 0deg 0% 0%;
+}
+
+/* Dark mode button transitions */
+.dark button {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Dark mode link improvements */
+.dark a:not([class]) {
+  color: hsl(var(--primary));
+}
+
+.dark a:not([class]):hover {
+  color: hsl(var(--primary) / 0.8);
+}
+
+/* Ensure proper selection colors in dark mode */
+.dark ::selection {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Improve visibility of scrollbars in dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: hsl(var(--card));
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.7);
+}

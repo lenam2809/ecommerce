@@ -30,10 +30,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
       </div>
 
-      <Link href={`/product/${product.slug}`} className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0 outline-none block">
+      <Link href={`/product/${product.slug}`} className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0 outline-none block focus-visible:ring-2 focus-visible:ring-primary rounded-lg">
         <Image
           src={product.mainImage || "/placeholder.svg"}
-          alt={product.name}
+          alt={`${product.name}${product.salePrice ? ` - ₫${product.salePrice.toLocaleString('vi-VN')}` : ""}`}
           fill
           className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
           priority={false}
@@ -50,8 +50,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mt-auto">
-          <Star className="h-4 w-4 fill-accent text-accent" />
+        <div className="flex items-center gap-1 mt-auto" aria-label={`Product rating: ${product.rating.toFixed(1)} out of 5 stars`}>
+          <Star className="h-4 w-4 fill-accent text-accent" aria-hidden="true" />
           <span className="text-sm font-medium text-muted-foreground">{product.rating.toFixed(1)}</span>
         </div>
 
