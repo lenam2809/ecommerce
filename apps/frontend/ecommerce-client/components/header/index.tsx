@@ -167,6 +167,8 @@ export function Header() {
                 setIsMobileMenuOpen={setIsMobileMenuOpen}
                 isAuthenticated={isAuthenticated}
                 logout={logout}
+                cartCount={cartItemCount}
+                wishlistCount={wishlistItemCount}
             />
         </header>
     )
