@@ -16,6 +16,7 @@ type OrderSummaryProps = {
     itemCount: number;
     onApplyPromoCode: (code: string) => void;
     isApplyingPromoCode: boolean;
+    promoCodeError?: any;
 };
 
 const OrderSummary = ({
@@ -26,6 +27,7 @@ const OrderSummary = ({
     itemCount,
     onApplyPromoCode,
     isApplyingPromoCode,
+    promoCodeError,
 }: OrderSummaryProps) => {
     const [promoCode, setPromoCode] = useState("");
 
@@ -107,6 +109,12 @@ const OrderSummary = ({
                         <p className="text-emerald-500 text-xs flex items-center bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-2 flex-shrink-0 animate-pulse"></span>
                             Mã giảm giá đã được áp dụng!
+                        </p>
+                    )}
+                    {promoCodeError && (
+                        <p className="text-red-500 text-xs flex items-center bg-red-500/10 p-2 rounded border border-red-500/20">
+                            <span className="h-1.5 w-1.5 rounded-full bg-red-500 mr-2 flex-shrink-0"></span>
+                            {promoCodeError?.response?.data?.message || promoCodeError?.message || "Mã giảm giá không hợp lệ"}
                         </p>
                     )}
                 </div>
