@@ -1,28 +1,42 @@
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ProductListItemSkeleton() {
-    return (
-        <div className="bg-card rounded-2xl border border-white/5 overflow-hidden flex flex-col md:flex-row h-full w-full">
-            <Skeleton className="h-48 md:h-auto md:w-48 w-full bg-secondary/30 rounded-none shrink-0" />
+  return (
+    <div className="bg-card rounded-lg border border-border/50 overflow-hidden flex flex-col md:flex-row gap-4 p-4 transition-all duration-300">
+      {/* Image placeholder */}
+      <div className="h-48 md:h-32 md:w-40 w-full flex-shrink-0 bg-secondary/20 rounded-lg overflow-hidden">
+        <Skeleton className="w-full h-full rounded-none" />
+      </div>
 
-            <div className="flex-1 p-5 flex flex-col bg-card">
-                <div className="mb-3 space-y-2">
-                    <Skeleton className="h-6 w-3/4 bg-secondary/30" />
-                    <Skeleton className="h-4 w-1/2 bg-secondary/30" />
-                </div>
-
-                <Skeleton className="h-16 w-full mb-4 bg-secondary/30 hidden md:block" />
-
-                <div className="flex items-center justify-between mt-auto">
-                    <Skeleton className="h-7 w-24 bg-secondary/30" />
-
-                    <div className="flex space-x-2">
-                        <Skeleton className="h-9 w-10 md:w-20 bg-secondary/30" />
-                        <Skeleton className="h-9 w-24 md:w-32 bg-secondary/30" />
-                    </div>
-                </div>
-            </div>
+      <div className="flex-1 flex flex-col gap-3">
+        {/* Product name skeleton - 2 lines */}
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-full rounded-md" />
+          <Skeleton className="h-4 w-3/4 rounded-md" />
         </div>
-    )
+
+        {/* Category and stock skeleton */}
+        <div className="flex items-center gap-4 text-sm">
+          <Skeleton className="h-3 w-20 rounded-md" />
+          <Skeleton className="h-3 w-24 rounded-md" />
+        </div>
+
+        {/* Description skeleton - 2 lines (hidden on mobile) */}
+        <div className="space-y-1 hidden md:block mt-auto">
+          <Skeleton className="h-3 w-full rounded-md" />
+          <Skeleton className="h-3 w-4/5 rounded-md" />
+        </div>
+
+        {/* Price and actions skeleton */}
+        <div className="flex items-center justify-between gap-3 mt-auto md:mt-2">
+          <Skeleton className="h-6 w-28 rounded-md" />
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-20 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
