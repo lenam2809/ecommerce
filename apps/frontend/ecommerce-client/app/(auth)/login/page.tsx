@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
@@ -14,6 +14,14 @@ import { useAuth } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
 
 export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-[60vh]"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+            <LoginContent />
+        </Suspense>
+    )
+}
+
+function LoginContent() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [rememberMe, setRememberMe] = useState(false)

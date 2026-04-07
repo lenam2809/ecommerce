@@ -1,7 +1,7 @@
 // app/(routes)/compare/page.tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -14,6 +14,27 @@ import { Product } from "@/types/product"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ComparePage() {
+    return (
+        <Suspense fallback={
+            <div className="container py-8 space-y-8">
+                <div className="glass-card rounded-3xl p-8 border-white/5">
+                    <div className="flex justify-between mb-8">
+                        <Skeleton className="h-10 w-48 rounded-xl bg-secondary/50" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-8">
+                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
+                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
+                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
+                    </div>
+                </div>
+            </div>
+        }>
+            <CompareContent />
+        </Suspense>
+    )
+}
+
+function CompareContent() {
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
     const searchParams = useSearchParams()

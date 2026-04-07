@@ -1,21 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { analytics } from "@/lib/analytics"
 
-/**
- * Analytics Provider Component
- * Automatically tracks page views and initializes analytics
- */
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+function AnalyticsTracker() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  useEffect(() => {
-    // Initialize analytics on mount
-    analytics.init()
-  }, [])
 
   useEffect(() => {
     // Track page views when route changes
@@ -33,5 +24,25 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, searchParams])
 
-  return children
+  return null
+}
+
+/**
+ * Analytics Provider Component
+ * Automatically tracks page views and initializes analytics
+ */
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Initialize analytics on mount
+    analytics.init()
+  }, [])
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <AnalyticsTracker />
+      </Suspense>
+      {children}
+    </>
+  )
 }

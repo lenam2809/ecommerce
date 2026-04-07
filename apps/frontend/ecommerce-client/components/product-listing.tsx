@@ -30,7 +30,15 @@ interface ProductListingProps {
     }
 }
 
-export default function ProductListing({
+export default function ProductListing(props: ProductListingProps) {
+    return (
+        <React.Suspense fallback={<div className="flex justify-center items-center h-[60vh]"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+            <ProductListingContent {...props} />
+        </React.Suspense>
+    )
+}
+
+function ProductListingContent({
     categorySlug,
     brandSlug,
     pageTitle = "Tất cả sản phẩm",

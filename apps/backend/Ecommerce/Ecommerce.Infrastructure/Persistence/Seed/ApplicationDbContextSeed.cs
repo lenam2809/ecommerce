@@ -2683,89 +2683,90 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Description = "Chúng tôi có sứ mệnh cung cấp các sản phẩm chất lượng cao nhằm nâng cao cuộc sống hàng ngày của bạn."
                     },
                     Values = new List<ValueItem>
-            {
-                new ValueItem
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Chất Lượng Là Hàng Đầu",
-                    Description = "Chúng tôi tin vào việc cung cấp các sản phẩm vượt trội về chất lượng và độ bền."
-                },
-                new ValueItem
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Sự Hài Lòng Của Khách Hàng",
-                    Description = "Sự hài lòng của bạn là ưu tiên hàng đầu. Chúng tôi cam kết cung cấp dịch vụ xuất sắc."
-                },
-                new ValueItem
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Phát Triển Bền Vững",
-                    Description = "Chúng tôi tận tâm với các hoạt động bền vững nhằm giảm thiểu tác động đến môi trường."
-                }
-            },
+                    {
+                        new ValueItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = "Chất Lượng Là Hàng Đầu",
+                            Description = "Chúng tôi tin vào việc cung cấp các sản phẩm vượt trội về chất lượng và độ bền."
+                        },
+                        new ValueItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = "Sự Hài Lòng Của Khách Hàng",
+                            Description = "Sự hài lòng của bạn là ưu tiên hàng đầu. Chúng tôi cam kết cung cấp dịch vụ xuất sắc."
+                        },
+                        new ValueItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = "Phát Triển Bền Vững",
+                            Description = "Chúng tôi tận tâm với các hoạt động bền vững nhằm giảm thiểu tác động đến môi trường."
+                        }
+                    },
                     History = new HistorySection
                     {
                         Title = "Từ Những Bước Đầu Nhỏ Bé",
                         Paragraphs = new List<HistoryParagraph>
-    {
-        new HistoryParagraph
-        {
-            Id = Guid.NewGuid(),
-            Content = "Được thành lập vào năm 2010, công ty chúng tôi bắt đầu là một cửa hàng trực tuyến nhỏ..."
-        },
-        new HistoryParagraph
-        {
-            Id = Guid.NewGuid(),
-            Content = "Khi tiếng tăm về cam kết xuất sắc của chúng tôi lan rộng..."
-        },
-        new HistoryParagraph
-        {
-            Id = Guid.NewGuid(),
-            Content = "Ngày nay, chúng tôi cung cấp hàng trăm sản phẩm cho khách hàng..."
-        }
-    }
+                        {
+                            new HistoryParagraph
+                            {
+                                Id = Guid.NewGuid(),
+                                Content = "Được thành lập vào năm 2010, công ty chúng tôi bắt đầu là một cửa hàng trực tuyến nhỏ..."
+                            },
+                            new HistoryParagraph
+                            {
+                                Id = Guid.NewGuid(),
+                                Content = "Khi tiếng tăm về cam kết xuất sắc của chúng tôi lan rộng..."
+                            },
+                            new HistoryParagraph
+                            {
+                                Id = Guid.NewGuid(),
+                                Content = "Ngày nay, chúng tôi cung cấp hàng trăm sản phẩm cho khách hàng..."
+                            }
+                        }
                     },
                     Team = new List<TeamMember>
-            {
-                new TeamMember
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Nguyễn Thị Minh",
-                    Role = "Nhà Sáng Lập & CEO",
-                    ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
-                    Bio = "Với hơn 15 năm kinh nghiệm trong ngành bán lẻ, Minh lãnh đạo công ty chúng tôi với niềm đam mê và tầm nhìn."
-                },
-                new TeamMember
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Trần Văn Hải",
-                    Role = "Giám Đốc Sản Phẩm",
-                    ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
-                    Bio = "Hải đảm bảo rằng mỗi sản phẩm chúng tôi cung cấp đều đáp ứng các tiêu chuẩn cao về chất lượng và thiết kế."
-                },
-                new TeamMember
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Lê Thị Hương",
-                    Role = "Trải Nghiệm Khách Hàng",
-                    ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
-                    Bio = "Hương làm việc không mệt mỏi để đảm bảo rằng mỗi khách hàng đều có trải nghiệm mua sắm tuyệt vời."
-                },
-                new TeamMember
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Phạm Minh Tuấn",
-                    Role = "Quản Lý Vận Hành",
-                    ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
-                    Bio = "Tuấn giám sát hậu cần của chúng tôi để đảm bảo giao hàng đúng hẹn và hoạt động hiệu quả."
-                }
-            },
+                    {
+                        new TeamMember
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Nguyễn Thị Minh",
+                            Role = "Nhà Sáng Lập & CEO",
+                            ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
+                            Bio = "Với hơn 15 năm kinh nghiệm trong ngành bán lẻ, Minh lãnh đạo công ty chúng tôi với niềm đam mê và tầm nhìn."
+                        },
+                        new TeamMember
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Trần Văn Hải",
+                            Role = "Giám Đốc Sản Phẩm",
+                            ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
+                            Bio = "Hải đảm bảo rằng mỗi sản phẩm chúng tôi cung cấp đều đáp ứng các tiêu chuẩn cao về chất lượng và thiết kế."
+                        },
+                        new TeamMember
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Lê Thị Hương",
+                            Role = "Trải Nghiệm Khách Hàng",
+                            ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
+                            Bio = "Hương làm việc không mệt mỏi để đảm bảo rằng mỗi khách hàng đều có trải nghiệm mua sắm tuyệt vời."
+                        },
+                        new TeamMember
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Phạm Minh Tuấn",
+                            Role = "Quản Lý Vận Hành",
+                            ImageUrl = "users/avatar-20250521154845412-fd9c4c.jpg",
+                            Bio = "Tuấn giám sát hậu cần của chúng tôi để đảm bảo giao hàng đúng hẹn và hoạt động hiệu quả."
+                        }
+                    },
                     Cta = new CtaSection
                     {
                         Title = "Sẵn Sàng Trải Nghiệm Sự Khác Biệt?",
                         Description = "Khám phá bộ sưu tập các sản phẩm chất lượng cao được thiết kế để nâng cao cuộc sống hàng ngày của bạn."
                     },
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 };
 
                 await _context.Abouts.AddAsync(about);
@@ -2798,54 +2799,55 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Description = "Ghé thăm văn phòng của chúng tôi"
                     },
                     SocialLinks = new List<SocialLink>
-            {
-                new SocialLink
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Facebook",
-                    Url = "https://facebook.com/example"
-                },
-                new SocialLink
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Twitter",
-                    Url = "https://twitter.com/example"
-                },
-                new SocialLink
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Instagram",
-                    Url = "https://instagram.com/example"
-                }
-            },
+                    {
+                        new SocialLink
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Facebook",
+                            Url = "https://facebook.com/example"
+                        },
+                        new SocialLink
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Twitter",
+                            Url = "https://twitter.com/example"
+                        },
+                        new SocialLink
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Instagram",
+                            Url = "https://instagram.com/example"
+                        }
+                    },
                     Faqs = new List<FaqItem>
-            {
-                new FaqItem
-                {
-                    Id = Guid.NewGuid(),
-                    Question = "Thời gian giao hàng là bao lâu?",
-                    Answer = "Chúng tôi thường xử lý và gửi đơn hàng trong vòng 1-2 ngày làm việc. Thời gian giao hàng tùy thuộc vào địa điểm, thường từ 3-7 ngày làm việc."
-                },
-                new FaqItem
-                {
-                    Id = Guid.NewGuid(),
-                    Question = "Có giao hàng quốc tế không?",
-                    Answer = "Có, chúng tôi giao hàng đến hầu hết các quốc gia trên thế giới. Thời gian và phí giao hàng quốc tế thay đổi tùy theo điểm đến."
-                },
-                new FaqItem
-                {
-                    Id = Guid.NewGuid(),
-                    Question = "Chính sách đổi trả như thế nào?",
-                    Answer = "Chúng tôi cung cấp chính sách đổi trả trong vòng 30 ngày cho hầu hết các mặt hàng. Sản phẩm phải còn nguyên trạng với nhãn mác đính kèm."
-                },
-                new FaqItem
-                {
-                    Id = Guid.NewGuid(),
-                    Question = "Làm thế nào để theo dõi đơn hàng?",
-                    Answer = "Khi đơn hàng của bạn được gửi đi, bạn sẽ nhận được email xác nhận kèm theo thông tin theo dõi."
-                }
-            },
-                    CreatedAt = DateTime.Now
+                    {
+                        new FaqItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Question = "Thời gian giao hàng là bao lâu?",
+                            Answer = "Chúng tôi thường xử lý và gửi đơn hàng trong vòng 1-2 ngày làm việc. Thời gian giao hàng tùy thuộc vào địa điểm, thường từ 3-7 ngày làm việc."
+                        },
+                        new FaqItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Question = "Có giao hàng quốc tế không?",
+                            Answer = "Có, chúng tôi giao hàng đến hầu hết các quốc gia trên thế giới. Thời gian và phí giao hàng quốc tế thay đổi tùy theo điểm đến."
+                        },
+                        new FaqItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Question = "Chính sách đổi trả như thế nào?",
+                            Answer = "Chúng tôi cung cấp chính sách đổi trả trong vòng 30 ngày cho hầu hết các mặt hàng. Sản phẩm phải còn nguyên trạng với nhãn mác đính kèm."
+                        },
+                        new FaqItem
+                        {
+                            Id = Guid.NewGuid(),
+                            Question = "Làm thế nào để theo dõi đơn hàng?",
+                            Answer = "Khi đơn hàng của bạn được gửi đi, bạn sẽ nhận được email xác nhận kèm theo thông tin theo dõi."
+                        }
+                    },
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 };
 
                 await _context.Contacts.AddAsync(contact);
