@@ -35,9 +35,13 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   return (
     <div className="space-y-4 lg:space-y-6">
-      {/* Main Image */}
+      {/* Main Image - Fixed aspect ratio container to prevent layout shift */}
       <div
-        className="glass-card bg-card/20 relative aspect-square lg:aspect-[4/5] overflow-hidden rounded-3xl group border-border/50"
+        className="glass-card bg-card/20 relative w-full rounded-3xl group border-border/50 overflow-hidden"
+        style={{
+          aspectRatio: '1 / 1.25', // 4/5 ratio for better product display
+          maxHeight: '600px',
+        }}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
