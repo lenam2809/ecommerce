@@ -1,4 +1,4 @@
-using Ecommerce.Application.Common.Configs;
+﻿using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
@@ -7,8 +7,6 @@ using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Globalization;
 using System.Threading.RateLimiting;
@@ -172,14 +170,13 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
 
     // Always apply migrations
-    await context.Database.MigrateAsync();
-    await ApplicationDbContextSeed.SeedAsync(services);
+    //await context.Database.MigrateAsync();
 
-    // // Only seed data in Development
-    // if (app.Environment.IsDevelopment())
-    // {
-    //     await ApplicationDbContextSeed.SeedAsync(services);
-    // }
+    // Only seed data in Development
+    if (app.Environment.IsDevelopment())
+    {
+        await ApplicationDbContextSeed.SeedAsync(services);
+    }
 }
 
 app.UseRateLimiter();

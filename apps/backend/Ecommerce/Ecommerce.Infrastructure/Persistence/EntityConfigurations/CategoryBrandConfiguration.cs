@@ -24,6 +24,8 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             builder.Property(cb => cb.LinkedAt)
                    .HasDefaultValueSql("now()");
+
+            builder.HasQueryFilter(cb => !cb.Brand.IsDeleted && !cb.Category.IsDeleted);
         }
     }
 }

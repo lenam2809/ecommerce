@@ -23,6 +23,8 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .OnDelete(DeleteBehavior.NoAction); // Avoid cascade cycle
 
             builder.HasIndex(sav => new { sav.ProductVariantSkuId, sav.ProductAttributeValueId }).IsUnique();
+
+            builder.HasQueryFilter(sav => !sav.ProductAttributeValue.IsDeleted);
         }
     }
 }

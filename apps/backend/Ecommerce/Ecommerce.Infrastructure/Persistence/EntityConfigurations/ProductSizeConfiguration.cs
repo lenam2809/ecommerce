@@ -13,6 +13,8 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasOne(ps => ps.ProductVariant)
                 .WithMany(pv => pv.Sizes)
                 .HasForeignKey(ps => ps.ProductVariantId);
+
+            builder.HasQueryFilter(ps => !ps.ProductVariant.IsDeleted);
         }
     }
 }

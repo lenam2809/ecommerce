@@ -13,6 +13,8 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasOne(pc => pc.ProductVariant)
                 .WithMany(pv => pv.Colors)
                 .HasForeignKey(pc => pc.ProductVariantId);
+
+            builder.HasQueryFilter(pc => !pc.ProductVariant.IsDeleted);
         }
     }
 }
