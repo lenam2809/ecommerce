@@ -3,15 +3,21 @@ import { Button } from './ui/button';
 import { ShoppingCart, Ban } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { cn } from '@/lib/utils';
+import { analytics } from '@/lib/analytics';
 
 interface AddToCartButtonProps {
     productId: string;
     stockQuantity?: number; // undefined = không check (backward-compatible), 0 = hết hàng
     title?: string;
     className?: string;
+    productName?: string;
+    price?: number;
+    category?: string;
 }
 
-const AddToCartButton: React.FC<AddToCartButtonProps> = ({ productId, stockQuantity, title, className }) => {
+const AddToCartButton: React.FC<AddToCartButtonProps> = ({ 
+    productId, stockQuantity, title, className, productName, price, category 
+}) => {
     const { addToCart, isAddingToCart } = useCart()
 
     const isOutOfStock = stockQuantity !== undefined && stockQuantity === 0
@@ -25,6 +31,15 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({ productId, stockQuant
             quantity: 1,
             options: {},
         })
+        
+        if (productName && price !== undefined) {
+             analytics.trackAddToCart({
+                 id: productId,
+                 name: productName,
+                 price: price,
+                 category: category
+             }, 1)
+        }
     }
 
     if (title && !isOutOfStock) {

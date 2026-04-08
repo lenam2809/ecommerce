@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios"
 import { sessionSync } from "@/lib/session-sync"
+import { logger } from "@/lib/logger"
 
 // Create an axios instance with default config
 // Use relative /api so requests go same-origin → proxied by Next.js → cookies set for frontend domain
@@ -14,6 +15,22 @@ const api = axios.create({
 // Token Refresh Queue - prevents race condition when multiple requests fail with 401
 let isRefreshing = false
 let refreshSubscribers: ((success: boolean) => void)[] = []
+
+// Retry limit — max 3 refresh attempts per minute to prevent infinite loops
+let refreshAttemptCount = 0
+let refreshAttemptResetTimer: ReturnType<typeof setTimeout> | null = null
+
+function canAttemptRefresh(): boolean {
+  if (refreshAttemptCount >= 3) return false
+  refreshAttemptCount++
+  if (!refreshAttemptResetTimer) {
+    refreshAttemptResetTimer = setTimeout(() => {
+      refreshAttemptCount = 0
+      refreshAttemptResetTimer = null
+    }, 60_000) // reset counter after 1 minute
+  }
+  return true
+}
 
 function subscribeToRefresh(callback: (success: boolean) => void) {
   refreshSubscribers.push(callback)
@@ -32,14 +49,14 @@ async function refreshTokenSilently(): Promise<boolean> {
       {},
       { withCredentials: true }
     )
-    console.debug('Token refresh successful')
+    logger.debug('Token refresh successful')
 
     // Notify other tabs that session was refreshed
     sessionSync.broadcast('SESSION_REFRESH')
 
     return true
   } catch (error) {
-    console.error('Token refresh failed:', error)
+    logger.error('Token refresh failed:', error)
     return false
   }
 }
@@ -64,7 +81,6 @@ function getCsrfToken(): string | undefined {
 function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
   if (typeof window === "undefined") return
 
-  const guestId = localStorage.getItem("guest_id")
   const requestUrl = originalRequest.url || ""
 
   // List of endpoints that should not trigger a redirect for guests
@@ -72,16 +88,16 @@ function handleAuthFailure(originalRequest: InternalAxiosRequestConfig) {
   const isSoftEndpoint = softEndpoints.some(ep => requestUrl.includes(ep))
 
   if (isSoftEndpoint) {
-    console.log("Guest 401 suppressed for:", requestUrl)
+    logger.debug("Guest 401 suppressed for:", requestUrl)
     return // Don't redirect guests for soft endpoints
   }
 
   // Save current URL as returnUrl before clearing data
   const currentPath = window.location.pathname + window.location.search
   const returnUrl = encodeURIComponent(currentPath)
-  
+
   sessionSync.broadcast('LOGOUT', { returnUrl })
-  
+
   // Redirect to login with returnUrl
   if (window.location.pathname !== '/login') window.location.href = `/login?returnUrl=${returnUrl}`
 }
@@ -125,6 +141,13 @@ api.interceptors.response.use(
 
     // Handle 401/403 with token refresh attempt (only for 401)
     if (status === 401 && !originalRequest._retry) {
+      // Enforce retry limit before attempting refresh
+      if (!canAttemptRefresh()) {
+        logger.warn('Token refresh limit reached (3/min). Treating as auth failure.')
+        handleAuthFailure(originalRequest)
+        return Promise.reject(error)
+      }
+
       // Check if we're already refreshing
       if (isRefreshing) {
         // Wait for the ongoing refresh

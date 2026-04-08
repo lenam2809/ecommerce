@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useWishlist } from "@/hooks/use-wishlist"
+import { analytics } from "@/lib/analytics"
 
 interface AddToWishlistButtonProps {
     productId: string
+    productName?: string
+    price?: number
+    category?: string
     className?: string
     size?: "default" | "sm" | "lg" | "icon"
     variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
@@ -15,6 +19,9 @@ interface AddToWishlistButtonProps {
 
 export default function AddToWishlistButton({
     productId,
+    productName,
+    price,
+    category,
     className,
     size = "icon",
     variant = "ghost",
@@ -29,8 +36,24 @@ export default function AddToWishlistButton({
 
         if (inWishlist) {
             removeFromWishlist(productId)
+            if (productName) {
+                analytics.trackWishlistRemove({
+                    id: productId,
+                    name: productName,
+                    price: price || 0,
+                    category: category
+                })
+            }
         } else {
             addToWishlist(productId)
+            if (productName) {
+                analytics.trackWishlistAdd({
+                    id: productId,
+                    name: productName,
+                    price: price || 0,
+                    category: category
+                })
+            }
         }
 
         // Reset animation after a short delay

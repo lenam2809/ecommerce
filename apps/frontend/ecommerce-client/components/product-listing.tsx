@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Filter, Grid3X3, List, X, ChevronRight, Home, PackageOpen } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Head from "next/head"
 import React from "react"
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -19,6 +20,49 @@ import { useCategoryBySlug } from "@/hooks/use-categories"
 import { useBrandBySlug } from "@/hooks/use-brands"
 import { type ProductFilters as ProductFiltersType } from "@/types/product"
 import { ProductFilters } from "./product-filters"
+import { type Product } from "@/types/product"
+
+/** Virtual list for list-view mode — only activates when > 20 items */
+function VirtualProductList({ products }: { products: Product[] }) {
+    const parentRef = useRef<HTMLDivElement>(null)
+    const ITEM_HEIGHT = 176 // approximate px height of ProductListItem
+
+    const rowVirtualizer = useVirtualizer({
+        count: products.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => ITEM_HEIGHT,
+        overscan: 3,
+    })
+
+    return (
+        <div
+            ref={parentRef}
+            className="overflow-auto"
+            style={{ height: Math.min(products.length * ITEM_HEIGHT, 800) }}
+        >
+            <div
+                style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}
+            >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+                    <div
+                        key={virtualRow.key}
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`,
+                            paddingBottom: "16px",
+                        }}
+                    >
+                        <ProductListItem product={products[virtualRow.index]} />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
 
 interface ProductListingProps {
     categorySlug?: string
@@ -76,7 +120,6 @@ function ProductListingContent({
         }
 
         const sort = searchParams.get("sortBy")
-        console.log("Current sortBy from searchParams:", sort)
         // if (sort) setSortBy(sort)
         if (sort) updatedFilters.sortBy = sort
 
@@ -471,6 +514,9 @@ function ProductListingContent({
                                 <ProductCard key={product.id} product={product} />
                             ))}
                         </div>
+                    ) : products.length > 20 ? (
+                        // Virtual scroll for long lists (> 20 items) in list view
+                        <VirtualProductList products={products} />
                     ) : (
                         <div className="space-y-4">
                             {products.map((product) => (

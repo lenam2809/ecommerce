@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Head from "next/head"
 import dynamic from "next/dynamic"
 import { useParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ErrorBoundary } from "@/components/error-boundary"
 import ProductCard from "@/components/product-card"
 import ProductGallery from "@/components/product-gallery"
 import ProductCardSkeleton from "@/components/product-card-skeleton"
 import { useProductBySlug, useSimilarProducts } from "@/hooks/use-products"
 import { useCart } from "@/hooks/use-cart"
+import { generateProductSchema } from "@/lib/seo-utils"
+import { analytics } from "@/lib/analytics"
 
 import { ProductBreadcrumb } from "@/components/products/product-breadcrumb"
 import { ProductHeader } from "@/components/products/product-header"
@@ -72,6 +76,15 @@ export default function ProductDetailPage() {
                     color: selectedColor || undefined,
                 },
             })
+            
+            // Track Add to Cart Event
+            analytics.trackAddToCart({
+                id: product.id,
+                name: product.name,
+                price: product.salePrice || product.price,
+                brand: product.categoryName, // fallback to category if brand is missing
+                category: product.categoryName
+            }, quantity)
         }
     }
 
@@ -89,11 +102,31 @@ export default function ProductDetailPage() {
 
     return (
         <>
-            <div className="min-h-screen bg-background relative overflow-hidden">
-                <div className="absolute inset-0 mesh-gradient-subtle opacity-30 pointer-events-none" />
+            {product && (
+                <Head>
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify(generateProductSchema({
+                                name: product.name,
+                                description: product.description || "",
+                                price: product.salePrice || product.price,
+                                image: product.mainImage,
+                                rating: product.rating,
+                                reviewCount: product.reviewCount,
+                                brand: "ShopViet", // Brand string or static fallback
+                                url: `https://shopviet.com/product/${product.slug}`,
+                            }))
+                        }}
+                    />
+                </Head>
+            )}
+            <ErrorBoundary>
+                <div className="min-h-screen bg-background relative overflow-hidden">
+                    <div className="absolute inset-0 mesh-gradient-subtle opacity-30 pointer-events-none" />
 
-                <div className="container mx-auto px-4 py-8 relative z-10">
-                    <ProductBreadcrumb
+                    <div className="container mx-auto px-4 py-8 relative z-10">
+                        <ProductBreadcrumb
                         isLoading={isLoading}
                         categoryName={product?.categoryName}
                         productName={product?.name}
@@ -197,7 +230,8 @@ export default function ProductDetailPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+                </div>
+            </ErrorBoundary>
         </>
     )
 }

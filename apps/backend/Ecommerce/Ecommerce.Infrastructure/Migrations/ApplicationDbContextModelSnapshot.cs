@@ -2283,17 +2283,15 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.Property<string>("TokenHash")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserAgentHash")
-                        .HasColumnType("text");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserAgentHash")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("FamilyId");
 
                     b.ToTable("RefreshTokens");
                 });

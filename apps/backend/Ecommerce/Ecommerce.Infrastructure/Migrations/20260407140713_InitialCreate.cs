@@ -250,6 +250,25 @@ namespace Ecommerce.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TxnRef = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ResponseCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ConcurrencyToken = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentTransactions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Permissions",
                 columns: table => new
                 {
@@ -484,6 +503,7 @@ namespace Ecommerce.Infrastructure.Migrations
                     Image = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     StockQuantity = table.Column<int>(type: "integer", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false),
                     PublishedDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     HasVariants = table.Column<bool>(type: "boolean", nullable: false),
@@ -861,6 +881,10 @@ namespace Ecommerce.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Token = table.Column<string>(type: "text", nullable: false),
                     TokenHash = table.Column<string>(type: "text", nullable: true),
+                    UserAgentHash = table.Column<string>(type: "text", nullable: true),
+                    IpSubnet = table.Column<string>(type: "text", nullable: true),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ParentTokenId = table.Column<Guid>(type: "uuid", nullable: true),
                     ExpiryDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -2067,6 +2091,12 @@ namespace Ecommerce.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentTransactions_TxnRef",
+                table: "PaymentTransactions",
+                column: "TxnRef",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PerformanceLogs_ClassName_MethodName_StartTime",
                 table: "PerformanceLogs",
                 columns: new[] { "ClassName", "MethodName", "StartTime" });
@@ -2483,6 +2513,9 @@ namespace Ecommerce.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "PaymentTransactions");
 
             migrationBuilder.DropTable(
                 name: "PerformanceLogs");

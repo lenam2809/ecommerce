@@ -1,8 +1,21 @@
 // components/wishlist/wishlist-item.tsx
+"use client"
+import { useState } from "react"
 import { Trash2, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { formatPrice } from "@/lib/contants"
 import AddToCartButton from "../add-to-cart-button"
 
@@ -18,19 +31,45 @@ interface WishlistItemProps {
 }
 
 export default function WishlistItem({ product, onRemove }: WishlistItemProps) {
+    const [open, setOpen] = useState(false)
+
     return (
         <div className="group relative h-full glass-card hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 rounded-3xl overflow-hidden border-white/5 dark:border-white/5">
             {/* Remove from Wishlist button positioned in the top-right corner */}
             <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 rounded-full bg-black/20 dark:bg-white/20 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-white backdrop-blur-xl border-0 transition-all"
-                    onClick={() => onRemove(product.productId)}
-                    aria-label="Xóa khỏi danh sách yêu thích"
-                >
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+                <AlertDialog open={open} onOpenChange={setOpen}>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 rounded-full bg-black/20 dark:bg-white/20 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white text-white backdrop-blur-xl border-0 transition-all"
+                            aria-label={`Xóa ${product.productName} khỏi danh sách yêu thích`}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-2xl border border-border/60 shadow-2xl">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Xóa khỏi danh sách yêu thích?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn có chắc muốn xóa{" "}
+                                <span className="font-semibold text-foreground">
+                                    {product.productName}
+                                </span>{" "}
+                                khỏi danh sách yêu thích không? Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-xl">Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                                className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => onRemove(product.productId)}
+                            >
+                                Xóa
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
 
             <Link href={`/product/${product.slug}`} className="block relative aspect-[4/5] overflow-hidden bg-secondary/20">
@@ -65,6 +104,8 @@ export default function WishlistItem({ product, onRemove }: WishlistItemProps) {
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
                         <AddToCartButton
                             productId={product.productId}
+                            productName={product.productName}
+                            price={product.price}
                         />
                     </div>
                 </div>

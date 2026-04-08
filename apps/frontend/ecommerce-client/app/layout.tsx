@@ -6,8 +6,14 @@ import Providers from "./providers"
 import { ToastProvider } from "@/components/toast/toast-provider"
 import { GlobalLoading } from "@/components/ui/global-loading"
 import { GuestIdInitializer } from "@/components/guest-id-initializer"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { generateOrganizationSchema } from "@/lib/seo-utils"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  variable: "--font-inter",
+})
 
 export const metadata: Metadata = {
   title: "ShopViet - Thương mại điện tử Việt Nam",
@@ -52,13 +58,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const orgSchema = generateOrganizationSchema()
+
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground`}>
+      <head>
+        {/* Organization structured data — helps Google identify the business entity */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+      </head>
+      <body className={`${inter.variable} font-sans bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground`}>
         <GuestIdInitializer />
-        <Providers>
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            {children}
+          </Providers>
+        </ErrorBoundary>
         <GlobalLoading />
         <ToastProvider
           position="bottom-right"

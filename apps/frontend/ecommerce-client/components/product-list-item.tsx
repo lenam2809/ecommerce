@@ -91,7 +91,13 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                                 <Link href={`/products/${product.id}`}>Chi tiết</Link>
                             </Button>
                             <AddToComparison product={product} />
-                            <AddToCartButton productId={product.id} title="Thêm vào giỏ hàng" />
+                            <AddToCartButton 
+                                productId={product.id} 
+                                title="Thêm vào giỏ hàng" 
+                                productName={product.name}
+                                price={product.salePrice || product.price}
+                                category={product.categoryName}
+                            />
                         </div>
                     </div>
                 </div>

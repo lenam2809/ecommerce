@@ -26,6 +26,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="absolute top-3 right-3 z-20 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-300 ease-out translate-y-2 group-hover:translate-y-0 focus-within:translate-y-0">
         <AddToWishlistButton
           productId={product.id}
+          productName={product.name}
+          price={product.salePrice || product.price}
+          category={product.categoryName}
           className="bg-background/80 hover:bg-background text-foreground backdrop-blur-md border border-border/50 rounded-full h-9 w-9 p-2 transition-all shadow-sm"
         />
       </div>
@@ -79,6 +82,9 @@ export default function ProductCard({ product }: ProductCardProps) {
               productId={product.id}
               stockQuantity={product.stockQuantity}
               className="w-full shadow-md"
+              productName={product.name}
+              price={product.salePrice || product.price}
+              category={product.categoryName}
             />
           </div>
         </div>

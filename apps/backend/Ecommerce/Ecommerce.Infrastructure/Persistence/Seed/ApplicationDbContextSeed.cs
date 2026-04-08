@@ -185,7 +185,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     PromotionPoints = 1000
                 };
 
-                var result = await _userManager.CreateAsync(adminUser, "Admin@123");
+                var result = await _userManager.CreateAsync(adminUser, "Admin@123456");
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Created admin user: {adminEmail}");
@@ -219,7 +219,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     PromotionPoints = 500
                 };
 
-                var result = await _userManager.CreateAsync(managerUser, "Manager@123");
+                var result = await _userManager.CreateAsync(managerUser, "Manager@123456");
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Created manager user: {managerEmail}");
@@ -249,7 +249,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     PromotionPoints = 200
                 };
 
-                var result = await _userManager.CreateAsync(staffUser, "Staff@123");
+                var result = await _userManager.CreateAsync(staffUser, "Staff@123456");
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Created staff user: {staffEmail}");
