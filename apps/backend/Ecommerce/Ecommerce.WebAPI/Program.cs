@@ -172,12 +172,12 @@ using (var scope = app.Services.CreateScope())
 
     // Always apply migrations
     await context.Database.MigrateAsync();
-
-    // Only seed data in Development
-    if (app.Environment.IsDevelopment())
-    {
-        await ApplicationDbContextSeed.SeedAsync(services);
-    }
+    await ApplicationDbContextSeed.SeedAsync(services);
+    // // Only seed data in Development
+    // if (app.Environment.IsDevelopment())
+    // {
+    //     await ApplicationDbContextSeed.SeedAsync(services);
+    // }
 }
 
 app.UseRateLimiter();

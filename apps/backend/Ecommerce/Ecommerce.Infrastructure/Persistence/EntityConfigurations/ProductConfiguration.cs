@@ -34,7 +34,8 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .HasMaxLength(500);
 
             builder.Property(p => p.RowVersion)
-                   .IsRowVersion();
+                   .IsConcurrencyToken()
+                   .HasColumnType("bytea");
 
             // Cấu hình quan hệ
             builder.HasOne(p => p.Category)

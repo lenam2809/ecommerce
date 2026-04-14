@@ -50,7 +50,6 @@ namespace Ecommerce.Domain.Entities
         [Range(0, int.MaxValue)]
         public int StockQuantity { get; private set; }
 
-        [Timestamp]
         public byte[] RowVersion { get; private set; } = Guid.NewGuid().ToByteArray();
 
         public DateTime? PublishedDate { get; private set; }
