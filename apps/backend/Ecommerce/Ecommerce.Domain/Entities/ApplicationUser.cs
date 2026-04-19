@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Base;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +33,7 @@ namespace Ecommerce.Domain.Entities
 
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
+        public bool MustChangePassword { get; set; } = false;
 
         private readonly List<INotification> _domainEvents = new();
 

@@ -13,6 +13,8 @@ namespace Ecommerce.Application.Features.Payments.VnPay
 {
     public class VnPayService : IVnPayService
     {
+        // Thời gian tối đa callback hợp lệ sau khi tạo (anti-replay)
+        private static readonly TimeSpan MaxCallbackAge = TimeSpan.FromMinutes(30);
         private readonly VnPaySettings _settings;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -114,6 +116,30 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                     }
 
                     return callback;
+                }
+
+                // A2: Anti-replay - kiểm tra thời gian tạo callback
+                var createDateRaw = collections.FirstOrDefault(k => k.Key == "vnp_CreateDate").Value.ToString();
+                if (!string.IsNullOrWhiteSpace(createDateRaw)
+                    && DateTime.TryParseExact(createDateRaw, "yyyyMMddHHmmss",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var createDateLocal))
+                {
+                    // vnp_CreateDate là giờ Việt Nam (UTC+7), chuyển về UTC
+                    var vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+                    var createDateUtc = TimeZoneInfo.ConvertTimeToUtc(createDateLocal, vnTimeZone);
+                    if (DateTime.UtcNow - createDateUtc > MaxCallbackAge)
+                    {
+                        await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "EXPIRED_CALLBACK", cancellationToken);
+                        callback.Success = false;
+                        callback.VnPayResponseCode = "EXPIRED_CALLBACK";
+
+                        if (startedLocalTransaction)
+                        {
+                            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                        }
+
+                        return callback;
+                    }
                 }
 
                 if (order.TotalAmount != callback.Amount)

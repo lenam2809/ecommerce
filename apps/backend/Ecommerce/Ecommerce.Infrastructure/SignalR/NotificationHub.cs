@@ -1,4 +1,6 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Ecommerce.Infrastructure.SignalR
@@ -6,7 +8,7 @@ namespace Ecommerce.Infrastructure.SignalR
     /// <summary>
     /// SignalR Hub for real-time notifications
     /// </summary>
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class NotificationHub : Hub
     {
         public override async Task OnConnectedAsync()

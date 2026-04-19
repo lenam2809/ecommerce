@@ -43,12 +43,21 @@ namespace Ecommerce.WebAPI.Middleware
                 return;
             }
 
-            // Skip certain paths that don't need CSRF (e.g., login, refresh-token)
+            // Skip certain paths that don't need CSRF
+            // - /auth/login: không có cookie lúc đăng nhập lần đầu nên đã được xử lý bởi kiểm tra access_token bên trên
+            // - /auth/register: public endpoint không có cookie
+            // - /auth/refresh-token: có refresh_token cookie => phải validate CSRF
+            // - /auth/logout: có access_token cookie => phải validate CSRF
             var path = context.Request.Path.Value?.ToLower() ?? "";
-            if (path.Contains("/auth/login") || 
-                path.Contains("/auth/register") || 
-                path.Contains("/auth/refresh-token"))
+            if (path.Contains("/auth/register") ||
+                path.Contains("/auth/forgot-password") ||
+                path.Contains("/auth/reset-password") ||
+                path.Contains("/auth/login"))
             {
+                // Public endpoints - không có access_token cookie nên skip là đúng
+                // Tuy nhiên: register/forgot-password tự thân đã được skip vì
+                // chúản client không gửi access_token cookie khi chưa login.
+                // Giữ đại đây để explicit rõ ràng.
                 await _next(context);
                 return;
             }

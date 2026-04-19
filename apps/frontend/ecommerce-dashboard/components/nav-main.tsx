@@ -59,12 +59,12 @@ export function NavMain({ label, items, showCreateProduct }: NavMainProps) {
   // Filter items based on permissions
   const filteredItems = items.filter(item => {
     // Check parent item permission
-    if (!hasPermission(user?.permissions, item.permissions)) return false
+    if (!hasPermission(user?.permissions, item.permissions, user?.roles)) return false
 
     // Filter subitems if exists
     if (item.items) {
       item.items = item.items.filter(subItem =>
-        hasPermission(user?.permissions, subItem.permissions))
+        hasPermission(user?.permissions, subItem.permissions, user?.roles))
       return item.items.length > 0
     }
 
@@ -77,7 +77,7 @@ export function NavMain({ label, items, showCreateProduct }: NavMainProps) {
     <SidebarGroup>
       {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent className="flex flex-col gap-2">
-        {showCreateProduct && hasPermission(user?.permissions, EPermissions.CreateProduct) && (
+        {showCreateProduct && hasPermission(user?.permissions, EPermissions.CreateProduct, user?.roles) && (
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton

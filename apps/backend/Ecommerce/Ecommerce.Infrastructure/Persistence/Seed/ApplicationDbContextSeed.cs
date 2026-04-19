@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             _roleManager = roleManager;
         }
 
-        public static async Task SeedAsync(IServiceProvider serviceProvider)
+        public static async Task SeedAsync(IServiceProvider serviceProvider, bool isDevelopment = true)
         {
             using var scope = serviceProvider.CreateScope();
             var services = scope.ServiceProvider;
@@ -43,7 +43,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 //await context.Database.MigrateAsync();
 
                 var seeder = new ApplicationDbContextSeed(logger, context, userManager, roleManager);
-                await seeder.SeedAllAsync();
+                await seeder.SeedAllAsync(isDevelopment);
 
                 logger.LogInformation("Database seeding completed successfully");
             }
@@ -54,27 +54,30 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             }
         }
 
-        public async Task SeedAllAsync()
+        public async Task SeedAllAsync(bool isDevelopment)
         {
             // Seed in specific order to handle dependencies
             var permissions = await SeedPermissionsAsync();
             var roles = await SeedRolesAsync();
-            var users = await SeedUsersAsync();
+            var users = await SeedUsersAsync(isDevelopment);
 
             await SeedRolePermissionsAsync(roles, permissions);
             await SeedUserRolesAsync(users, roles);
 
-            // Add test data
-            await SeedBrandsAsync();
-            await SeedCategoriesAsync();
-            await SeedProductsAsync();
-            await SeedProductSpecificationsAsync();
-            await SeedReviewsAsync();
-            await SeedAboutAndContactAsync();
-            await SeedProductVariantsAsync();
-            await SeedProductImagesAsync();
+            if (isDevelopment)
+            {
+                // Add test data
+                await SeedBrandsAsync();
+                await SeedCategoriesAsync();
+                await SeedProductsAsync();
+                await SeedProductSpecificationsAsync();
+                await SeedReviewsAsync();
+                await SeedAboutAndContactAsync();
+                await SeedProductVariantsAsync();
+                await SeedProductImagesAsync();
 
-            await SeedBannersAsync();
+                await SeedBannersAsync();
+            }
 
             // Save all changes
             await _context.SaveChangesAsync();
@@ -160,7 +163,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             return roleEntities;
         }
 
-        private async Task<List<ApplicationUser>> SeedUsersAsync()
+        private async Task<List<ApplicationUser>> SeedUsersAsync(bool isDevelopment)
         {
             _logger.LogInformation("Seeding users");
 
@@ -182,7 +185,8 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     FullName = "System Administrator",
                     Avatar = "users/avatar-20250521154845412-fd9c4c.jpg",
                     CustomerLevel = ECustomerLevel.Diamond,
-                    PromotionPoints = 1000
+                    PromotionPoints = 1000,
+                    MustChangePassword = !isDevelopment
                 };
 
                 var result = await _userManager.CreateAsync(adminUser, "Admin@123456");
@@ -199,6 +203,11 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             else
             {
                 users.Add(adminUser);
+            }
+
+            if (!isDevelopment)
+            {
+                return users;
             }
 
             // Create manager user

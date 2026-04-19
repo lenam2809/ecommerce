@@ -1,4 +1,4 @@
-using Ecommerce.Application.Common.Interfaces;
+﻿using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Auth.Dto;
 using Ecommerce.Domain.Enums;
@@ -128,11 +128,12 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                     FullName = user.FullName,
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
                     CustomerLevel = user.CustomerLevel,
-                    Roles = [..roles],
+                    Roles = [.. roles],
                     AccessToken = accessToken,
                     RefreshToken = rawRefreshToken,
                     Permissions = permissionNames,
                     Avatar = await _fileStorageService.GetFileUrlAsync(user.Avatar),
+                    MustChangePassword = user.MustChangePassword
                 };
 
                 await _logger.LogAsync(ELogLevel.Information, $"User {user.Email} logged in successfully.", "LoginSuccess");

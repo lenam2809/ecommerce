@@ -17,15 +17,16 @@ export function useCart() {
   } = useQuery({
     queryKey: ["cart"],
     queryFn: () => cartService.getCart(),
-    // staleTime: 30s — dữ liệu không tự refetch trong vòng 30 giây
-    // Tất cả mutations (add/update/remove/clear/promo) đều gọi invalidateQueries
-    // → force refetch ngay sau mỗi action của user, đảm bảo dữ liệu luôn chính xác
     staleTime: 1000 * 30,
     select: (data) => {
       return data.data
     },
     throwOnError: true,
   })
+
+  // B5 FIX: Dùng onMutate + cancelQueries + optimistic updates thay vì chỉ invalidateQueries
+  // Trước: invalidateQueries sau onSuccess => race condition khi click nhiều lần
+  // Sau: update UI tức thì, rollback nếu server lỗi
 
   // Add to cart
   const addToCartMutation = useMutation({
@@ -38,11 +39,55 @@ export function useCart() {
       quantity: number
       options?: { color?: string; size?: string }
     }) => cartService.addToCart(productId, quantity, options),
+
+    onMutate: async ({ productId, quantity, options }) => {
+      // Hủy tất cả outgoing refetches để tránh overwrite optimistic update
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+
+      // Snapshot giá trị hiện tại để rollback nếu cần
+      const previousCart = queryClient.getQueryData(["cart"])
+
+      // Optimistic update: thêm item tạm vào UI
+      queryClient.setQueryData(["cart"], (old: any) => {
+        if (!old) return old
+        const existingItem = old.cartItems?.find(
+          (item: any) =>
+            item.productId === productId &&
+            item.color === options?.color &&
+            item.size === options?.size
+        )
+        if (existingItem) {
+          return {
+            ...old,
+            cartItems: old.cartItems.map((item: any) =>
+              item.productId === productId
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
+            ),
+          }
+        }
+        return old // Không đủ thông tin để add optimistically => giữ nguyên
+      })
+
+      return { previousCart }
+    },
+
+    onError: (_err, _variables, context) => {
+      // Rollback về snapshot cũ nếu mutation thất bại
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(["cart"], context.previousCart)
+      }
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Thêm vào giỏ hàng thành công", {
         description: "Sản phẩm đã được thêm vào giỏ hàng của bạn.",
       })
+    },
+
+    onSettled: () => {
+      // Luôn refetch sau để đồng bộ với server (dù success hay error)
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
   })
 
@@ -50,37 +95,111 @@ export function useCart() {
   const updateCartItemMutation = useMutation({
     mutationFn: ({ itemId, quantity }: { itemId: string; quantity: number }) =>
       cartService.updateCartItem({ itemId, quantity }),
+
+    onMutate: async ({ itemId, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+      const previousCart = queryClient.getQueryData(["cart"])
+
+      queryClient.setQueryData(["cart"], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          cartItems: old.cartItems?.map((item: any) =>
+            item.id === itemId ? { ...item, quantity } : item
+          ),
+        }
+      })
+
+      return { previousCart }
+    },
+
+    onError: (_err, _variables, context) => {
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(["cart"], context.previousCart)
+      }
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Cập nhật giỏ hàng thành công", {
         description: "Số lượng sản phẩm đã được cập nhật.",
       })
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
   })
 
   // Remove cart item
   const removeCartItemMutation = useMutation({
     mutationFn: (itemId: string) => cartService.removeCartItem(itemId),
+
+    onMutate: async (itemId) => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+      const previousCart = queryClient.getQueryData(["cart"])
+
+      queryClient.setQueryData(["cart"], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          cartItems: old.cartItems?.filter((item: any) => item.id !== itemId),
+        }
+      })
+
+      return { previousCart }
+    },
+
+    onError: (_err, _variables, context) => {
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(["cart"], context.previousCart)
+      }
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Xóa sản phẩm thành công", {
         description: "Sản phẩm đã được xóa khỏi giỏ hàng.",
       })
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
     },
   })
 
   // Clear cart
   const clearCartMutation = useMutation({
     mutationFn: () => cartService.clearCart(),
+
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["cart"] })
+      const previousCart = queryClient.getQueryData(["cart"])
+
+      queryClient.setQueryData(["cart"], (old: any) => {
+        if (!old) return old
+        return { ...old, cartItems: [] }
+      })
+
+      return { previousCart }
+    },
+
+    onError: (_err, _variables, context) => {
+      if (context?.previousCart !== undefined) {
+        queryClient.setQueryData(["cart"], context.previousCart)
+      }
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Xóa giỏ hàng thành công", {
         description: "Giỏ hàng của bạn đã được xóa.",
       })
     },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] })
+    },
   })
 
-  // Apply promo code
+  // Apply promo code (không cần optimistic update vì cần server tính toán discount)
   const applyPromoCodeMutation = useMutation({
     mutationFn: (code: string) => cartService.applyPromoCode(code),
     onSuccess: (data: any) => {

@@ -17,6 +17,11 @@ interface SignalRContextType {
     onRatingUpdated: (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => void
     onReviewLikeUpdated: (callback: (data: { ReviewId: string; LikeCount: number }) => void) => void
     onUserTyping: (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
+    // B4 FIX: Expose off* methods để component có thể cleanup đúng handler specific
+    offNewReview: (callback: (review: Review) => void) => void
+    offRatingUpdated: (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => void
+    offReviewLikeUpdated: (callback: (data: { ReviewId: string; LikeCount: number }) => void) => void
+    offUserTyping: (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
     // New handler for notifications
     onReceiveNotification: (callback: (type: string, payload: any) => void) => void
 }
@@ -230,6 +235,31 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         }
     }
 
+    // B4 FIX: Off methods để component có thể cleanup handler specific khi unmount
+    const offNewReview = (callback: (review: Review) => void) => {
+        if (connection) {
+            connection.off('NewReview', callback)
+        }
+    }
+
+    const offRatingUpdated = (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => {
+        if (connection) {
+            connection.off('RatingUpdated', callback)
+        }
+    }
+
+    const offReviewLikeUpdated = (callback: (data: { ReviewId: string; LikeCount: number }) => void) => {
+        if (connection) {
+            connection.off('ReviewLikeUpdated', callback)
+        }
+    }
+
+    const offUserTyping = (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => {
+        if (connection) {
+            connection.off('UserTyping', callback)
+        }
+    }
+
     const value: SignalRContextType = {
         connection,
         notificationConnection,
@@ -242,6 +272,10 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         onRatingUpdated,
         onReviewLikeUpdated,
         onUserTyping,
+        offNewReview,
+        offRatingUpdated,
+        offReviewLikeUpdated,
+        offUserTyping,
         onReceiveNotification,
     }
 

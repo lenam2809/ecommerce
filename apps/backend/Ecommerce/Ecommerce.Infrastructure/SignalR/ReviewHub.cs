@@ -1,11 +1,14 @@
-﻿using Ecommerce.Application.Features.Reviews.Dto;
+using Ecommerce.Application.Features.Reviews.Dto;
 using Ecommerce.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace Ecommerce.Infrastructure.SignalR
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ReviewHub : Hub
     {
         private readonly IReviewRepository _reviewRepository;

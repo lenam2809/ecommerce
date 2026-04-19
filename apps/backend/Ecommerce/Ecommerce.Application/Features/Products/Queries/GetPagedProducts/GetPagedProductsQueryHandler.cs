@@ -1,9 +1,10 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+﻿using AutoMapper;
+using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +51,10 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
                     .ComputeHash(System.Text.Encoding.UTF8.GetBytes(filterRaw)));
 
 
-                string cacheKey = $"get_paged_products_{_currentUserService.UserId}_{request.PageNumber}_{request.PageSize}_{filterHash}";
+                // C3 FIX: Bỏ UserId khỏi cache key vì products là public, không lọc theo user.
+                // Trước: “get_paged_products_{userId}_{page}_{size}_{hash}” => phân mảnh cache, tỷ lệ hit thấp
+                // D2: Dùng CacheKeys prefix thay vì magic string
+                string cacheKey = $"{CachePrefixes.GetOptionProducts}paged:{request.PageNumber}:{request.PageSize}:{filterHash}";
 
 
 
@@ -115,15 +119,34 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
 
                 // Ánh xạ kết quả sang DTO
                 var productDtos = _mapper.Map<List<ProductDto>>(paginatedResult.Items);
+                var productIds = productDtos.Select(p => p.Id).ToList();
 
+                // B2 FIX: Batch load SoldQuantity và WishlistStatus để tránh N+1 query
+                // Trước: foreach => 2 queries/sản phẩm = 40 queries cho page=20
+                // Sau: 2 queries tổng (1 cho sold quantity, 1 cho wishlist) bất kể page size
+
+                // Query 1: Tổng số lượng đã bán cho tất cả product trong trang hiện tại
+                var soldQuantityMap = await _unitOfWork.BaseRepository<OrderItem>()
+                    .GetQueryable()
+                    .Where(oi => productIds.Contains(oi.ProductId))
+                    .GroupBy(oi => oi.ProductId)
+                    .Select(g => new { ProductId = g.Key, Total = g.Sum(oi => oi.Quantity) })
+                    .ToDictionaryAsync(x => x.ProductId, x => x.Total, cancellationToken);
+
+                // Query 2: Sản phẩm nào đang trong wishlist của bất kỳ user nào
+                var inWishlistSet = await _unitOfWork.BaseRepository<WishlistItem>()
+                    .GetQueryable()
+                    .Where(wi => productIds.Contains(wi.ProductId))
+                    .Select(wi => wi.ProductId)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                // Gán MainImage + SoldQuantity + AllowDelete trong bộ nhớ (không có round-trip)
                 foreach (var productDto in productDtos)
                 {
                     productDto.MainImage = await _fileStorageService.GetFileUrlAsync(productDto.MainImage);
-                    productDto.SoldQuantity = await _unitOfWork.OrderItems
-                        .GetTotalSoldQuantityAsync(productDto.Id, cancellationToken);
-
-                    productDto.AllowDelete = !await _unitOfWork.Wishlists
-                        .IsProductInAnyWishlistAsync(productDto.Id, cancellationToken);
+                    productDto.SoldQuantity = soldQuantityMap.TryGetValue(productDto.Id, out var qty) ? qty : 0;
+                    productDto.AllowDelete = !inWishlistSet.Contains(productDto.Id);
                 }
 
                 // Tạo kết quả trả về

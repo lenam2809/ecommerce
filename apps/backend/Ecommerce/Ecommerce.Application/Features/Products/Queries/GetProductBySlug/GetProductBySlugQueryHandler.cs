@@ -1,8 +1,9 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+﻿using AutoMapper;
+using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Interfaces;
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,26 +16,31 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductBySlug
         private readonly IFileStorageService _fileStorageService;
         private readonly ICacheService _cacheService;
         private readonly IUserActivityService _userActivityService;
+        private readonly ICurrentUserService _currentUserService;
 
         public GetProductBySlugQueryHandler(IUnitOfWork unitOfWork,
             IMapper mapper,
             IFileStorageService fileStorageService,
             ICacheService cacheService,
-            IUserActivityService userActivityService)
+            IUserActivityService userActivityService,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _fileStorageService = fileStorageService;
             _cacheService = cacheService;
             _userActivityService = userActivityService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<ProductDto>> Handle(GetProductBySlugQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // Tạo cache key dựa trên thông tin người dùng hiện tại và bộ lọc
-                string cacheKey = $"get_product_by_slug_{request.Slug}";
+                // C2: Cache key bao gồm user context để tránh rỏ rỉ giá cá nhân
+                // D2: Dùng CacheKeys class thay vì magic string
+                var userId = _currentUserService.UserId ?? Guid.Empty;
+                string cacheKey = $"{CacheKeys.GetProductBySlug(request)}:user:{userId}";
 
                 // Thử lấy từ cache
                 var cachedResult = await _cacheService.GetAsync<ProductDto>(cacheKey);
@@ -43,26 +49,26 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductBySlug
                     return Result<ProductDto>.Success(cachedResult);
                 }
 
-                var result = await _unitOfWork.Products.FirstOrDefaultAsync(
-                product => product.Slug == request.Slug,
-                cancellationToken);
+                // B1 FIX: Gộp 2 query thành 1 düy nhất với Include + AsNoTracking
+                // Trước: FirstOrDefaultAsync(slug) => GetByIdWithIncludeAsync(id) = 2 round-trips
+                // Sau: một query duy nhất lấy đủ dữ liệu cần thiết
+                var product = await _unitOfWork.Products
+                    .GetQueryable()
+                    .AsNoTracking()
+                    .Include(p => p.Brand)
+                    .Include(p => p.Category)
+                    .Include(p => p.Variants)
+                        .ThenInclude(variant => variant.Colors)
+                    .Include(p => p.Variants)
+                        .ThenInclude(variant => variant.Sizes)
+                    .Include(p => p.Specifications)
+                    .Include(p => p.Images)
+                    .FirstOrDefaultAsync(p => p.Slug == request.Slug, cancellationToken);
 
-                if (result == null)
+                if (product == null)
                 {
                     return Result<ProductDto>.NotFound($"Không tìm thấy sản phẩm có slug {request.Slug}");
                 }
-
-                var product = await _unitOfWork.Products.GetByIdWithIncludeAsync(result.Id,
-                    query => query.AsNoTracking()
-                        .Include(entity => entity.Brand)
-                        .Include(entity => entity.Category)
-                        .Include(entity => entity.Variants)
-                            .ThenInclude(variant => variant.Colors)
-                        .Include(entity => entity.Variants)
-                            .ThenInclude(variant => variant.Sizes)
-                        .Include(entity => entity.Specifications)
-                        .Include(entity => entity.Images),
-                    cancellationToken);
 
                 var productDto = _mapper.Map<ProductDto>(product);
 
@@ -82,11 +88,8 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductBySlug
             catch (Exception ex)
             {
                 return Result<ProductDto>.BadRequest(ex.Message);
-
             }
-
         }
     }
-
 }
 

@@ -37,6 +37,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     onRatingUpdated,
     onReviewLikeUpdated,
     onUserTyping,
+    // B4 FIX: Dùng off* methods để cleanup handlers khi unmount
+    offNewReview,
+    offRatingUpdated,
+    offReviewLikeUpdated,
+    offUserTyping,
     isConnected
   } = useSignalR()
 
@@ -124,9 +129,15 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     onUserTyping(handleUserTyping)
 
     return () => {
-      // Clean up event listeners if needed
+      // B4 FIX: Dọi dẹp đúng handler specific khi component unmount hoặc productId thay đổi
+      // Tránh memory leak và handler duplication sau mỗi lần re-render
+      offNewReview(handleNewReview)
+      offRatingUpdated(handleRatingUpdated)
+      offReviewLikeUpdated(handleReviewLikeUpdated)
+      offUserTyping(handleUserTyping)
     }
-  }, [isConnected, productId, onNewReview, onRatingUpdated, onReviewLikeUpdated, onUserTyping, queryClient])
+  }, [isConnected, productId, onNewReview, onRatingUpdated, onReviewLikeUpdated, onUserTyping,
+      offNewReview, offRatingUpdated, offReviewLikeUpdated, offUserTyping, queryClient])
 
 
   const likeReviewMutation = useMutation({

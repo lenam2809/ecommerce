@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Domain.Enums;
 
 namespace Ecommerce.Application.Features.Auth.Dto
 {
@@ -16,6 +16,7 @@ namespace Ecommerce.Application.Features.Auth.Dto
         public List<string> Roles { get; set; } = [];
         public List<string> Permissions { get; set; } = [];
         public ECustomerLevel CustomerLevel { get; set; }
+        public bool MustChangePassword { get; set; }
     }
 }
 

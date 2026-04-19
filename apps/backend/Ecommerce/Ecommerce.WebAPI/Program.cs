@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
@@ -172,7 +172,7 @@ using (var scope = app.Services.CreateScope())
 
     // Always apply migrations
     await context.Database.MigrateAsync();
-    await ApplicationDbContextSeed.SeedAsync(services);
+    await ApplicationDbContextSeed.SeedAsync(services, app.Environment.IsDevelopment());
     // // Only seed data in Development
     // if (app.Environment.IsDevelopment())
     // {
@@ -211,5 +211,13 @@ app.MapHub<ReviewHub>("/api/reviewHub");
 app.MapControllers();
 
 app.MapGet("/", () => "API is running");
+
+// C1: Health check endpoint độc lập với Swagger - dùng cho Docker health check
+app.MapGet("/api/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestamp = DateTime.UtcNow,
+    version = "1.0"
+})).AllowAnonymous();
 
 app.Run();

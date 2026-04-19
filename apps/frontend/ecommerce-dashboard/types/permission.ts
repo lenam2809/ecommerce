@@ -165,8 +165,14 @@ export type EPermission = typeof EPermissions[keyof typeof EPermissions];
 // Kiểm tra quyền
 export const hasPermission = (
     userPermissions: EPermission[] | string[] | undefined,
-    requiredPermissions: EPermission[] | EPermission | string | undefined
+    requiredPermissions: EPermission[] | EPermission | string | undefined,
+    userRoles?: string[]
 ): boolean => {
+    // Tài khoản có role là admin thì được truy cập toàn bộ
+    if (userRoles && userRoles.includes("Admin")) {
+        return true;
+    }
+
     if (!requiredPermissions || (Array.isArray(requiredPermissions) && requiredPermissions.length === 0)) {
         return true;
     }

@@ -33,11 +33,6 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         {
             try
             {
-                if (request.OrderItems == null || request.OrderItems.Count == 0)
-                {
-                    return Result<Guid>.BadRequest("Don hang phai co it nhat mot san pham");
-                }
-
                 for (var attempt = 1; attempt <= 3; attempt++)
                 {
                     try
@@ -73,9 +68,24 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                                 item.Color,
                                 item.Size);
 
-                            // Optimistic concurrency is enforced by Product.RowVersion.
-                            product.AdjustStock(-item.Quantity);
-                            _unitOfWork.Products.Update(product);
+                            // B3 FIX: Atomic stock deduction – tránh race condition
+                            // SQL UPDATE có điều kiện: chỉ trừ khi StockQuantity >= quantity
+                            // Nếu có concurrent request khác đã lấy hết hàng thì rowsAffected = 0
+                            var rowsAffected = await _unitOfWork.BaseRepository<Product>().ExecuteCommandAsync(
+                                "UPDATE \"Products\" SET \"StockQuantity\" = \"StockQuantity\" - {0} " +
+                                "WHERE \"Id\" = {1} AND \"StockQuantity\" >= {0}",
+                                [item.Quantity, product.Id],
+                                cancellationToken);
+
+                            if (rowsAffected == 0)
+                            {
+                                // Race condition: sản phẩm hết hàng giữa lúc check và update
+                                _unitOfWork.ClearTracking();
+                                return Result<Guid>.BadRequest($"Không đủ hàng trong kho cho sản phẩm: {product.Name}");
+                            }
+                            // Stock đã được update bởi SQL trực tiếp, không cần gọi Products.Update()
+                            // để tránh EF ghi đè lại giá trị cũ khi SaveChanges
+
                         }
 
                         order.FinalizeCreation(customerNameForEvent);
@@ -142,13 +152,6 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     request.ExpectedDeliveryDate);
 
                 return CreateOrderContext.WithOrder(order, customerNameForEvent);
-            }
-
-            if (string.IsNullOrWhiteSpace(request.GuestName) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Phone))
-            {
-                return CreateOrderContext.WithError(Result<Guid>.BadRequest("Can cung cap thong tin lien he cho don hang khach"));
             }
 
             var guestName = request.GuestName.Trim();

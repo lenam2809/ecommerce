@@ -103,7 +103,7 @@ api.interceptors.response.use(
         const status = error.response?.status
 
         // ONLY handle 401 Unauthorized and 403 Forbidden - let other errors pass through
-        if (status !== 401 && status !== 403) {
+        if (status !== 401) {
             return Promise.reject(error)
         }
 
@@ -141,7 +141,7 @@ api.interceptors.response.use(
         }
 
         // Handle other 401/403 errors (already retried or different reason)
-        if ((status === 401 && originalRequest._retry) || status === 403) {
+        if (status === 401 && originalRequest._retry) {
             clearAuthAndRedirect()
         }
 

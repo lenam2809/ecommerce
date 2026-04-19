@@ -1,5 +1,7 @@
-﻿using Ecommerce.Domain.Enums;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
+using Serilog.Context;
 using System.Diagnostics;
 
 namespace Ecommerce.WebAPI.Middleware
@@ -20,25 +22,36 @@ namespace Ecommerce.WebAPI.Middleware
             using (var scope = _scopeFactory.CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<IEnhancedLogger>();
-                try
-                {
-                    await logger.LogAsync(ELogLevel.Information,
-                        $"HTTP {context.Request.Method} {context.Request.Path} started",
-                        "RequestLoggingMiddleware");
-                    var stopwatch = Stopwatch.StartNew();
+                var currentUserService = scope.ServiceProvider.GetService<ICurrentUserService>();
+                
+                var userId = currentUserService?.UserId?.ToString() ?? "anonymous";
+                var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() ?? Guid.NewGuid().ToString();
+                var requestId = context.TraceIdentifier;
 
-                    await _next(context);
-
-                    stopwatch.Stop();
-                    await logger.LogAsync(ELogLevel.Information,
-                        $"HTTP {context.Request.Method} {context.Request.Path} completed in {stopwatch.ElapsedMilliseconds}ms with status {context.Response.StatusCode}",
-                        "RequestLoggingMiddleware");
-                }
-                catch (Exception ex)
+                using (LogContext.PushProperty("UserId", userId))
+                using (LogContext.PushProperty("CorrelationId", correlationId))
+                using (LogContext.PushProperty("RequestId", requestId))
                 {
-                    await logger.LogExceptionAsync(ex,
-                        $"HTTP {context.Request.Method} {context.Request.Path} failed");
-                    throw;
+                    try
+                    {
+                        await logger.LogAsync(ELogLevel.Information,
+                            $"HTTP {context.Request.Method} {context.Request.Path} started",
+                            "RequestLoggingMiddleware");
+                        var stopwatch = Stopwatch.StartNew();
+
+                        await _next(context);
+
+                        stopwatch.Stop();
+                        await logger.LogAsync(ELogLevel.Information,
+                            $"HTTP {context.Request.Method} {context.Request.Path} completed in {stopwatch.ElapsedMilliseconds}ms with status {context.Response.StatusCode}",
+                            "RequestLoggingMiddleware");
+                    }
+                    catch (Exception ex)
+                    {
+                        await logger.LogExceptionAsync(ex,
+                            $"HTTP {context.Request.Method} {context.Request.Path} failed");
+                        throw;
+                    }
                 }
             }
         }
