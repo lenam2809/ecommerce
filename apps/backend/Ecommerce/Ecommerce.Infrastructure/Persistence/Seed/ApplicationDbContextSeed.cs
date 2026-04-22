@@ -1,4 +1,4 @@
-using Ecommerce.Domain.Entities;
+﻿using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -39,9 +39,6 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             {
                 logger.LogInformation("Starting database seeding");
 
-                // Ensure database is created and migrated
-                //await context.Database.MigrateAsync();
-
                 var seeder = new ApplicationDbContextSeed(logger, context, userManager, roleManager);
                 await seeder.SeedAllAsync(isDevelopment);
 
@@ -72,12 +69,12 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await SeedProductsAsync();
                 await SeedProductSpecificationsAsync();
                 await SeedReviewsAsync();
-                await SeedAboutAndContactAsync();
                 await SeedProductVariantsAsync();
                 await SeedProductImagesAsync();
-
                 await SeedBannersAsync();
             }
+            await SeedAboutAndContactAsync();
+
 
             // Save all changes
             await _context.SaveChangesAsync();
