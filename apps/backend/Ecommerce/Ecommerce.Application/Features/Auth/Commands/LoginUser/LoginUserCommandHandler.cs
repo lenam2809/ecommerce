@@ -136,15 +136,22 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                     MustChangePassword = user.MustChangePassword
                 };
 
-                await _logger.LogAsync(ELogLevel.Information, $"User {user.Email} logged in successfully.", "LoginSuccess");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "User {UserId} logged in successfully",
+                    "LoginSuccess",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "UserId", user.Id }
+                    });
                 await _userActivityService.LogActivityAsync("Login", "Login successful", string.Empty, response.UserId);
 
                 return Result<AuthResponseDto>.Success(response);
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, "Login failed with exception");
-                await _logger.LogAsync(ELogLevel.Warning, $"Login failed for {request.Email}", "LoginFailed");
+                await _logger.LogExceptionAsync(ex, "LoginFailed");
+                await _logger.LogAsync(ELogLevel.Warning, "Login failed", "LoginFailed");
                 return Result<AuthResponseDto>.BadRequest($"Login failed: {ex.Message}");
             }
         }

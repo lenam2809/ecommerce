@@ -39,8 +39,15 @@ namespace Ecommerce.Application.Features.Orders.EventHandlers
             }
 
             await _logger.LogAsync(ELogLevel.Information,
-                $"Trạng thái đơn hàng {notification.OrderCode} đã thay đổi từ {notification.OldStatus} thành {notification.NewStatus}",
-                "Sự kiện đơn hàng");
+                "Order {OrderId} with code {OrderCode} changed from {OldStatus} to {NewStatus}",
+                "OrderStatusChanged",
+                properties: new Dictionary<string, object?>
+                {
+                    { "OrderId", notification.OrderId },
+                    { "OrderCode", notification.OrderCode },
+                    { "OldStatus", notification.OldStatus },
+                    { "NewStatus", notification.NewStatus }
+                });
         }
 
         private async Task RestoreStockQuantities(Guid orderId, CancellationToken cancellationToken)
@@ -59,10 +66,14 @@ namespace Ecommerce.Application.Features.Orders.EventHandlers
                 }
                 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Đã khôi phục số lượng tồn kho cho {order.OrderItems.Count} sản phẩm trong đơn hàng {orderId}",
-                    "Khôi phục tồn kho");
+                    "Restored stock for {ItemCount} items in order {OrderId}",
+                    "RestoreOrderStock",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "ItemCount", order.OrderItems.Count },
+                        { "OrderId", orderId }
+                    });
             }
         }
     }
 }
-

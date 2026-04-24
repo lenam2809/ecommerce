@@ -51,7 +51,15 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
                     if (permission != null)
                     {
                         await _unitOfWork.Roles.AddPermissionAsync(role, permission);
-                        await _logger.LogAsync(ELogLevel.Information, $"Đã gán quyền {permission.Name} cho vai trò {role.Name}", "Gán quyền cho vai trò");
+                        await _logger.LogAsync(
+                            ELogLevel.Information,
+                            "Assigned permission {PermissionName} to role {RoleName}",
+                            "AssignPermissionToRole",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "PermissionName", permission.Name },
+                                { "RoleName", role.Name ?? string.Empty }
+                            });
                     }
                 }
 
@@ -62,7 +70,15 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
                     if (permission != null)
                     {
                         await _unitOfWork.Roles.RemovePermissionAsync(role, permission);
-                        await _logger.LogAsync(ELogLevel.Information, $"Đã thu hồi quyền {permission.Name} cho vai trò {role.Name}", "Thu hồi quyền cho vai trò");
+                        await _logger.LogAsync(
+                            ELogLevel.Information,
+                            "Removed permission {PermissionName} from role {RoleName}",
+                            "RemovePermissionFromRole",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "PermissionName", permission.Name },
+                                { "RoleName", role.Name ?? string.Empty }
+                            });
                     }
                 }
 
@@ -75,7 +91,13 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi cập nhật quyền cho vai trò {role.Id}");
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "AssignPermissionToRole",
+                    new Dictionary<string, object?>
+                    {
+                        { "RoleId", role.Id }
+                    });
                 return Result<bool>.BadRequest("Đã xảy ra lỗi khi cập nhật quyền cho vai trò.");
             }
         }

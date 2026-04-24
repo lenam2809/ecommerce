@@ -62,9 +62,14 @@ namespace Ecommerce.Application.Features.Account.Commands.UpdateProfile
             // Cập nhật thông tin người dùng
             await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.CompleteAsync(cancellationToken);
-            await _logger.LogAsync(ELogLevel.Information,
-                $"Người dùng {user.Email} đã cập nhật thông tin cá nhân thành công.",
-                "Cập nhật thông tin cá nhân");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "User profile updated for {UserId}",
+                "UpdateProfile",
+                properties: new Dictionary<string, object?>
+                {
+                    { "UserId", user.Id }
+                });
 
             return Result<bool>.Success(true);
         }

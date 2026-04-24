@@ -50,8 +50,13 @@ namespace Ecommerce.Application.Features.Orders.Commands.DeleteOrder
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Đơn hàng đã được xóa. ID: {order.Id}, Mã: {order.Code}",
-                    "Xóa đơn hàng");
+                    "Order deleted for {OrderId} with code {OrderCode}",
+                    "DeleteOrder",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", order.Id },
+                        { "OrderCode", order.Code }
+                    });
 
                 return Result<Unit>.Success(Unit.Value);
             }

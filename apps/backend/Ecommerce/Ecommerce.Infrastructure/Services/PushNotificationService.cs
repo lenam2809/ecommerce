@@ -14,7 +14,7 @@ namespace Ecommerce.Infrastructure.Services
 
         public Task SendNotificationAsync(Guid userId, string title, string message, Dictionary<string, string>? data = null)
         {
-            _logger.LogInformation("Sending push notification to user {UserId}. Title: {Title}. Message: {Message}", userId, title, message);
+            _logger.LogInformation("Sending push notification to user {UserId}. Title: {Title}", userId, title);
             return Task.CompletedTask;
         }
 

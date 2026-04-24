@@ -19,9 +19,9 @@ namespace Ecommerce.Domain.Interfaces.Logging
         /// <param name="message">Nội dung thông điệp cần ghi</param>
         /// <param name="eventName">Tên định danh của sự kiện</param>
         /// <param name="properties">Các thuộc tính bổ sung cho log (tùy chọn)</param>
-        void Log(ELogLevel level, string message,
+        void Log(ELogLevel level, string messageTemplate,
             string eventName,
-            Dictionary<string, object>? properties = null);
+            Dictionary<string, object?>? properties = null);
 
         /// <summary>
         /// Ghi log bất đồng bộ với mức độ, thông điệp, tên sự kiện và các thuộc tính tùy chọn.
@@ -31,10 +31,10 @@ namespace Ecommerce.Domain.Interfaces.Logging
         /// <param name="eventName">Tên định danh của sự kiện</param>
         /// <param name="properties">Các thuộc tính bổ sung cho log (tùy chọn)</param>
         /// <returns>Task đại diện cho thao tác bất đồng bộ</returns>
-        Task LogAsync(ELogLevel level, string message,
+        Task LogAsync(ELogLevel level, string messageTemplate,
                     string eventName,
                     ELogType logType = ELogType.Default,
-                    Dictionary<string, object>? properties = null);
+                    Dictionary<string, object?>? properties = null);
 
         /// <summary>
         /// Ghi log bất đồng bộ cho ngoại lệ với tên sự kiện.
@@ -42,7 +42,10 @@ namespace Ecommerce.Domain.Interfaces.Logging
         /// <param name="ex">Đối tượng ngoại lệ cần ghi log</param>
         /// <param name="eventName">Tên định danh của sự kiện xảy ra ngoại lệ</param>
         /// <returns>Task đại diện cho thao tác bất đồng bộ</returns>
-        Task LogExceptionAsync(Exception ex, string eventName);
+        Task LogExceptionAsync(
+            Exception ex,
+            string eventName,
+            Dictionary<string, object?>? properties = null);
     }
 }
 

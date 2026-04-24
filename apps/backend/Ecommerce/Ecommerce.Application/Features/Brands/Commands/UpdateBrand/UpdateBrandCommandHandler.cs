@@ -78,7 +78,14 @@ namespace Ecommerce.Application.Features.Brands.Commands.UpdateBrand
                     BrandId = brand.Id,
                     CategoryIds = request.CategoryIds ?? []
                 }, cancellationToken);
-                await _logger.LogAsync(ELogLevel.Information, $"Thương hiệu đã được cập nhật thành công với ID: {brand.Id}", "Cập nhật thương hiệu");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Brand updated successfully for {BrandId}",
+                    "UpdateBrand",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "BrandId", brand.Id }
+                    });
 
 
                 // Xóa cache liên quan

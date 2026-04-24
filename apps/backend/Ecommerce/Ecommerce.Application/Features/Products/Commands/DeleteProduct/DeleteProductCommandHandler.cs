@@ -77,7 +77,14 @@ namespace Ecommerce.Application.Features.Products.Commands.DeleteProduct
                 _unitOfWork.Products.Delete(product);
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
-                await _logger.LogAsync(ELogLevel.Information, $"Sản phẩm đã được xóa thành công với ID: {request.Id}", "Xóa sản phẩm");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Product deleted successfully for {ProductId}",
+                    "DeleteProduct",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "ProductId", request.Id }
+                    });
 
                 // Xóa cache liên quan
                 await _cacheService.RemoveAsync(CacheKeys.GetProducts());

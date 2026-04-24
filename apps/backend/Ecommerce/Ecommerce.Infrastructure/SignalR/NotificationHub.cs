@@ -1,7 +1,8 @@
 using Ecommerce.Domain.Enums;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Infrastructure.SignalR
 {
@@ -11,14 +12,19 @@ namespace Ecommerce.Infrastructure.SignalR
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class NotificationHub : Hub
     {
+        private readonly ILogger<NotificationHub> _logger;
+
+        public NotificationHub(ILogger<NotificationHub> logger)
+        {
+            _logger = logger;
+        }
+
         public override async Task OnConnectedAsync()
         {
             try
             {
-                // You can use User.Identity.Name to get the user's email
                 var user = Context.User;
 
-                // Add admin users to the "Administrators" group for targeted notifications
                 if (user != null && user.IsInRole(EUserRoles.Admin))
                 {
                     await Groups.AddToGroupAsync(Context.ConnectionId, "Administrators");
@@ -33,10 +39,9 @@ namespace Ecommerce.Infrastructure.SignalR
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Connection error: {ex}"); // Log lỗi
+                _logger.LogError(ex, "NotificationHub connection failed for connection {ConnectionId}", Context.ConnectionId);
                 throw;
             }
-
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
@@ -55,4 +60,3 @@ namespace Ecommerce.Infrastructure.SignalR
         }
     }
 }
-

@@ -120,7 +120,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await _context.Permissions.AddRangeAsync(permissions);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Seeded {permissions.Count} permissions");
+                _logger.LogInformation("Seeded {PermissionCount} permissions", permissions.Count);
             }
             else
             {
@@ -145,7 +145,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     var role = new Role { Name = roleName };
                     await _roleManager.CreateAsync(role);
                     roleEntities.Add(role);
-                    _logger.LogInformation($"Created role: {roleName}");
+                    _logger.LogInformation("Created role {RoleName}", roleName);
                 }
                 else
                 {
@@ -189,12 +189,12 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(adminUser, "Admin@123456");
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"Created admin user: {adminEmail}");
+                _logger.LogInformation("Created seeded user for role {RoleName}", "Admin");
                     users.Add(adminUser);
                 }
                 else
                 {
-                    _logger.LogError($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                _logger.LogError("Failed to create seeded admin user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
             else
@@ -228,7 +228,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(managerUser, "Manager@123456");
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"Created manager user: {managerEmail}");
+                _logger.LogInformation("Created seeded user for role {RoleName}", "Manager");
                     users.Add(managerUser);
                 }
             }
@@ -258,7 +258,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(staffUser, "Staff@123456");
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"Created staff user: {staffEmail}");
+                _logger.LogInformation("Created seeded user for role {RoleName}", "Staff");
                     users.Add(staffUser);
                 }
             }
@@ -288,7 +288,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(customerUser, "Customer@123");
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation($"Created customer user: {customerEmail}");
+                _logger.LogInformation("Created seeded user for role {RoleName}", "Customer");
                     users.Add(customerUser);
                 }
             }
@@ -380,7 +380,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     await _context.RolePermissions.AddRangeAsync(rolePermissions);
                     await _context.SaveChangesAsync();
 
-                    _logger.LogInformation($"Seeded {rolePermissions.Count} role permissions");
+                _logger.LogInformation("Seeded {RolePermissionCount} role permissions", rolePermissions.Count);
                 }
                 else
                 {
@@ -411,7 +411,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(adminUser, adminRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(adminUser, adminRole.Name!);
-                    _logger.LogInformation($"Assigned {adminRole.Name} role to {adminUser.Email}");
+                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", adminRole.Name, "Admin");
                 }
             }
 
@@ -420,7 +420,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(managerUser, managerRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(managerUser, managerRole.Name!);
-                    _logger.LogInformation($"Assigned {managerRole.Name} role to {managerUser.Email}");
+                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", managerRole.Name, "Manager");
                 }
             }
 
@@ -429,7 +429,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(staffUser, staffRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(staffUser, staffRole.Name!);
-                    _logger.LogInformation($"Assigned {staffRole.Name} role to {staffUser.Email}");
+                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", staffRole.Name, "Staff");
                 }
             }
 
@@ -438,7 +438,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(customerUser, customerRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(customerUser, customerRole.Name!);
-                    _logger.LogInformation($"Assigned {customerRole.Name} role to {customerUser.Email}");
+                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", customerRole.Name, "Customer");
                 }
             }
         }
@@ -503,7 +503,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
                 await _context.Brands.AddRangeAsync(brands);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"Seeded {brands.Count} brands");
+                _logger.LogInformation("Seeded {BrandCount} brands", brands.Count);
             }
             else
             {
@@ -563,7 +563,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
                 await _context.Categories.AddRangeAsync(categories);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"Seeded {categories.Count} categories");
+                _logger.LogInformation("Seeded {CategoryCount} categories", categories.Count);
             }
             else
             {
@@ -1137,7 +1137,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
                 await _context.Products.AddRangeAsync(products);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"Seeded {products.Count} products");
+                _logger.LogInformation("Seeded {ProductCount} products", products.Count);
             }
             else
             {
@@ -1697,7 +1697,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
                 await _context.ProductSpecifications.AddRangeAsync(allSpecs);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation($"Seeded {allSpecs.Count} product specifications");
+                _logger.LogInformation("Seeded {SpecificationCount} product specifications", allSpecs.Count);
             }
             else
             {
@@ -2644,7 +2644,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await _context.Reviews.AddRangeAsync(reviews);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Seeded {reviews.Count} reviews.");
+                _logger.LogInformation("Seeded {ReviewCount} reviews", reviews.Count);
 
                 // Seed Review Images
                 var reviewImages = new List<ReviewImage>();
@@ -2665,7 +2665,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 //await _context.Reviews.AddRangeAsync(reviewImages);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Seeded {reviewImages.Count} review images.");
+                _logger.LogInformation("Seeded {ReviewImageCount} review images", reviewImages.Count);
             }
             else
             {
@@ -2904,7 +2904,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await _context.Banners.AddRangeAsync(banners);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Seeded {banners.Count} banners");
+                _logger.LogInformation("Seeded {BannerCount} banners", banners.Count);
             }
             else
             {

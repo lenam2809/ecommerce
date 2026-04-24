@@ -25,7 +25,9 @@ namespace Ecommerce.Application.Features.Returns.Commands.RejectReturn
                 .GetWithDetailsAsync(request.ReturnRequestId, cancellationToken);
 
             if (returnRequest is null)
+            {
                 return Result<bool>.NotFound("Yêu cầu đổi/trả không tồn tại.");
+            }
 
             try
             {
@@ -38,9 +40,16 @@ namespace Ecommerce.Application.Features.Returns.Commands.RejectReturn
 
             await _unitOfWork.CompleteAsync(cancellationToken);
 
-            await _logger.LogAsync(ELogLevel.Information,
-                $"Yêu cầu đổi/trả {returnRequest.Code} đã bị từ chối. Lý do: {request.RejectionReason}",
-                "Từ chối đổi/trả");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "Rejected return request {ReturnRequestCode}",
+                "RejectReturn",
+                properties: new Dictionary<string, object?>
+                {
+                    { "ReturnRequestId", returnRequest.Id },
+                    { "ReturnRequestCode", returnRequest.Code },
+                    { "RejectionReason", request.RejectionReason }
+                });
 
             return Result<bool>.Success(true);
         }

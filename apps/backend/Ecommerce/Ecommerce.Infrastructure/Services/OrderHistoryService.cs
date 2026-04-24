@@ -71,12 +71,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _unitOfWork.OrderHistories.AddAsync(history, cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Lịch sử đơn hàng đã được ghi lại. OrderId: {originalOrder.Id}, From: {originalOrder.Status}, To: {updatedOrder.Status}",
-                    "Ghi lại lịch sử đơn hàng");
+                    "Order history recorded for {OrderId} from {FromStatus} to {ToStatus}",
+                    "RecordOrderStatusHistory",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", originalOrder.Id },
+                        { "FromStatus", originalOrder.Status },
+                        { "ToStatus", updatedOrder.Status }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi ghi lại lịch sử đơn hàng {originalOrder.Id}");
+                await _logger.LogExceptionAsync(ex, "RecordOrderStatusHistory", new Dictionary<string, object?> { { "OrderId", originalOrder.Id } });
                 throw;
             }
         }
@@ -150,13 +156,18 @@ namespace Ecommerce.Infrastructure.Services
                     await _unitOfWork.OrderHistories.AddAsync(history, cancellationToken);
 
                     await _logger.LogAsync(ELogLevel.Information,
-                        $"Lịch sử cập nhật đơn hàng đã được ghi lại. OrderId: {originalOrder.Id}, Changes: {changes.Count}",
-                        "Ghi lại lịch sử cập nhật đơn hàng");
+                        "Order update history recorded for {OrderId} with {ChangeCount} changes",
+                        "RecordOrderUpdateHistory",
+                        properties: new Dictionary<string, object?>
+                        {
+                            { "OrderId", originalOrder.Id },
+                            { "ChangeCount", changes.Count }
+                        });
                 }
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi ghi lại lịch sử cập nhật đơn hàng {originalOrder.Id}");
+                await _logger.LogExceptionAsync(ex, "RecordOrderUpdateHistory", new Dictionary<string, object?> { { "OrderId", originalOrder.Id } });
                 throw;
             }
         }
@@ -189,12 +200,17 @@ namespace Ecommerce.Infrastructure.Services
                 await _unitOfWork.OrderHistories.AddAsync(history, cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Lịch sử tạo đơn hàng đã được ghi lại. OrderId: {order.Id}, Code: {order.Code}",
-                    "Ghi lại lịch sử tạo đơn hàng");
+                    "Order creation history recorded for {OrderId} with code {OrderCode}",
+                    "RecordOrderCreationHistory",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", order.Id },
+                        { "OrderCode", order.Code }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi ghi lại lịch sử tạo đơn hàng {order.Id}");
+                await _logger.LogExceptionAsync(ex, "RecordOrderCreationHistory", new Dictionary<string, object?> { { "OrderId", order.Id } });
                 throw;
             }
         }

@@ -14,6 +14,7 @@ namespace Ecommerce.Infrastructure.Logging
             services.AddSingleton<ILogRepository, LogRepository>();
             services.AddSingleton<IAuditLogger, AuditLogRepository>();
             services.AddSingleton<IPerformanceLogger, PerformanceLogRepository>();
+            services.AddSingleton<ILogSanitizer, LogSanitizer>();
             services.AddScoped<IEnhancedLogger, EnhancedLogger>();
 
             services.AddHostedService<LoggingBackgroundWorker>();

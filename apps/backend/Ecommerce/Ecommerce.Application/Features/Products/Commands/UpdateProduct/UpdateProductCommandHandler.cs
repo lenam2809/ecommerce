@@ -208,7 +208,14 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 _unitOfWork.Products.Update(existingProduct);
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
-                await _logger.LogAsync(ELogLevel.Information, $"Sản phẩm đã được cập nhật thành công với ID: {existingProduct.Id}", "Cập nhật sản phẩm");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Product updated successfully for {ProductId}",
+                    "UpdateProduct",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "ProductId", existingProduct.Id }
+                    });
                 
                 // Xóa cache liên quan
                 await _cacheInvalidationService.InvalidateProductCache(existingProduct.Id);

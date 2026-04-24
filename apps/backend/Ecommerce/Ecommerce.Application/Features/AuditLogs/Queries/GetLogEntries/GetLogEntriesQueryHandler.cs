@@ -120,8 +120,13 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntries
 
                 await _logger.LogAsync(
                     ELogLevel.Information,
-                    $"Đã lấy {logEntryDtos.Count} mục nhật ký cho người dùng {currentUserId}",
-                    "GetLogEntries");
+                    "Retrieved {Count} log entries for {UserId}",
+                    "GetLogEntries",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "Count", logEntryDtos.Count },
+                        { "UserId", currentUserId?.ToString() ?? "Anonymous" }
+                    });
 
                 return Result<PaginatedList<LogEntryDto>>.Success(result);
             }

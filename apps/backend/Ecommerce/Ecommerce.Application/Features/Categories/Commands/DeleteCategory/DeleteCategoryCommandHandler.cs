@@ -59,7 +59,14 @@ namespace Ecommerce.Application.Features.Categories.Commands.DeleteCategory
 
                 _unitOfWork.Categories.Delete(category);
                 await _unitOfWork.CompleteAsync(cancellationToken);
-                await _logger.LogAsync(ELogLevel.Information, $"Danh mục đã được xóa thành công với ID: {request.Id}", "Xóa danh mục");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Category deleted successfully for {CategoryId}",
+                    "DeleteCategory",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CategoryId", request.Id }
+                    });
 
 
 

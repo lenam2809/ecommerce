@@ -29,11 +29,18 @@ namespace Ecommerce.Infrastructure.Services
                 // Xóa cache tất cả người dùng để đảm bảo danh sách được cập nhật
                 await InvalidateAllUsersCache();
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache cho người dùng {userId}", "InvalidateUserCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for user {UserId}",
+                    "InvalidateUserCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "UserId", userId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Lỗi khi xóa cache người dùng: {ex.Message}", "InvalidateUserCache");
+                await _logger.LogExceptionAsync(ex, "InvalidateUserCache", new Dictionary<string, object?> { { "UserId", userId } });
             }
         }
 
@@ -43,11 +50,18 @@ namespace Ecommerce.Infrastructure.Services
             {
                 await _cacheService.RemoveAsync(CacheKeys.GetRolePermissions(role));
                 await InvalidateAllUsersCache(); // Vì thay đổi vai trò có thể ảnh hưởng đến kết quả GetUsers
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache cho vai trò {role}", "InvalidateRoleCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for role {RoleName}",
+                    "InvalidateRoleCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "RoleName", role }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Lỗi khi xóa cache vai trò: {ex.Message}", "InvalidateRoleCache");
+                await _logger.LogExceptionAsync(ex, "InvalidateRoleCache", new Dictionary<string, object?> { { "RoleName", role } });
             }
         }
 
@@ -63,7 +77,7 @@ namespace Ecommerce.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Lỗi khi xóa cache tất cả người dùng: {ex.Message}", "InvalidateAllUsersCache");
+                await _logger.LogExceptionAsync(ex, "InvalidateAllUsersCache");
             }
         }
 
@@ -73,11 +87,18 @@ namespace Ecommerce.Infrastructure.Services
             {
                 await _cacheService.RemoveAsync(CacheKeys.GetTenant(tenantId));
                 await InvalidateAllTenantsCache();
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache cho tenant {tenantId}", "InvalidateTenantCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for tenant {TenantId}",
+                    "InvalidateTenantCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "TenantId", tenantId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Lỗi khi xóa cache tenant: {ex.Message}", "InvalidateTenantCache");
+                await _logger.LogExceptionAsync(ex, "InvalidateTenantCache", new Dictionary<string, object?> { { "TenantId", tenantId } });
             }
         }
 
@@ -91,7 +112,7 @@ namespace Ecommerce.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi xóa cache tất cả tenant: {ex.Message}");
+                await _logger.LogExceptionAsync(ex, "InvalidateAllTenantsCache");
             }
         }
 
@@ -111,11 +132,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _cacheService.RemoveAsync(CacheKeys.GetOptionProducts());
                 // Không cần xóa key detail cũ vì logic mới đã phủ
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache sản phẩm {productId}", "InvalidateProductCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for product {ProductId}",
+                    "InvalidateProductCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "ProductId", productId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi xóa cache sản phẩm {productId}: {ex.Message}");
+                await _logger.LogExceptionAsync(ex, "InvalidateProductCache", new Dictionary<string, object?> { { "ProductId", productId } });
             }
         }
 
@@ -138,11 +166,18 @@ namespace Ecommerce.Infrastructure.Services
                 // Xóa option categories (Prefix: get_option_categories_)
                 await _cacheService.RemoveByPrefixAsync("get_option_categories_");
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache danh mục {categoryId}", "InvalidateCategoryCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for category {CategoryId}",
+                    "InvalidateCategoryCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CategoryId", categoryId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi xóa cache danh mục {categoryId}");
+                await _logger.LogExceptionAsync(ex, "InvalidateCategoryCache", new Dictionary<string, object?> { { "CategoryId", categoryId } });
             }
         }
 
@@ -158,11 +193,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _cacheService.RemoveByPrefixAsync("get_brand_by_id_");
                 await _cacheService.RemoveByPrefixAsync("get_option_brands");
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache thương hiệu {brandId}", "InvalidateBrandCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for brand {BrandId}",
+                    "InvalidateBrandCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "BrandId", brandId }
+                    });
             }
             catch (Exception ex)
             {
-                 await _logger.LogExceptionAsync(ex, $"Lỗi xóa cache thương hiệu {brandId}");
+                 await _logger.LogExceptionAsync(ex, "InvalidateBrandCache", new Dictionary<string, object?> { { "BrandId", brandId } });
             }
         }
 
@@ -177,11 +219,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _cacheService.RemoveAsync(CacheKeys.GetBanners());
                 await _cacheService.RemoveAsync(CacheKeys.GetBannerById(new Application.Features.Banners.Queries.GetBannerById.GetBannerByIdQuery { Id = bannerId }));
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache banner {bannerId}", "InvalidateBannerCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for banner {BannerId}",
+                    "InvalidateBannerCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "BannerId", bannerId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi xóa cache banner {bannerId}");
+                await _logger.LogExceptionAsync(ex, "InvalidateBannerCache", new Dictionary<string, object?> { { "BannerId", bannerId } });
             }
         }
 
@@ -198,11 +247,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _cacheService.RemoveAsync(CacheKeys.GetActiveAbout());
                 await _cacheService.RemoveAsync(CacheKeys.GetAboutById(new Application.Features.About.Queries.GetAboutById.GetAboutByIdQuery { Id = aboutId }));
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache about {aboutId}", "InvalidateAboutCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for about {AboutId}",
+                    "InvalidateAboutCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "AboutId", aboutId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi xóa cache about {aboutId}");
+                await _logger.LogExceptionAsync(ex, "InvalidateAboutCache", new Dictionary<string, object?> { { "AboutId", aboutId } });
             }
         }
 
@@ -219,11 +275,18 @@ namespace Ecommerce.Infrastructure.Services
                 await _cacheService.RemoveAsync(CacheKeys.GetActiveContact());
                 await _cacheService.RemoveAsync(CacheKeys.GetContactById(new Application.Features.Contact.Queries.GetContactById.GetContactByIdQuery { Id = contactId }));
 
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache contact {contactId}", "InvalidateContactCache");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Invalidated cache for contact {ContactId}",
+                    "InvalidateContactCache",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "ContactId", contactId }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi xóa cache contact {contactId}");
+                await _logger.LogExceptionAsync(ex, "InvalidateContactCache", new Dictionary<string, object?> { { "ContactId", contactId } });
             }
         }
     }

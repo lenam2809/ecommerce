@@ -25,7 +25,9 @@ namespace Ecommerce.Application.Features.Returns.Commands.ApproveReturn
                 .GetWithDetailsAsync(request.ReturnRequestId, cancellationToken);
 
             if (returnRequest is null)
+            {
                 return Result<bool>.NotFound("Yêu cầu đổi/trả không tồn tại.");
+            }
 
             try
             {
@@ -38,9 +40,16 @@ namespace Ecommerce.Application.Features.Returns.Commands.ApproveReturn
 
             await _unitOfWork.CompleteAsync(cancellationToken);
 
-            await _logger.LogAsync(ELogLevel.Information,
-                $"Yêu cầu đổi/trả {returnRequest.Code} đã được duyệt bởi Staff {request.StaffId}",
-                "Duyệt đổi/trả");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "Approved return request {ReturnRequestCode} by {StaffId}",
+                "ApproveReturn",
+                properties: new Dictionary<string, object?>
+                {
+                    { "ReturnRequestId", returnRequest.Id },
+                    { "ReturnRequestCode", returnRequest.Code },
+                    { "StaffId", request.StaffId }
+                });
 
             return Result<bool>.Success(true);
         }

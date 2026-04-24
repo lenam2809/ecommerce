@@ -50,12 +50,25 @@ namespace Ecommerce.Infrastructure.Cache
                 }
 
                 var result = JsonSerializer.Deserialize<T>(cachedData, _jsonOptions);
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã lấy dữ liệu từ cache với key: {key}", "GetCacheAsync");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Retrieved cache entry for {CacheKey}",
+                    "GetCacheAsync",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
                 return result;
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi lấy dữ liệu từ cache với key {key}: {ex.Message}");
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "GetCacheAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
                 return null;
             }
         }
@@ -88,11 +101,24 @@ namespace Ecommerce.Infrastructure.Cache
 
                 var serializedData = JsonSerializer.Serialize(value, _jsonOptions);
                 await _distributedCache.SetStringAsync(key, serializedData, options);
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã lưu dữ liệu vào cache với key: {key}", "SetCacheAsync");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Stored cache entry for {CacheKey}",
+                    "SetCacheAsync",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi lưu dữ liệu vào cache với key {key}: {ex.Message}");
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "SetCacheAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
             }
         }
 
@@ -103,11 +129,24 @@ namespace Ecommerce.Infrastructure.Cache
             try
             {
                 await _distributedCache.RemoveAsync(key);
-                await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa dữ liệu từ cache với key: {key}", "RemoveCacheAsync");
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Removed cache entry for {CacheKey}",
+                    "RemoveCacheAsync",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi khi xóa dữ liệu từ cache với key {key}: {ex.Message}");
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "RemoveCacheAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "CacheKey", key }
+                    });
             }
         }
 
@@ -126,7 +165,14 @@ namespace Ecommerce.Infrastructure.Cache
                     {
                         await _distributedCache.RemoveAsync(key);
                     }
-                    await _logger.LogAsync(ELogLevel.Debug, $"Đã xóa cache theo prefix: {prefixKey}", "RemoveByPrefixAsync");
+                    await _logger.LogAsync(
+                        ELogLevel.Debug,
+                        "Removed cache entries by prefix {PrefixKey}",
+                        "RemoveByPrefixAsync",
+                        properties: new Dictionary<string, object?>
+                        {
+                            { "PrefixKey", prefixKey }
+                        });
                 }
                 else
                 {
@@ -135,7 +181,13 @@ namespace Ecommerce.Infrastructure.Cache
             }
             catch (Exception ex)
             {
-                await _logger.LogExceptionAsync(ex, $"Lỗi xóa prefix {prefixKey}: {ex.Message}");
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "RemoveByPrefixAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "PrefixKey", prefixKey }
+                    });
             }
         }
     }

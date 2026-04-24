@@ -101,7 +101,14 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
             var result = await _unitOfWork.Products.AddAsync(product, cancellationToken);
 
             await _unitOfWork.CompleteAsync(cancellationToken);
-            await _logger.LogAsync(ELogLevel.Information, $"Sản phẩm đã được tạo thành công với ID: {result.Id}", "Thêm mới sản phẩm");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "Product created successfully for {ProductId}",
+                "CreateProduct",
+                properties: new Dictionary<string, object?>
+                {
+                    { "ProductId", result.Id }
+                });
 
             // Xóa cache liên quan
             await _cacheService.RemoveAsync(CacheKeys.GetProducts());

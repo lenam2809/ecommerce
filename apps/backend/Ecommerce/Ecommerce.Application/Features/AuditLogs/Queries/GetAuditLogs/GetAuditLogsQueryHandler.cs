@@ -111,8 +111,13 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetAuditLogs
 
                 await _logger.LogAsync(
                     ELogLevel.Information,
-                    $"Retrieved {auditLogDtos.Count} audit logs for user {currentUserId}",
-                    "GetAuditLogs");
+                    "Retrieved {Count} audit logs for {UserId}",
+                    "GetAuditLogs",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "Count", auditLogDtos.Count },
+                        { "UserId", currentUserId?.ToString() ?? "Anonymous" }
+                    });
 
                 return Result<PaginatedList<AuditLogDto>>.Success(result);
             }

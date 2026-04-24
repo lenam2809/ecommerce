@@ -25,11 +25,11 @@ namespace Ecommerce.Infrastructure.SignalR
             try
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"product_{productId}");
-                _logger.LogInformation($"User {Context.UserIdentifier} joined product group {productId}");
+                _logger.LogInformation("User {UserId} joined product group {ProductId}", Context.UserIdentifier, productId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error joining product group {productId}");
+                _logger.LogError(ex, "Error joining product group {ProductId}", productId);
             }
         }
 
@@ -38,11 +38,11 @@ namespace Ecommerce.Infrastructure.SignalR
             try
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"product_{productId}");
-                _logger.LogInformation($"User {Context.UserIdentifier} left product group {productId}");
+                _logger.LogInformation("User {UserId} left product group {ProductId}", Context.UserIdentifier, productId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error leaving product group {productId}");
+                _logger.LogError(ex, "Error leaving product group {ProductId}", productId);
             }
         }
 
@@ -63,21 +63,21 @@ namespace Ecommerce.Infrastructure.SignalR
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending typing indicator for product {productId}");
+                _logger.LogError(ex, "Error sending typing indicator for product {ProductId}", productId);
             }
         }
 
         public override async Task OnConnectedAsync()
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            _logger.LogInformation($"User {userId} connected to ReviewHub");
+            _logger.LogInformation("User {UserId} connected to ReviewHub", userId);
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            _logger.LogInformation($"User {userId} disconnected from ReviewHub");
+            _logger.LogInformation("User {UserId} disconnected from ReviewHub", userId);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -100,11 +100,11 @@ namespace Ecommerce.Infrastructure.SignalR
             try
             {
                 await Clients.OthersInGroup($"product_{productId}").SendAsync("NewReview", review);
-                _logger.LogInformation($"Broadcasted new review (excluding sender) for product {productId}");
+                _logger.LogInformation("Broadcasted new review excluding sender for product {ProductId}", productId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error broadcasting new review for product {productId}");
+                _logger.LogError(ex, "Error broadcasting new review for product {ProductId}", productId);
             }
         }
 
@@ -120,11 +120,11 @@ namespace Ecommerce.Infrastructure.SignalR
                     NewRating = newRating,
                     ReviewCount = reviewCount
                 });
-                _logger.LogInformation($"Broadcasted rating update for product {productId}: {newRating}");
+                _logger.LogInformation("Broadcasted rating update for product {ProductId} with rating {NewRating}", productId, newRating);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error broadcasting rating update for product {productId}");
+                _logger.LogError(ex, "Error broadcasting rating update for product {ProductId}", productId);
             }
         }
 
@@ -141,7 +141,7 @@ namespace Ecommerce.Infrastructure.SignalR
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error broadcasting like update for review {reviewId}");
+                _logger.LogError(ex, "Error broadcasting like update for review {ReviewId}", reviewId);
             }
         }
     }

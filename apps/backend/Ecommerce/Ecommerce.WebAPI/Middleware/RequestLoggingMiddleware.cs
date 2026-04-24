@@ -34,22 +34,51 @@ namespace Ecommerce.WebAPI.Middleware
                 {
                     try
                     {
-                        await logger.LogAsync(ELogLevel.Information,
-                            $"HTTP {context.Request.Method} {context.Request.Path} started",
-                            "RequestLoggingMiddleware");
+                        await logger.LogAsync(
+                            ELogLevel.Information,
+                            "HTTP {Method} {Path} started",
+                            "RequestLoggingMiddleware",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "Method", context.Request.Method },
+                                { "Path", context.Request.Path.Value ?? "/" },
+                                { "CorrelationId", correlationId },
+                                { "RequestId", requestId },
+                                { "UserId", userId }
+                            });
                         var stopwatch = Stopwatch.StartNew();
 
                         await _next(context);
 
                         stopwatch.Stop();
-                        await logger.LogAsync(ELogLevel.Information,
-                            $"HTTP {context.Request.Method} {context.Request.Path} completed in {stopwatch.ElapsedMilliseconds}ms with status {context.Response.StatusCode}",
-                            "RequestLoggingMiddleware");
+                        await logger.LogAsync(
+                            ELogLevel.Information,
+                            "HTTP {Method} {Path} completed in {ExecutionTimeMs}ms with status {StatusCode}",
+                            "RequestLoggingMiddleware",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "Method", context.Request.Method },
+                                { "Path", context.Request.Path.Value ?? "/" },
+                                { "ExecutionTimeMs", stopwatch.ElapsedMilliseconds },
+                                { "StatusCode", context.Response.StatusCode },
+                                { "CorrelationId", correlationId },
+                                { "RequestId", requestId },
+                                { "UserId", userId }
+                            });
                     }
                     catch (Exception ex)
                     {
-                        await logger.LogExceptionAsync(ex,
-                            $"HTTP {context.Request.Method} {context.Request.Path} failed");
+                        await logger.LogExceptionAsync(
+                            ex,
+                            "RequestLoggingMiddleware",
+                            new Dictionary<string, object?>
+                            {
+                                { "Method", context.Request.Method },
+                                { "Path", context.Request.Path.Value ?? "/" },
+                                { "CorrelationId", correlationId },
+                                { "RequestId", requestId },
+                                { "UserId", userId }
+                            });
                         throw;
                     }
                 }

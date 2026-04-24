@@ -78,8 +78,12 @@ namespace Ecommerce.Application.Features.Products.Commands.ExportProductsTemplat
                 }
 
                 await _logger.LogAsync(Domain.Enums.ELogLevel.Information,
-                    $"Đã tạo mẫu import sản phẩm theo định dạng {fileFormat}",
-                    "Tạo mẫu sản phẩm");
+                    "Created product import template for format {FileFormat}",
+                    "ExportProductsTemplate",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "FileFormat", fileFormat }
+                    });
 
                 // Trả về kết quả
                 return Result<ExportTemplateResult>.Success(new ExportTemplateResult

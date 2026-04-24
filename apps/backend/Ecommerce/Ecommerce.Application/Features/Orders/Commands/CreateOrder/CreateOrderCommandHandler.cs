@@ -95,8 +95,13 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
                         await _logger.LogAsync(
                             ELogLevel.Information,
-                            $"Da tao don hang thanh cong. ID: {order.Id}, Ma: {order.Code}",
-                            "Tao don hang");
+                            "Order created successfully for {OrderId} with code {OrderCode}",
+                            "CreateOrder",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "OrderId", order.Id },
+                                { "OrderCode", order.Code }
+                            });
 
                         return Result<Guid>.Success(order.Id);
                     }

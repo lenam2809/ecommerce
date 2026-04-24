@@ -70,7 +70,14 @@ namespace Ecommerce.Application.Features.Categories.Commands.CreateCategory
                         }, cancellationToken);
                     }
                 }
-                await _logger.LogAsync(ELogLevel.Information, $"Danh mục đã được tạo thành công với ID: {result.Id}", "Thêm mới danh mục");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Category created successfully for {CategoryId}",
+                    "CreateCategory",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CategoryId", result.Id }
+                    });
 
                 // Xóa cache liên quan
                 await _cacheService.RemoveAsync(CacheKeys.GetAllCategories()); // static key

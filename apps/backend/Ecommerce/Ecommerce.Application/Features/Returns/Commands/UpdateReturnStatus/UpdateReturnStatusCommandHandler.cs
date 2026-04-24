@@ -25,14 +25,15 @@ namespace Ecommerce.Application.Features.Returns.Commands.UpdateReturnStatus
                 .GetWithDetailsAsync(request.ReturnRequestId, cancellationToken);
 
             if (returnRequest is null)
+            {
                 return Result<bool>.NotFound("Yêu cầu đổi/trả không tồn tại.");
+            }
 
             try
             {
                 switch (request.NewStatus)
                 {
                     case EReturnStatus.UnderReview:
-                        // Cần StaffId - lấy từ context (giả sử truyền qua Note tạm)
                         returnRequest.StartReview(Guid.Empty);
                         break;
                     case EReturnStatus.ItemReceived:
@@ -62,9 +63,16 @@ namespace Ecommerce.Application.Features.Returns.Commands.UpdateReturnStatus
 
             await _unitOfWork.CompleteAsync(cancellationToken);
 
-            await _logger.LogAsync(ELogLevel.Information,
-                $"Cập nhật trạng thái RMA {returnRequest.Code} → {request.NewStatus}",
-                "Cập nhật trạng thái RMA");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "Updated return request {ReturnRequestCode} to status {ReturnStatus}",
+                "UpdateReturnStatus",
+                properties: new Dictionary<string, object?>
+                {
+                    { "ReturnRequestId", returnRequest.Id },
+                    { "ReturnRequestCode", returnRequest.Code },
+                    { "ReturnStatus", request.NewStatus }
+                });
 
             return Result<bool>.Success(true);
         }

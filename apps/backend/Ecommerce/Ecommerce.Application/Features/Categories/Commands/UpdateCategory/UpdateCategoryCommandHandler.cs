@@ -75,7 +75,14 @@ namespace Ecommerce.Application.Features.Categories.Commands.UpdateCategory
                     BrandIds = request.BrandIds ?? []
                 }, cancellationToken);
 
-                await _logger.LogAsync(ELogLevel.Information, $"Danh mục đã được cập nhật thành công với ID: {category.Id}", "Cập nhật danh mục");
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Category updated successfully for {CategoryId}",
+                    "UpdateCategory",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CategoryId", category.Id }
+                    });
 
                 await _cacheInvalidationService.InvalidateCategoryCache(category.Id);
 

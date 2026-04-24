@@ -87,17 +87,25 @@ namespace Ecommerce.Application.Features.Auth.Commands.RegisterUser
                 ), cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                   $"Người dùng {request.Email} đã đăng ký thành công.",
-                   "Đăng ký thành công", ELogType.Security);
+                   "User registered successfully with role {RoleName}",
+                   "RegisterSuccess",
+                   ELogType.Security,
+                   new Dictionary<string, object?>
+                   {
+                       { "UserId", user.Id },
+                       { "RoleName", EUserRoles.Customer }
+                   });
 
                 return Result<Guid>.Success(user.Id);
             }
             catch (Exception ex)
             {
                 await _logger.LogExceptionAsync(ex, "Đã xảy ra lỗi khi đăng ký");
-                await _logger.LogAsync(ELogLevel.Information,
-                    $"Người dùng {request.Email} đã đăng ký thất bại.",
-                    "Đăng ký thất bại", ELogType.Security);
+                await _logger.LogAsync(
+                    ELogLevel.Warning,
+                    "User registration failed",
+                    "RegisterFailed",
+                    ELogType.Security);
                 return Result<Guid>.BadRequest($"Lỗi khi đăng ký: {ex.Message}");
             }
 

@@ -14,7 +14,7 @@ namespace Ecommerce.Infrastructure.Services
 
         public Task SendEmailAsync(string to, string subject, string message, string? htmlContent = null, List<EmailAttachment>? attachments = null)
         {
-            _logger.LogInformation("Sending email to {To}. Subject: {Subject}. Message: {Message}", to, subject, message);
+            _logger.LogInformation("Sending email with subject {Subject}. AttachmentCount: {AttachmentCount}", subject, attachments?.Count ?? 0);
             return Task.CompletedTask;
         }
 
@@ -26,19 +26,19 @@ namespace Ecommerce.Infrastructure.Services
 
         public Task SendEmailWithAttachmentAsync(string to, string subject, string message, string attachmentFilePath, string attachmentFileName, string? htmlContent = null)
         {
-            _logger.LogInformation("Sending email with attachment to {To}. Subject: {Subject}. Attachment: {FileName}", to, subject, attachmentFileName);
+            _logger.LogInformation("Sending email with attachment {FileName}. Subject: {Subject}", attachmentFileName, subject);
             return Task.CompletedTask;
         }
 
         public Task SendOrderConfirmationEmailAsync(string to, string orderCode, string customerName, decimal totalAmount)
         {
-            _logger.LogInformation("Sending order confirmation email to {To} for order {OrderCode}. Total: {TotalAmount}", to, orderCode, totalAmount);
+            _logger.LogInformation("Sending order confirmation email for order {OrderCode}. Total: {TotalAmount}", orderCode, totalAmount);
             return Task.CompletedTask;
         }
 
         public Task SendOrderStatusUpdateEmailAsync(string to, string orderCode, string customerName, string status)
         {
-            _logger.LogInformation("Sending order status update email to {To} for order {OrderCode}. New Status: {Status}", to, orderCode, status);
+            _logger.LogInformation("Sending order status update email for order {OrderCode}. New Status: {Status}", orderCode, status);
             return Task.CompletedTask;
         }
     }

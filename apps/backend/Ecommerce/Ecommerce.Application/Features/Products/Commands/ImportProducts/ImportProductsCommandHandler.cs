@@ -210,8 +210,15 @@ namespace Ecommerce.Application.Features.Products.Commands.ImportProducts
                 result.SuccessCount = result.AddedCount + result.UpdatedCount + result.DeletedCount;
                 
                 await _logger.LogAsync(ELogLevel.Information, 
-                    $"Import hoàn tất: Thêm {result.AddedCount}, Sửa {result.UpdatedCount}, Xóa {result.DeletedCount}, Lỗi {result.ErrorCount}", 
-                    "ImportProducts");
+                    "Product import completed with Added {AddedCount}, Updated {UpdatedCount}, Deleted {DeletedCount}, Errors {ErrorCount}",
+                    "ImportProducts",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "AddedCount", result.AddedCount },
+                        { "UpdatedCount", result.UpdatedCount },
+                        { "DeletedCount", result.DeletedCount },
+                        { "ErrorCount", result.ErrorCount }
+                    });
 
                 return Result<ImportProductsResult>.Success(result);
             }

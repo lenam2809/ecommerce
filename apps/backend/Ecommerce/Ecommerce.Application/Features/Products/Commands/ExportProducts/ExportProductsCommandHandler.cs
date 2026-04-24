@@ -80,8 +80,13 @@ namespace Ecommerce.Application.Features.Products.Commands.ExportProducts
                 }
 
                 await _logger.LogAsync(Domain.Enums.ELogLevel.Information,
-                    $"Đã xuất {productDtos.Count} sản phẩm sang định dạng {fileFormat}",
-                    "Xuất sản phẩm");
+                    "Exported {RecordCount} products to format {FileFormat}",
+                    "ExportProducts",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "RecordCount", productDtos.Count },
+                        { "FileFormat", fileFormat }
+                    });
 
                 // Trả về kết quả
                 return Result<ExportProductsResult>.Success(new ExportProductsResult

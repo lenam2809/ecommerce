@@ -68,14 +68,26 @@ namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrderStatus
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Trạng thái đơn hàng đã được cập nhật và lịch sử đã được ghi lại. ID: {order.Id}, Trạng thái: {order.Status}",
-                    "Cập nhật trạng thái đơn hàng");
+                    "Order status updated for {OrderId} to {OrderStatus}",
+                    "UpdateOrderStatus",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", order.Id },
+                        { "OrderStatus", order.Status }
+                    });
 
                 return Result<Unit>.Success(Unit.Value);
             }
             catch (DbUpdateConcurrencyException)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Xung đột dữ liệu khi cập nhật đơn hàng {request.Id}. Dữ liệu đã bị thay đổi bởi người dùng khác.", "Xung đột Concurrency");
+                await _logger.LogAsync(
+                    ELogLevel.Error,
+                    "Concurrency conflict while updating order {OrderId}",
+                    "UpdateOrderStatusConcurrencyConflict",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", request.Id }
+                    });
                 return Result<Unit>.Conflict("Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng tải lại trang và thử lại.");
             }
             catch (DomainException dex)

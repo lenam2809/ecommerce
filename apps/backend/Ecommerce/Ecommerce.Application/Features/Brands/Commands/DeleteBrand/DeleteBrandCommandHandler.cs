@@ -64,8 +64,12 @@ namespace Ecommerce.Application.Features.Brands.Commands.DeleteBrand
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
                 await _logger.LogAsync(ELogLevel.Information,
-                    $"Thương hiệu đã được xóa thành công với ID: {request.Id}",
-                    "Xóa thương hiệu");
+                    "Brand deleted successfully for {BrandId}",
+                    "DeleteBrand",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "BrandId", request.Id }
+                    });
 
                 // Xóa cache liên quan
                 await _cacheService.RemoveAsync(CacheKeys.GetOptionBrands()); // static key

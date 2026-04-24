@@ -120,7 +120,14 @@ namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrder
             }
             catch (DbUpdateConcurrencyException)
             {
-                await _logger.LogAsync(ELogLevel.Error, $"Xung đột dữ liệu khi cập nhật đơn hàng {request.Id}. Dữ liệu đã bị thay đổi bởi người dùng khác.", "Xung đột Concurrency");
+                await _logger.LogAsync(
+                    ELogLevel.Error,
+                    "Concurrency conflict while updating order {OrderId}",
+                    "UpdateOrderConcurrencyConflict",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "OrderId", request.Id }
+                    });
                 return Result<Unit>.Conflict("Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng tải lại trang và thử lại.");
             }
             catch (DomainException dex)

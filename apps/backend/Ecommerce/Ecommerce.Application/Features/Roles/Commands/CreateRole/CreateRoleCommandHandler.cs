@@ -46,11 +46,25 @@ namespace Ecommerce.Application.Features.Roles.Commands.CreateRole
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                await _logger.LogAsync(ELogLevel.Error, $"Lỗi khi tạo vai trò: {errors}", "Thêm mới vai trò");
+                await _logger.LogAsync(
+                    ELogLevel.Error,
+                    "Role creation failed with errors {Errors}",
+                    "CreateRole",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "Errors", errors }
+                    });
                 return Result<Guid>.BadRequest($"Không thể tạo vai trò: {errors}");
             }
 
-            await _logger.LogAsync(ELogLevel.Information, $"Đã tạo vai trò mới: {role.Name}", "Thêm mới vai trò");
+            await _logger.LogAsync(
+                ELogLevel.Information,
+                "Role created successfully for {RoleName}",
+                "CreateRole",
+                properties: new Dictionary<string, object?>
+                {
+                    { "RoleName", role.Name }
+                });
 
             return Result<Guid>.Success(Guid.Parse(role.Id.ToString()));
         }

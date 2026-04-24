@@ -3,44 +3,39 @@ using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Ecommerce.Application.Common.Logging
 {
     public class EnhancedLogger : IEnhancedLogger
     {
-        private static readonly Regex BearerTokenRegex = new(@"(?i)\bBearer\s+[A-Za-z0-9\-\._~\+\/]+=*", RegexOptions.Compiled);
-        private static readonly Regex JwtRegex = new(@"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b", RegexOptions.Compiled);
-        private static readonly Regex PasswordRegex = new(@"(?i)(password|pwd|pass)\s*[:=]\s*([^\s,;]+)", RegexOptions.Compiled);
-        private static readonly Regex EmailRegex = new(@"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex PhoneRegex = new(@"\b(?:\+?\d{1,3}[\s\-.]?)?(?:\(?\d{2,4}\)?[\s\-.]?)?\d{3,4}[\s\-.]?\d{3,4}\b", RegexOptions.Compiled);
-        private static readonly Regex CreditCardRegex = new(@"\b(?:\d[ -]*?){13,19}\b", RegexOptions.Compiled);
+        private static readonly Regex MessagePropertyRegex = new(@"\{(?<name>[^}:]+)(?:[^}]*)\}", RegexOptions.Compiled);
 
-        private readonly ILogger<EnhancedLogger> _logger;
         private readonly IAuditLogger _auditLogger;
         private readonly IPerformanceLogger _performanceLogger;
         private readonly ILogRepository _logRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICurrentUserService _currentUserService;
         private readonly ISeriLogger _seriLogger;
+        private readonly ILogSanitizer _sanitizer;
 
         public EnhancedLogger(
-            ILogger<EnhancedLogger> logger,
             IAuditLogger auditLogger,
             IPerformanceLogger performanceLogger,
             ILogRepository logRepository,
             IHttpContextAccessor httpContextAccessor,
             ICurrentUserService currentUserService,
-            ISeriLogger seriLogger)
+            ISeriLogger seriLogger,
+            ILogSanitizer sanitizer)
         {
-            _logger = logger;
             _auditLogger = auditLogger;
             _performanceLogger = performanceLogger;
             _logRepository = logRepository;
             _httpContextAccessor = httpContextAccessor;
             _currentUserService = currentUserService;
             _seriLogger = seriLogger;
+            _sanitizer = sanitizer;
         }
 
         public async Task LogAuditAsync(
@@ -53,8 +48,8 @@ namespace Ecommerce.Application.Common.Logging
             await _auditLogger.LogAuditAsync(
                 entityName,
                 actionType,
-                SanitizeSensitiveData(oldValues),
-                SanitizeSensitiveData(newValues),
+                _sanitizer.Sanitize(oldValues),
+                _sanitizer.Sanitize(newValues),
                 userId);
         }
 
@@ -65,45 +60,36 @@ namespace Ecommerce.Application.Common.Logging
             Guid? userId = null)
         {
             await _performanceLogger.LogPerformanceAsync(
-                methodName, className, executionTimeMs, userId);
+                methodName,
+                className,
+                executionTimeMs,
+                userId);
         }
 
-        public void Log(ELogLevel level, string message,
+        public void Log(
+            ELogLevel level,
+            string messageTemplate,
             string eventName,
-            Dictionary<string, object>? properties = null)
+            Dictionary<string, object?>? properties = null)
         {
-            var sanitizedMessage = SanitizeSensitiveData(message);
+            var sanitizedProperties = SanitizeProperties(properties);
+            var logEntry = CreateLogEntry(level, messageTemplate, eventName, sanitizedProperties);
 
-            var logEntry = new LogEntry
-            {
-                Level = level,
-                Message = sanitizedMessage,
-                SourceContext = eventName,
-                EventName = eventName,
-                Timestamp = DateTime.Now,
-                IpAddress = GetIPAddress(),
-                UserAgent = GetUserAgent(),
-                ApplicationUserId = _currentUserService.UserId,
-                Properties = properties?.Select(p => new LogProperty
-                {
-                    Key = p.Key,
-                    Value = SanitizeSensitiveData(p.Value?.ToString())
-                }).ToList() ?? new List<LogProperty>()
-            };
-
-            LogSerilog(level, sanitizedMessage);
+            LogSerilog(level, messageTemplate, eventName, sanitizedProperties);
             _ = _logRepository.SaveLogAsync(logEntry);
         }
 
         public async Task LogAsync(
             ELogLevel level,
-            string message,
+            string messageTemplate,
             string eventName,
             ELogType logType = ELogType.Default,
-            Dictionary<string, object>? properties = null)
+            Dictionary<string, object?>? properties = null)
         {
-            var sanitizedMessage = SanitizeSensitiveData(message);
-            LogSerilog(level, sanitizedMessage);
+            var sanitizedProperties = SanitizeProperties(properties);
+            var logEntry = CreateLogEntry(level, messageTemplate, eventName, sanitizedProperties);
+
+            LogSerilog(level, messageTemplate, eventName, sanitizedProperties);
 
             switch (logType)
             {
@@ -115,7 +101,7 @@ namespace Ecommerce.Application.Common.Logging
                         entityName: eventName,
                         actionType: logType.ToString(),
                         oldValues: string.Empty,
-                        newValues: sanitizedMessage);
+                        newValues: logEntry.Message);
                     break;
 
                 case ELogType.UserActivity:
@@ -123,33 +109,10 @@ namespace Ecommerce.Application.Common.Logging
                     await LogPerformanceAsync(
                         methodName: eventName,
                         className: logType.ToString(),
-                        executionTimeMs: properties?.GetValueOrDefault("ExecutionTime") as long? ?? 0);
+                        executionTimeMs: GetExecutionTimeMs(sanitizedProperties));
                     break;
 
-                case ELogType.System:
-                case ELogType.Database:
-                case ELogType.Integration:
-                case ELogType.Notification:
-                case ELogType.Validation:
-                case ELogType.Default:
                 default:
-                    var logEntry = new LogEntry
-                    {
-                        Level = level,
-                        Message = sanitizedMessage,
-                        SourceContext = eventName,
-                        EventName = eventName,
-                        Timestamp = DateTime.Now,
-                        IpAddress = GetIPAddress(),
-                        UserAgent = GetUserAgent(),
-                        ApplicationUserId = _currentUserService.UserId,
-                        Properties = properties?.Select(p => new LogProperty
-                        {
-                            Key = p.Key,
-                            Value = SanitizeSensitiveData(p.Value?.ToString())
-                        }).ToList() ?? new List<LogProperty>()
-                    };
-
                     await _logRepository.SaveLogAsync(logEntry);
                     break;
             }
@@ -157,12 +120,14 @@ namespace Ecommerce.Application.Common.Logging
 
         public async Task SaveLogAsync(LogEntry logEntry)
         {
-            logEntry.Message = SanitizeSensitiveData(logEntry.Message);
+            logEntry.Message = _sanitizer.Sanitize(logEntry.Message);
             if (logEntry.Properties != null)
             {
                 foreach (var property in logEntry.Properties)
                 {
-                    property.Value = SanitizeSensitiveData(property.Value);
+                    property.Value = Convert.ToString(
+                        _sanitizer.SanitizePropertyValue(property.Key, property.Value),
+                        CultureInfo.InvariantCulture) ?? string.Empty;
                 }
             }
 
@@ -177,114 +142,176 @@ namespace Ecommerce.Application.Common.Logging
             return await _logRepository.GetLogsAsync(startDate, endDate, level);
         }
 
-        private string? GetIPAddress()
+        public async Task LogExceptionAsync(
+            Exception ex,
+            string eventName,
+            Dictionary<string, object?>? properties = null)
         {
-            return _httpContextAccessor.HttpContext?.Connection
-                .RemoteIpAddress?.ToString();
-        }
+            var sanitizedProperties = SanitizeProperties(properties);
+            sanitizedProperties["ExceptionMessage"] = _sanitizer.Sanitize(ex.Message ?? "No exception details available.");
+            sanitizedProperties["StackTrace"] = _sanitizer.Sanitize(ex.StackTrace ?? "No stack trace available.");
+            sanitizedProperties["InnerException"] = _sanitizer.Sanitize(ex.InnerException?.ToString() ?? "N/A");
 
-        private string? GetUserAgent()
-        {
-            return _httpContextAccessor.HttpContext?.Request
-                .Headers["User-Agent"].ToString();
-        }
-
-        private void LogSerilog(ELogLevel level, string message)
-        {
-            _logger.LogInformation("{Level} {Message}", level, message);
-
-            switch (level)
+            const string messageTemplate = "Unhandled exception in {EventName}: {ExceptionMessage}";
+            var renderProperties = new Dictionary<string, object?>(sanitizedProperties, StringComparer.OrdinalIgnoreCase)
             {
-                case ELogLevel.Debug:
-                    _seriLogger.LogDebug(message);
-                    break;
-                case ELogLevel.Information:
-                    _seriLogger.LogInformation(message);
-                    break;
-                case ELogLevel.Warning:
-                    _seriLogger.LogWarning(message);
-                    break;
-                case ELogLevel.Error:
-                    _seriLogger.LogError(message);
-                    break;
-                default:
-                    _seriLogger.LogInformation(message);
-                    break;
-            }
-        }
-
-        public async Task LogExceptionAsync(Exception ex, string eventName)
-        {
-            var stackTrace = SanitizeSensitiveData(ex.StackTrace ?? "No stack trace available.");
-            var message = SanitizeSensitiveData(ex.Message ?? "No exception details available.");
-            var innerException = SanitizeSensitiveData(ex.InnerException?.ToString() ?? "N/A");
+                ["EventName"] = eventName
+            };
 
             var logEntry = new LogEntry
             {
                 Id = Guid.NewGuid(),
                 Level = ELogLevel.Error,
-                Message = message,
+                Message = RenderMessage(messageTemplate, renderProperties),
                 SourceContext = eventName,
                 EventName = eventName,
-                Timestamp = DateTime.Now,
+                Timestamp = DateTime.UtcNow,
                 IpAddress = GetIPAddress(),
                 UserAgent = GetUserAgent(),
                 ApplicationUserId = _currentUserService.UserId,
-                Properties =
-                [
-                    new LogProperty { Key = "StackTrace", Value = stackTrace },
-                    new LogProperty { Key = "InnerException", Value = innerException }
-                ]
+                Properties = CreateLogProperties(sanitizedProperties)
             };
 
-            LogSerilog(ELogLevel.Error, message);
+            LogSerilog(ELogLevel.Error, messageTemplate, eventName, renderProperties, ex);
             await _logRepository.SaveLogAsync(logEntry);
         }
 
-        private static string SanitizeSensitiveData(string? input)
+        private string? GetIPAddress()
         {
-            if (string.IsNullOrWhiteSpace(input))
+            return _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+        }
+
+        private string? GetUserAgent()
+        {
+            return _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString();
+        }
+
+        private void LogSerilog(
+            ELogLevel level,
+            string messageTemplate,
+            string eventName,
+            IReadOnlyDictionary<string, object?> properties,
+            Exception? exception = null)
+        {
+            var serilogProperties = BuildSerilogProperties(eventName, level, properties);
+
+            switch (level)
             {
-                return input ?? string.Empty;
+                case ELogLevel.Debug:
+                    _seriLogger.LogDebug(messageTemplate, serilogProperties);
+                    break;
+                case ELogLevel.Information:
+                    _seriLogger.LogInformation(messageTemplate, serilogProperties);
+                    break;
+                case ELogLevel.Warning:
+                    _seriLogger.LogWarning(messageTemplate, serilogProperties);
+                    break;
+                case ELogLevel.Error:
+                    if (exception != null)
+                    {
+                        _seriLogger.LogError(exception, messageTemplate, serilogProperties);
+                    }
+                    else
+                    {
+                        _seriLogger.LogError(messageTemplate, serilogProperties);
+                    }
+                    break;
+                default:
+                    _seriLogger.LogInformation(messageTemplate, serilogProperties);
+                    break;
+            }
+        }
+
+        private LogEntry CreateLogEntry(
+            ELogLevel level,
+            string messageTemplate,
+            string eventName,
+            IReadOnlyDictionary<string, object?> sanitizedProperties)
+        {
+            return new LogEntry
+            {
+                Level = level,
+                Message = RenderMessage(messageTemplate, sanitizedProperties),
+                SourceContext = eventName,
+                EventName = eventName,
+                Timestamp = DateTime.UtcNow,
+                IpAddress = GetIPAddress(),
+                UserAgent = GetUserAgent(),
+                ApplicationUserId = _currentUserService.UserId,
+                Properties = CreateLogProperties(sanitizedProperties)
+            };
+        }
+
+        private Dictionary<string, object?> SanitizeProperties(Dictionary<string, object?>? properties)
+        {
+            var sanitized = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            if (properties == null)
+            {
+                return sanitized;
             }
 
-            var sanitized = input;
-            sanitized = BearerTokenRegex.Replace(sanitized, "Bearer [REDACTED_TOKEN]");
-            sanitized = JwtRegex.Replace(sanitized, "[REDACTED_JWT]");
-            sanitized = PasswordRegex.Replace(sanitized, "$1=[REDACTED_PASSWORD]");
-            sanitized = EmailRegex.Replace(sanitized, "[REDACTED_EMAIL]");
-            sanitized = PhoneRegex.Replace(sanitized, "[REDACTED_PHONE]");
-            sanitized = CreditCardRegex.Replace(sanitized, match => IsLikelyCreditCard(match.Value) ? "[REDACTED_CARD]" : match.Value);
+            foreach (var property in properties)
+            {
+                sanitized[property.Key] = _sanitizer.SanitizePropertyValue(property.Key, property.Value);
+            }
+
             return sanitized;
         }
 
-        private static bool IsLikelyCreditCard(string rawValue)
+        private List<LogProperty> CreateLogProperties(IReadOnlyDictionary<string, object?> properties)
         {
-            var digits = new string(rawValue.Where(char.IsDigit).ToArray());
-            if (digits.Length < 13 || digits.Length > 19)
+            return properties.Select(property => new LogProperty
             {
-                return false;
+                Key = property.Key,
+                Value = Convert.ToString(property.Value, CultureInfo.InvariantCulture) ?? string.Empty
+            }).ToList();
+        }
+
+        private Dictionary<string, object?> BuildSerilogProperties(
+            string eventName,
+            ELogLevel level,
+            IReadOnlyDictionary<string, object?> properties)
+        {
+            var serilogProperties = new Dictionary<string, object?>(properties, StringComparer.OrdinalIgnoreCase)
+            {
+                ["EventName"] = eventName,
+                ["LogLevel"] = level.ToString(),
+                ["IpAddress"] = GetIPAddress(),
+                ["UserAgent"] = GetUserAgent(),
+                ["ApplicationUserId"] = _currentUserService.UserId
+            };
+
+            return serilogProperties;
+        }
+
+        private static long GetExecutionTimeMs(IReadOnlyDictionary<string, object?> properties)
+        {
+            if (!properties.TryGetValue("ExecutionTimeMs", out var executionTime) || executionTime == null)
+            {
+                return 0;
             }
 
-            var sum = 0;
-            var alternate = false;
-            for (var i = digits.Length - 1; i >= 0; i--)
+            return executionTime switch
             {
-                var n = digits[i] - '0';
-                if (alternate)
+                long longValue => longValue,
+                int intValue => intValue,
+                _ when long.TryParse(Convert.ToString(executionTime, CultureInfo.InvariantCulture), out var parsed) => parsed,
+                _ => 0
+            };
+        }
+
+        private static string RenderMessage(string messageTemplate, IReadOnlyDictionary<string, object?> properties)
+        {
+            return MessagePropertyRegex.Replace(messageTemplate, match =>
+            {
+                var propertyName = match.Groups["name"].Value.TrimStart('@', '$');
+                if (!properties.TryGetValue(propertyName, out var value))
                 {
-                    n *= 2;
-                    if (n > 9)
-                    {
-                        n -= 9;
-                    }
+                    return match.Value;
                 }
 
-                sum += n;
-                alternate = !alternate;
-            }
-
-            return sum % 10 == 0;
+                return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+            });
         }
     }
 }
