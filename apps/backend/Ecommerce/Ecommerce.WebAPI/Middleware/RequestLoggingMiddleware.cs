@@ -1,7 +1,7 @@
-using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
-using Serilog.Context;
+using Ecommerce.WebAPI.Configuration;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 
 namespace Ecommerce.WebAPI.Middleware
@@ -9,80 +9,125 @@ namespace Ecommerce.WebAPI.Middleware
     public class RequestLoggingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly RequestLoggingOptions _options;
 
-        public RequestLoggingMiddleware(RequestDelegate next, IServiceScopeFactory scopeFactory)
+        public RequestLoggingMiddleware(
+            RequestDelegate next,
+            IOptions<RequestLoggingOptions> options)
         {
             _next = next;
-            _scopeFactory = scopeFactory;
+            _options = options.Value;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            using (var scope = _scopeFactory.CreateScope())
+            var logger = context.RequestServices.GetRequiredService<IEnhancedLogger>();
+            var stopwatch = Stopwatch.StartNew();
+
+            await _next(context);
+
+            stopwatch.Stop();
+
+            var statusCode = context.Response.StatusCode;
+            var isImportantAction = MatchesAnyRule(context, _options.ImportantInformationRules);
+            var samplingRate = GetSamplingRate(context, statusCode);
+
+            if (!ShouldLogSuccess(statusCode, isImportantAction, samplingRate))
             {
-                var logger = scope.ServiceProvider.GetRequiredService<IEnhancedLogger>();
-                var currentUserService = scope.ServiceProvider.GetService<ICurrentUserService>();
-                
-                var userId = currentUserService?.UserId?.ToString() ?? "anonymous";
-                var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault() ?? Guid.NewGuid().ToString();
-                var requestId = context.TraceIdentifier;
+                return;
+            }
 
-                using (LogContext.PushProperty("UserId", userId))
-                using (LogContext.PushProperty("CorrelationId", correlationId))
-                using (LogContext.PushProperty("RequestId", requestId))
+            var level = statusCode switch
+            {
+                >= StatusCodes.Status500InternalServerError => ELogLevel.Error,
+                >= StatusCodes.Status400BadRequest => ELogLevel.Warning,
+                _ => ELogLevel.Information
+            };
+
+            var eventName = isImportantAction
+                ? "BusinessActionRequest"
+                : statusCode >= StatusCodes.Status400BadRequest
+                    ? "FailedHttpRequest"
+                    : samplingRate.HasValue
+                        ? "SampledHttpRequest"
+                        : "HttpRequest";
+
+            var properties = new Dictionary<string, object?>
+            {
+                { "Method", context.Request.Method },
+                { "Path", context.Request.Path.Value ?? "/" },
+                { "StatusCode", statusCode },
+                { "ExecutionTimeMs", stopwatch.ElapsedMilliseconds },
+                { "RequestQueryString", context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null },
+                { "IsImportantAction", isImportantAction }
+            };
+
+            if (samplingRate.HasValue)
+            {
+                properties["SuccessSampleRate"] = samplingRate.Value;
+            }
+
+            await logger.LogAsync(
+                level,
+                "HTTP {Method} {Path} completed in {ExecutionTimeMs}ms with status {StatusCode}",
+                eventName,
+                properties: properties);
+        }
+
+        private bool ShouldLogSuccess(int statusCode, bool isImportantAction, double? samplingRate)
+        {
+            if (statusCode >= StatusCodes.Status400BadRequest || isImportantAction)
+            {
+                return true;
+            }
+
+            if (samplingRate.HasValue)
+            {
+                return samplingRate.Value >= 1d || Random.Shared.NextDouble() <= samplingRate.Value;
+            }
+
+            return _options.LogSuccessfulRequests;
+        }
+
+        private double? GetSamplingRate(HttpContext context, int statusCode)
+        {
+            if (statusCode != StatusCodes.Status200OK)
+            {
+                return null;
+            }
+
+            foreach (var rule in _options.NoisySuccessSamplingRules)
+            {
+                if (MatchesRule(context, rule))
                 {
-                    try
-                    {
-                        await logger.LogAsync(
-                            ELogLevel.Information,
-                            "HTTP {Method} {Path} started",
-                            "RequestLoggingMiddleware",
-                            properties: new Dictionary<string, object?>
-                            {
-                                { "Method", context.Request.Method },
-                                { "Path", context.Request.Path.Value ?? "/" },
-                                { "CorrelationId", correlationId },
-                                { "RequestId", requestId },
-                                { "UserId", userId }
-                            });
-                        var stopwatch = Stopwatch.StartNew();
-
-                        await _next(context);
-
-                        stopwatch.Stop();
-                        await logger.LogAsync(
-                            ELogLevel.Information,
-                            "HTTP {Method} {Path} completed in {ExecutionTimeMs}ms with status {StatusCode}",
-                            "RequestLoggingMiddleware",
-                            properties: new Dictionary<string, object?>
-                            {
-                                { "Method", context.Request.Method },
-                                { "Path", context.Request.Path.Value ?? "/" },
-                                { "ExecutionTimeMs", stopwatch.ElapsedMilliseconds },
-                                { "StatusCode", context.Response.StatusCode },
-                                { "CorrelationId", correlationId },
-                                { "RequestId", requestId },
-                                { "UserId", userId }
-                            });
-                    }
-                    catch (Exception ex)
-                    {
-                        await logger.LogExceptionAsync(
-                            ex,
-                            "RequestLoggingMiddleware",
-                            new Dictionary<string, object?>
-                            {
-                                { "Method", context.Request.Method },
-                                { "Path", context.Request.Path.Value ?? "/" },
-                                { "CorrelationId", correlationId },
-                                { "RequestId", requestId },
-                                { "UserId", userId }
-                            });
-                        throw;
-                    }
+                    return Math.Clamp(rule.SuccessSampleRate, 0d, 1d);
                 }
             }
+
+            return null;
+        }
+
+        private static bool MatchesAnyRule(HttpContext context, IEnumerable<RequestLoggingRuleOptions> rules)
+        {
+            return rules.Any(rule => MatchesRule(context, rule));
+        }
+
+        private static bool MatchesRule(HttpContext context, RequestLoggingRuleOptions rule)
+        {
+            if (!string.IsNullOrWhiteSpace(rule.Method) &&
+                !string.Equals(context.Request.Method, rule.Method, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(rule.PathPrefix))
+            {
+                return false;
+            }
+
+            return context.Request.Path.StartsWithSegments(
+                new PathString(rule.PathPrefix),
+                StringComparison.OrdinalIgnoreCase);
         }
     }
 

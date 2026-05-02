@@ -45,7 +45,8 @@ namespace Ecommerce.Domain.Interfaces.Logging
         Task LogExceptionAsync(
             Exception ex,
             string eventName,
-            Dictionary<string, object?>? properties = null);
+            Dictionary<string, object?>? properties = null,
+            ELogLevel level = ELogLevel.Error);
     }
 }
 

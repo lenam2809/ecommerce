@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Logging;
+using Xunit;
 
 namespace Ecommerce.Application.Tests.Logging
 {

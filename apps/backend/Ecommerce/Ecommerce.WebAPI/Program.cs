@@ -5,6 +5,7 @@ using Ecommerce.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
+using Ecommerce.WebAPI.Configuration;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,9 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddSignalR();
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<RequestLoggingOptions>(
+    builder.Configuration.GetSection(RequestLoggingOptions.SectionName));
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -183,6 +187,8 @@ using (var scope = app.Services.CreateScope())
 app.UseRateLimiter();
 
 app.UseSecurityHeaders();
+
+app.UseGlobalLogEnrichment();
 
 app.UseRequestLogging();
 

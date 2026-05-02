@@ -3,7 +3,9 @@ using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace Ecommerce.Application.Common.Logging
@@ -19,6 +21,7 @@ namespace Ecommerce.Application.Common.Logging
         private readonly ICurrentUserService _currentUserService;
         private readonly ISeriLogger _seriLogger;
         private readonly ILogSanitizer _sanitizer;
+        private readonly IHostEnvironment _hostEnvironment;
 
         public EnhancedLogger(
             IAuditLogger auditLogger,
@@ -27,7 +30,8 @@ namespace Ecommerce.Application.Common.Logging
             IHttpContextAccessor httpContextAccessor,
             ICurrentUserService currentUserService,
             ISeriLogger seriLogger,
-            ILogSanitizer sanitizer)
+            ILogSanitizer sanitizer,
+            IHostEnvironment hostEnvironment)
         {
             _auditLogger = auditLogger;
             _performanceLogger = performanceLogger;
@@ -36,6 +40,7 @@ namespace Ecommerce.Application.Common.Logging
             _currentUserService = currentUserService;
             _seriLogger = seriLogger;
             _sanitizer = sanitizer;
+            _hostEnvironment = hostEnvironment;
         }
 
         public async Task LogAuditAsync(
@@ -72,7 +77,7 @@ namespace Ecommerce.Application.Common.Logging
             string eventName,
             Dictionary<string, object?>? properties = null)
         {
-            var sanitizedProperties = SanitizeProperties(properties);
+            var sanitizedProperties = EnrichWithGlobalContext(SanitizeProperties(properties));
             var logEntry = CreateLogEntry(level, messageTemplate, eventName, sanitizedProperties);
 
             LogSerilog(level, messageTemplate, eventName, sanitizedProperties);
@@ -86,7 +91,7 @@ namespace Ecommerce.Application.Common.Logging
             ELogType logType = ELogType.Default,
             Dictionary<string, object?>? properties = null)
         {
-            var sanitizedProperties = SanitizeProperties(properties);
+            var sanitizedProperties = EnrichWithGlobalContext(SanitizeProperties(properties));
             var logEntry = CreateLogEntry(level, messageTemplate, eventName, sanitizedProperties);
 
             LogSerilog(level, messageTemplate, eventName, sanitizedProperties);
@@ -145,14 +150,20 @@ namespace Ecommerce.Application.Common.Logging
         public async Task LogExceptionAsync(
             Exception ex,
             string eventName,
-            Dictionary<string, object?>? properties = null)
+            Dictionary<string, object?>? properties = null,
+            ELogLevel level = ELogLevel.Error)
         {
-            var sanitizedProperties = SanitizeProperties(properties);
+            var sanitizedProperties = EnrichWithGlobalContext(SanitizeProperties(properties));
+            var rootCause = GetRootCause(ex);
+
+            sanitizedProperties["ExceptionType"] = ex.GetType().FullName;
             sanitizedProperties["ExceptionMessage"] = _sanitizer.Sanitize(ex.Message ?? "No exception details available.");
             sanitizedProperties["StackTrace"] = _sanitizer.Sanitize(ex.StackTrace ?? "No stack trace available.");
-            sanitizedProperties["InnerException"] = _sanitizer.Sanitize(ex.InnerException?.ToString() ?? "N/A");
+            sanitizedProperties["InnerException"] = _sanitizer.Sanitize(BuildInnerExceptionChain(ex));
+            sanitizedProperties["RootCauseType"] = rootCause.GetType().FullName;
+            sanitizedProperties["RootCauseMessage"] = _sanitizer.Sanitize(rootCause.Message);
 
-            const string messageTemplate = "Unhandled exception in {EventName}: {ExceptionMessage}";
+            const string messageTemplate = "Exception in {EventName}: {ExceptionMessage}";
             var renderProperties = new Dictionary<string, object?>(sanitizedProperties, StringComparer.OrdinalIgnoreCase)
             {
                 ["EventName"] = eventName
@@ -161,24 +172,31 @@ namespace Ecommerce.Application.Common.Logging
             var logEntry = new LogEntry
             {
                 Id = Guid.NewGuid(),
-                Level = ELogLevel.Error,
+                Level = level,
                 Message = RenderMessage(messageTemplate, renderProperties),
                 SourceContext = eventName,
                 EventName = eventName,
                 Timestamp = DateTime.UtcNow,
-                IpAddress = GetIPAddress(),
+                IpAddress = GetClientIpAddress(),
                 UserAgent = GetUserAgent(),
                 ApplicationUserId = _currentUserService.UserId,
                 Properties = CreateLogProperties(sanitizedProperties)
             };
 
-            LogSerilog(ELogLevel.Error, messageTemplate, eventName, renderProperties, ex);
+            LogSerilog(level, messageTemplate, eventName, renderProperties, ex);
             await _logRepository.SaveLogAsync(logEntry);
         }
 
-        private string? GetIPAddress()
+        private string? GetClientIpAddress()
         {
-            return _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+            var httpContext = _httpContextAccessor.HttpContext;
+            var forwardedFor = httpContext?.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(forwardedFor))
+            {
+                return forwardedFor.Split(',')[0].Trim();
+            }
+
+            return httpContext?.Connection.RemoteIpAddress?.ToString();
         }
 
         private string? GetUserAgent()
@@ -235,7 +253,7 @@ namespace Ecommerce.Application.Common.Logging
                 SourceContext = eventName,
                 EventName = eventName,
                 Timestamp = DateTime.UtcNow,
-                IpAddress = GetIPAddress(),
+                IpAddress = GetClientIpAddress(),
                 UserAgent = GetUserAgent(),
                 ApplicationUserId = _currentUserService.UserId,
                 Properties = CreateLogProperties(sanitizedProperties)
@@ -275,13 +293,93 @@ namespace Ecommerce.Application.Common.Logging
             var serilogProperties = new Dictionary<string, object?>(properties, StringComparer.OrdinalIgnoreCase)
             {
                 ["EventName"] = eventName,
+                ["SourceContext"] = eventName,
                 ["LogLevel"] = level.ToString(),
-                ["IpAddress"] = GetIPAddress(),
+                ["ClientIP"] = GetClientIpAddress(),
+                ["IpAddress"] = GetClientIpAddress(),
                 ["UserAgent"] = GetUserAgent(),
                 ["ApplicationUserId"] = _currentUserService.UserId
             };
 
             return serilogProperties;
+        }
+
+        private Dictionary<string, object?> EnrichWithGlobalContext(IReadOnlyDictionary<string, object?> properties)
+        {
+            var enrichedProperties = new Dictionary<string, object?>(properties, StringComparer.OrdinalIgnoreCase);
+            var userId = _currentUserService.UserId?.ToString() ?? "anonymous";
+            var userName = GetUserName();
+            var correlationId = GetCorrelationId();
+            var clientIp = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+
+            enrichedProperties.TryAdd("CorrelationId", correlationId);
+            enrichedProperties.TryAdd("RequestId", _httpContextAccessor.HttpContext?.TraceIdentifier);
+            enrichedProperties.TryAdd("UserId", userId);
+            enrichedProperties.TryAdd("UserName", userName);
+            enrichedProperties.TryAdd("ClientIP", clientIp);
+            enrichedProperties.TryAdd("IpAddress", clientIp);
+            enrichedProperties.TryAdd("UserAgent", userAgent);
+            enrichedProperties.TryAdd("EnvironmentName", _hostEnvironment.EnvironmentName);
+            enrichedProperties.TryAdd("MachineName", Environment.MachineName);
+
+            return enrichedProperties;
+        }
+
+        private string GetCorrelationId()
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.Items.TryGetValue("CorrelationId", out var correlationIdValue) == true &&
+                correlationIdValue is string correlationId &&
+                !string.IsNullOrWhiteSpace(correlationId))
+            {
+                return correlationId;
+            }
+
+            return httpContext?.Request.Headers["X-Correlation-ID"].FirstOrDefault()
+                ?? httpContext?.TraceIdentifier
+                ?? Guid.NewGuid().ToString("N");
+        }
+
+        private string GetUserName()
+        {
+            if (!string.IsNullOrWhiteSpace(_currentUserService.FullName))
+            {
+                return _currentUserService.FullName;
+            }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.FindFirstValue(ClaimTypes.Name)
+                ?? user?.FindFirstValue(ClaimTypes.Email)
+                ?? user?.Identity?.Name
+                ?? "anonymous";
+        }
+
+        private static Exception GetRootCause(Exception exception)
+        {
+            var current = exception;
+            while (current.InnerException != null)
+            {
+                current = current.InnerException;
+            }
+
+            return current;
+        }
+
+        private static string BuildInnerExceptionChain(Exception exception)
+        {
+            var messages = new List<string>();
+            var current = exception.InnerException;
+            var depth = 0;
+
+            while (current != null)
+            {
+                messages.Add($"[{depth}] {current.GetType().FullName}: {current.Message}");
+                current = current.InnerException;
+                depth++;
+            }
+
+            return messages.Count == 0 ? "N/A" : string.Join(" --> ", messages);
         }
 
         private static long GetExecutionTimeMs(IReadOnlyDictionary<string, object?> properties)
