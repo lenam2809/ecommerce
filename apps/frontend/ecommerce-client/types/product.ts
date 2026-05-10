@@ -35,8 +35,11 @@ export interface ProductsResponse {
 }
 
 export interface ProductFilters {
+    q?: string;
     categoryIds?: string;
+    categoryId?: string;
     brandIds?: string;
+    brandId?: string;
     minPrice?: number;
     maxPrice?: number;
     rating?: number;
@@ -45,6 +48,7 @@ export interface ProductFilters {
     pageNumber?: number;
     pageSize?: number;
     searchTerm?: string;
+    keyword?: string;
 }
 
 export interface Review {

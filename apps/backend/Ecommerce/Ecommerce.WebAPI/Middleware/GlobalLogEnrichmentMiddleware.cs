@@ -2,6 +2,7 @@ using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.WebAPI.Configuration;
 using Microsoft.Extensions.Options;
 using Serilog.Context;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace Ecommerce.WebAPI.Middleware
@@ -33,11 +34,21 @@ namespace Ecommerce.WebAPI.Middleware
             var userName = ResolveUserName(context, currentUserService);
             var clientIp = ResolveClientIp(context);
             var userAgent = context.Request.Headers.UserAgent.ToString();
+            var activity = Activity.Current;
+            var traceId = activity?.TraceId.ToString();
+            var spanId = activity?.SpanId.ToString();
 
             context.Items[CorrelationIdItemKey] = correlationId;
             context.Response.Headers[_options.CorrelationIdHeaderName] = correlationId;
+            context.Response.Headers["X-Trace-ID"] = traceId;
+            context.Response.Headers["X-Span-ID"] = spanId;
+
+            activity?.SetTag("correlation.id", correlationId);
+            activity?.SetBaggage("correlation.id", correlationId);
 
             using (LogContext.PushProperty("CorrelationId", correlationId))
+            using (LogContext.PushProperty("TraceId", traceId))
+            using (LogContext.PushProperty("SpanId", spanId))
             using (LogContext.PushProperty("RequestId", context.TraceIdentifier))
             using (LogContext.PushProperty("UserId", userId))
             using (LogContext.PushProperty("UserName", userName))

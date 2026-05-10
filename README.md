@@ -287,6 +287,36 @@ Dashboard sẽ chạy tại: `http://localhost:3001`
 | `AuthConfig:EnableCsrfProtection` | Bật CSRF protection | ✅ |
 | `CookieSettings:AccessTokenMinutes` | Cookie access token TTL | ✅ |
 | `CookieSettings:RefreshTokenDays` | Cookie refresh token TTL | ✅ |
+| `Authentication:Google:ClientId` | Google OAuth client id for customer sign-in | ❌ |
+| `Authentication:Google:ClientSecret` | Google OAuth client secret; use user-secrets/env vars | ❌ |
+| `Authentication:Google:CallbackUrl` | Public Google OAuth callback URL; defaults to `AppUrl:Frontend/api/auth/google-oauth-callback` | ❌ |
+| `AppUrl:Frontend` | Customer frontend base URL for OAuth/email links | ✅ |
+| `Email:FromAddress` | Transactional email sender address | ❌ |
+| `Email:FromName` | Transactional email sender name | ❌ |
+| `Email:Smtp:Host` | SMTP host; blank disables actual delivery but keeps queue safe | ❌ |
+| `Email:Smtp:Port` | SMTP port, usually 587 | ❌ |
+| `Email:Smtp:Username` | SMTP username | ❌ |
+| `Email:Smtp:Password` | SMTP password; use user-secrets/env vars | ❌ |
+| `Email:Smtp:EnableSsl` | Enable SMTP TLS | ❌ |
+
+### Google Sign-In
+
+Create a Google OAuth web client and add the callback URL used by the customer frontend proxy:
+
+```text
+http://localhost:3000/api/auth/google-oauth-callback
+```
+
+Store secrets outside committed settings:
+
+```bash
+dotnet user-secrets set "Authentication:Google:ClientId" "<client-id>" --project apps/backend/Ecommerce/Ecommerce.WebAPI
+dotnet user-secrets set "Authentication:Google:ClientSecret" "<client-secret>" --project apps/backend/Ecommerce/Ecommerce.WebAPI
+```
+
+### Email Notifications
+
+Order confirmation, order status update, password reset, and admin resend emails are queued through the API and sent by `EmailBackgroundService`. SMTP delivery is disabled when `Email:Smtp:Host` is empty.
 
 ### Frontend (.env.local)
 
@@ -526,3 +556,15 @@ DELETE /api/products/{id}     # Delete
 - [Docker Deployment Guide](./docs/DOCKER_GUIDE.md)
 - [Business Requirements](./docs/business_requirements.md)
 - [Authentication Proposal](./docs/authentication_proposal.md)
+## Elasticsearch Product Search
+
+The catalog now has a dedicated Elasticsearch search path at `GET /api/search/products`. Existing product endpoints remain unchanged, while the customer frontend switches to the new endpoint when the `/products` URL contains `q`.
+
+For local development, start Elasticsearch with:
+
+```bash
+cd docker-compose
+docker compose up -d elasticsearch
+```
+
+The development image installs the ICU analyzer plugin for Vietnamese-compatible tokenization. API configuration lives under `Elasticsearch` in `appsettings*.json`; see [docs/elasticsearch-setup.md](docs/elasticsearch-setup.md) for mapping, sync, and endpoint details.

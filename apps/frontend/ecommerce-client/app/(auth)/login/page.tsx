@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, Suspense } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
+import { getGuestId } from "@/lib/guest-id"
 
 export default function LoginPage() {
     return (
@@ -27,6 +28,7 @@ function LoginContent() {
     const [rememberMe, setRememberMe] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+    const [guestId, setGuestId] = useState("")
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
 
     const router = useRouter()
@@ -36,6 +38,11 @@ function LoginContent() {
     // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
     const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/"
     const redirectUrl = decodeURIComponent(returnUrl)
+    const googleLoginUrl = `/api/auth/external-login?provider=Google&returnUrl=${encodeURIComponent(redirectUrl)}`
+
+    useEffect(() => {
+        setGuestId(getGuestId() ?? "")
+    }, [])
 
     const validateForm = () => {
         const newErrors: { email?: string; password?: string } = {}
@@ -183,16 +190,40 @@ function LoginContent() {
                         "Đăng nhập"
                     )}
                 </Button>
-
-                <div className="text-center mt-6">
-                    <p className="text-sm text-muted-foreground">
-                        Chưa có tài khoản?{" "}
-                        <Link href="/register" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-                            Đăng ký ngay
-                        </Link>
-                    </p>
-                </div>
             </form>
+
+            <div className="my-6 flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">Hoặc</span>
+                <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <form method="post" action={googleLoginUrl}>
+                <input type="hidden" name="guestId" value={guestId} />
+                <Button
+                    type="submit"
+                    variant="outline"
+                    className="h-11 w-full rounded-xl border-[#dadce0] bg-white text-sm font-medium text-[#3c4043] hover:bg-[#f8fafd] dark:bg-background dark:text-foreground"
+                    disabled={isLoading}
+                >
+                    <svg aria-hidden="true" className="mr-3 h-5 w-5" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.6-6.6C35.4 2.7 30.1.5 24 .5 14.8.5 6.9 5.8 3.1 13.5l7.7 6C12.6 13.6 17.8 9.5 24 9.5z" />
+                        <path fill="#4285F4" d="M47.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h13.2c-.6 3-2.3 5.6-4.9 7.3l7.5 5.8c4.4-4.1 7.7-10.1 7.7-17.1z" />
+                        <path fill="#FBBC05" d="M10.8 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.7-6C1.4 16.7.5 20.2.5 24s.9 7.3 2.6 10.5l7.7-6z" />
+                        <path fill="#34A853" d="M24 47.5c6.1 0 11.3-2 15.1-5.4l-7.5-5.8c-2.1 1.4-4.7 2.2-7.6 2.2-6.2 0-11.4-4.1-13.2-9.8l-7.7 6C6.9 42.2 14.8 47.5 24 47.5z" />
+                    </svg>
+                    Sign in with Google
+                </Button>
+            </form>
+
+            <div className="text-center mt-6">
+                <p className="text-sm text-muted-foreground">
+                    Chưa có tài khoản?{" "}
+                    <Link href="/register" className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                        Đăng ký ngay
+                    </Link>
+                </p>
+            </div>
         </div>
     )
 }

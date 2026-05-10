@@ -12,15 +12,21 @@ namespace Ecommerce.Application.Features.Orders.EventHandlers
         private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
+        private readonly IEmailQueue _emailQueue;
+        private readonly IEmailTemplateRenderer _emailTemplateRenderer;
 
         public OrderStatusChangedEventHandler(
             INotificationService notificationService,
             IUnitOfWork unitOfWork,
-            IEnhancedLogger logger)
+            IEnhancedLogger logger,
+            IEmailQueue emailQueue,
+            IEmailTemplateRenderer emailTemplateRenderer)
         {
             _notificationService = notificationService;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _emailQueue = emailQueue;
+            _emailTemplateRenderer = emailTemplateRenderer;
         }
 
         public async Task Handle(OrderStatusChangedEvent notification, CancellationToken cancellationToken)
@@ -48,6 +54,24 @@ namespace Ecommerce.Application.Features.Orders.EventHandlers
                     { "OldStatus", notification.OldStatus },
                     { "NewStatus", notification.NewStatus }
                 });
+
+            if (!string.IsNullOrWhiteSpace(notification.CustomerEmail))
+            {
+                var body = await _emailTemplateRenderer.RenderAsync("OrderStatusChanged", new Dictionary<string, string>
+                {
+                    ["CustomerName"] = string.IsNullOrWhiteSpace(notification.CustomerName) ? "Customer" : notification.CustomerName,
+                    ["OrderCode"] = notification.OrderCode,
+                    ["OldStatus"] = notification.OldStatus.ToString(),
+                    ["NewStatus"] = notification.NewStatus.ToString(),
+                    ["TrackingUrl"] = $"/orders/{notification.OrderId}"
+                }, cancellationToken);
+
+                await _emailQueue.QueueEmailAsync(new EmailMessage(
+                    notification.CustomerEmail,
+                    $"ShopViet cap nhat don hang {notification.OrderCode}",
+                    body,
+                    $"Don hang {notification.OrderCode} da chuyen sang trang thai {notification.NewStatus}."), cancellationToken);
+            }
         }
 
         private async Task RestoreStockQuantities(Guid orderId, CancellationToken cancellationToken)

@@ -1,8 +1,10 @@
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Ecommerce.WebAPI.Configuration;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 namespace Ecommerce.WebAPI.Middleware
 {
@@ -29,6 +31,23 @@ namespace Ecommerce.WebAPI.Middleware
             stopwatch.Stop();
 
             var statusCode = context.Response.StatusCode;
+            var route = ResolveRoute(context);
+            var tags = new TagList
+            {
+                { "method", context.Request.Method },
+                { "route", route },
+                { "status_code", statusCode },
+                { "status_class", $"{statusCode / 100}xx" }
+            };
+
+            EcommerceDiagnostics.HttpRequests.Add(1, tags);
+            EcommerceDiagnostics.HttpRequestDuration.Record(stopwatch.Elapsed.TotalMilliseconds, tags);
+
+            if (statusCode >= StatusCodes.Status500InternalServerError)
+            {
+                EcommerceDiagnostics.HttpRequestErrors.Add(1, tags);
+            }
+
             var isImportantAction = MatchesAnyRule(context, _options.ImportantInformationRules);
             var samplingRate = GetSamplingRate(context, statusCode);
 
@@ -56,6 +75,7 @@ namespace Ecommerce.WebAPI.Middleware
             {
                 { "Method", context.Request.Method },
                 { "Path", context.Request.Path.Value ?? "/" },
+                { "Route", route },
                 { "StatusCode", statusCode },
                 { "ExecutionTimeMs", stopwatch.ElapsedMilliseconds },
                 { "RequestQueryString", context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null },
@@ -128,6 +148,14 @@ namespace Ecommerce.WebAPI.Middleware
             return context.Request.Path.StartsWithSegments(
                 new PathString(rule.PathPrefix),
                 StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ResolveRoute(HttpContext context)
+        {
+            var endpoint = context.GetEndpoint();
+            return endpoint?.Metadata.GetMetadata<RouteEndpoint>()?.RoutePattern.RawText
+                ?? context.Request.Path.Value
+                ?? "/";
         }
     }
 

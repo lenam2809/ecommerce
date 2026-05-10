@@ -6,7 +6,7 @@ namespace Ecommerce.Application.Common.Interfaces
     /// Abstraction cho Product Search Engine (Elasticsearch).
     /// Tuân thủ DIP — Application Layer định nghĩa, Infrastructure Layer implement.
     /// </summary>
-    public interface IProductSearchService
+    public interface IProductSearchService : IElasticsearchIndexService
     {
         /// <summary>
         /// Full-text search với fuzzy matching, lọc đa tiêu chí, phân trang.
@@ -32,19 +32,9 @@ namespace Ecommerce.Application.Common.Interfaces
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Index (thêm) một product document vào Elasticsearch.
-        /// </summary>
-        Task IndexProductAsync(ProductSearchResultDto product, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Cập nhật một product document trên Elasticsearch.
         /// </summary>
         Task UpdateProductAsync(ProductSearchResultDto product, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Xóa một product document khỏi Elasticsearch.
-        /// </summary>
-        Task DeleteProductAsync(Guid productId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Bulk index hàng loạt products — dùng cho initial sync.

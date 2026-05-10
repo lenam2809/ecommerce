@@ -1,6 +1,7 @@
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Orders.Commands.CreateOrder;
 using Ecommerce.Application.Features.Orders.Commands.DeleteOrder;
+using Ecommerce.Application.Features.Orders.Commands.SendOrderEmail;
 using Ecommerce.Application.Features.Orders.Commands.UpdateOrder;
 using Ecommerce.Application.Features.Orders.Commands.UpdateOrderStatus;
 using Ecommerce.Application.Features.Orders.Queries.GetOrderById;
@@ -120,6 +121,14 @@ namespace Ecommerce.WebAPI.Controllers
         {
             command.Id = id;
             var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        [HttpPost("{id}/send-email")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> SendOrderEmail(Guid id)
+        {
+            var result = await _mediator.Send(new SendOrderEmailCommand(id));
             return result.ToActionResult();
         }
 

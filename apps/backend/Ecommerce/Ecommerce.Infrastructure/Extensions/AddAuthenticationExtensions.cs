@@ -1,10 +1,13 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 namespace Ecommerce.Infrastructure.Extensions
@@ -13,22 +16,19 @@ namespace Ecommerce.Infrastructure.Extensions
     {
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            // Đăng ký JwtConfig options
             services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
-            
-            // Đăng ký AuthConfig options
             services.Configure<AuthConfig>(configuration.GetSection("AuthConfig"));
-            
-            // Đăng ký CookieSettings options
             services.Configure<CookieSettings>(configuration.GetSection("CookieSettings"));
 
             var secretKey = configuration["Jwt:SecretKey"];
             if (string.IsNullOrWhiteSpace(secretKey))
+            {
                 throw new InvalidOperationException("Missing Jwt:SecretKey in configuration.");
+            }
 
             var key = Encoding.ASCII.GetBytes(secretKey);
 
-            services.AddAuthentication(options =>
+            var authenticationBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -52,11 +52,9 @@ namespace Ecommerce.Infrastructure.Extensions
                 {
                     OnMessageReceived = context =>
                     {
-                        // Get AuthConfig from DI
                         var authConfig = context.HttpContext.RequestServices
                             .GetService<IOptions<AuthConfig>>()?.Value ?? new AuthConfig();
 
-                        // Priority 1: Check for token in httpOnly cookie (new way)
                         if (authConfig.UseCookieAuth)
                         {
                             var cookieToken = context.Request.Cookies["access_token"];
@@ -67,23 +65,21 @@ namespace Ecommerce.Infrastructure.Extensions
                             }
                         }
 
-                        // Priority 2: Check Authorization header (backward compatibility / mobile apps)
                         if (authConfig.AllowHeaderFallback)
                         {
                             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
                             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
-                                context.Token = authHeader.Substring(7);
+                                context.Token = authHeader[7..];
                                 return Task.CompletedTask;
                             }
                         }
 
-                        // Priority 3: Check for token in query string (SignalR)
                         var queryToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
 
-                        if (!string.IsNullOrEmpty(queryToken) && 
-                            (path.StartsWithSegments("/notification-hub") || 
+                        if (!string.IsNullOrEmpty(queryToken) &&
+                            (path.StartsWithSegments("/notification-hub") ||
                              path.StartsWithSegments("/api/notification-hub") ||
                              path.StartsWithSegments("/api/reviewHub")))
                         {
@@ -94,15 +90,12 @@ namespace Ecommerce.Infrastructure.Extensions
                     },
                     OnAuthenticationFailed = context =>
                     {
-                        // Allow anonymous endpoints to proceed even if authentication fails
-                        // This is important for guest cart functionality
                         var endpoint = context.HttpContext.GetEndpoint();
                         var allowAnonymous = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null;
 
                         if (allowAnonymous)
                         {
                             context.NoResult();
-                            return Task.CompletedTask;
                         }
 
                         return Task.CompletedTask;
@@ -110,8 +103,53 @@ namespace Ecommerce.Infrastructure.Extensions
                 };
             });
 
+            var googleClientId = configuration["Authentication:Google:ClientId"];
+            var googleClientSecret = configuration["Authentication:Google:ClientSecret"];
+            if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+            {
+                authenticationBuilder.AddGoogle("Google", options =>
+                {
+                    options.ClientId = googleClientId;
+                    options.ClientSecret = googleClientSecret;
+                    options.SignInScheme = IdentityConstants.ExternalScheme;
+                    options.CallbackPath = "/api/auth/google-oauth-callback";
+                    options.SaveTokens = false;
+                    options.Scope.Add("profile");
+                    options.Events.OnCreatingTicket = context =>
+                    {
+                        if (context.User.TryGetProperty("picture", out var picture) &&
+                            !string.IsNullOrWhiteSpace(picture.GetString()) &&
+                            context.Identity != null)
+                        {
+                            context.Identity.AddClaim(new Claim("picture", picture.GetString()!));
+                        }
+
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToAuthorizationEndpoint = context =>
+                    {
+                        var callbackUrl = configuration["Authentication:Google:CallbackUrl"];
+                        if (string.IsNullOrWhiteSpace(callbackUrl))
+                        {
+                            var frontendUrl = configuration["AppUrl:Frontend"] ?? "http://localhost:3000";
+                            callbackUrl = $"{frontendUrl.TrimEnd('/')}/api/auth/google-oauth-callback";
+                        }
+
+                        var authorizationUri = new UriBuilder(context.RedirectUri);
+                        var query = QueryHelpers.ParseQuery(authorizationUri.Query)
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString(), StringComparer.OrdinalIgnoreCase);
+                        query["redirect_uri"] = callbackUrl;
+                        authorizationUri.Query = QueryString
+                            .Create(query.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, kvp.Value)))
+                            .ToString();
+
+                        context.Response.Redirect(authorizationUri.ToString());
+                        return Task.CompletedTask;
+                    };
+                });
+            }
+
             return services;
         }
     }
-
 }

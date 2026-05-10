@@ -26,6 +26,9 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<IUserActivityService, UserActivityService>();
             services.AddScoped<IAccountLockService, AccountLockService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddSingleton<IEmailQueue, EmailQueue>();
+            services.AddSingleton<IEmailTemplateRenderer, FileEmailTemplateRenderer>();
+            services.AddHostedService<EmailBackgroundService>();
             services.AddScoped<IPushNotificationService, PushNotificationService>();
             services.AddScoped<CustomerLevelService>();
             services.AddScoped<PromoCodeService>();

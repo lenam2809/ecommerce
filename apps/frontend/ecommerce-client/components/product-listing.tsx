@@ -15,9 +15,10 @@ import ProductListItem from "@/components/product-list-item"
 import Pagination from "@/components/pagination"
 import ProductCardSkeleton from "@/components/product-card-skeleton"
 import ProductListItemSkeleton from "@/components/product-list-item-skeleton"
-import { useProducts } from "@/hooks/use-products"
+import { useProducts, useSearchProducts } from "@/hooks/use-products"
 import { useCategoryBySlug } from "@/hooks/use-categories"
 import { useBrandBySlug } from "@/hooks/use-brands"
+import useDebounce from "@/hooks/use-debounce"
 import { type ProductFilters as ProductFiltersType } from "@/types/product"
 import { ProductFilters } from "./product-filters"
 import { type Product } from "@/types/product"
@@ -99,6 +100,8 @@ function ProductListingContent({
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
     const [showMobileFilters, setShowMobileFilters] = useState(false)
     const [sortBy, setSortBy] = useState(() => searchParams.get("sortBy") || "name")
+    const searchTerm = searchParams.get("q") || searchParams.get("searchTerm") || ""
+    const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
     const [currentPage, setCurrentPage] = useState(() => {
         const page = searchParams.get("page")
@@ -118,6 +121,9 @@ function ProductListingContent({
             ...(categorySlug ? { categoryIds: category?.id } : {}),
             ...(brandSlug ? { brandIds: brand?.id } : {}),
         }
+
+        const q = searchParams.get("q") || searchParams.get("searchTerm")
+        if (q) updatedFilters.searchTerm = q
 
         const sort = searchParams.get("sortBy")
         // if (sort) setSortBy(sort)
@@ -142,17 +148,21 @@ function ProductListingContent({
             ...prev,
             ...updatedFilters,
         }))
-    }, [searchParams, categorySlug, brandSlug])
+    }, [searchParams, categorySlug, brandSlug, category?.id, brand?.id])
 
     // Chuẩn bị filters cho API call
     const apiFilters: ProductFiltersType = {
         ...filters,
+        searchTerm: debouncedSearchTerm,
         pageNumber: currentPage,
         pageSize: 12,
     }
 
-    // Fetch products với filters
-    const { data, isLoading, isError } = useProducts(apiFilters)
+    const useElasticSearch = debouncedSearchTerm.trim().length > 0
+    const catalogQuery = useProducts(apiFilters, !useElasticSearch)
+    const searchQuery = useSearchProducts(apiFilters, useElasticSearch)
+    const activeQuery = useElasticSearch ? searchQuery : catalogQuery
+    const { data, isLoading, isError } = activeQuery
     const products = data?.items || []
     const totalPages = data?.totalPages || 1
 
@@ -341,7 +351,7 @@ function ProductListingContent({
                         ) : (
                             <span>Hiển thị <span className="font-medium text-foreground">{data?.totalCount || products.length}</span> kết quả</span>
                         )}
-                        {(filters.minPrice || filters.maxPrice || filters.categoryIds || filters.brandIds || filters.rating) && (
+                        {(filters.searchTerm || filters.minPrice || filters.maxPrice || filters.categoryIds || filters.brandIds || filters.rating) && (
                             <>
                                 <span className="w-1.5 h-1.5 rounded-full bg-border"></span>
                                 <button onClick={handleResetFilters} className="text-primary font-medium hover:text-primary/80 hover:underline transition-all">

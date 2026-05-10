@@ -46,6 +46,9 @@
         public static Result<T> ValidationError(string error = "Xác thực dữ liệu thất bại") =>
             Failure(ResultError.ValidationError, error);
 
+        public static Result<T> ServiceUnavailable(string error = "Dịch vụ tạm thời không khả dụng") =>
+            Failure(ResultError.ServiceUnavailable, error);
+
         // Phương thức hỗ trợ kiểm tra và chuyển đổi
         public bool IsFailure => !IsSuccess;
         public bool IsNotFound => ErrorType == ResultError.NotFound;
@@ -62,7 +65,8 @@
         Invalid,
         Conflict,
         Forbidden,
-        ValidationError
+        ValidationError,
+        ServiceUnavailable
     }
 }
 

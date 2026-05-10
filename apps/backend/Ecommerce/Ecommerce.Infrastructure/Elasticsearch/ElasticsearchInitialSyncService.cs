@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Interfaces;
@@ -5,27 +6,51 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Ecommerce.Infrastructure.Elasticsearch
 {
     /// <summary>
-    /// HostedService chạy khi ứng dụng khởi động.
-    /// Nếu index Elasticsearch rỗng → bulk index toàn bộ Product từ SQL Server.
+    /// Background service chạy initial reindex khi khởi động và full reindex hằng ngày.
     /// </summary>
-    public class ElasticsearchInitialSyncService : IHostedService
+    public class ElasticsearchInitialSyncService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ElasticsearchInitialSyncService> _logger;
+        private readonly ElasticsearchOptions _options;
 
         public ElasticsearchInitialSyncService(
             IServiceScopeFactory scopeFactory,
-            ILogger<ElasticsearchInitialSyncService> logger)
+            ILogger<ElasticsearchInitialSyncService> logger,
+            IOptions<ElasticsearchOptions> options)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _options = options.Value;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            if (_options.RunStartupReindex)
+            {
+                await TryReindexAsync(skipWhenIndexHasData: true, stoppingToken);
+            }
+
+            if (!_options.RunDailyReindex)
+            {
+                return;
+            }
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var delay = GetDelayUntilNextRun();
+                _logger.LogInformation("Elasticsearch daily sync scheduled in {Delay}", delay);
+                await Task.Delay(delay, stoppingToken);
+                await TryReindexAsync(skipWhenIndexHasData: false, stoppingToken);
+            }
+        }
+
+        private async Task TryReindexAsync(bool skipWhenIndexHasData, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Elasticsearch Initial Sync: Bắt đầu kiểm tra và đồng bộ dữ liệu...");
 
@@ -49,7 +74,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                     pageSize: 1,
                     cancellationToken: cancellationToken);
 
-                if (existingCount > 0)
+                if (skipWhenIndexHasData && existingCount > 0)
                 {
                     _logger.LogInformation(
                         "Elasticsearch đã có {Count} documents. Bỏ qua initial sync.", existingCount);
@@ -63,6 +88,10 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                     .GetQueryable()
                     .Include(p => p.Category)
                     .Include(p => p.Brand)
+                    .Include(p => p.Specifications)
+                    .Include(p => p.Attributes)
+                        .ThenInclude(a => a.Values)
+                    .Where(p => p.IsActive)
                     .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
@@ -83,6 +112,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                     Price = p.Price,
                     SalePrice = p.SalePrice,
                     Image = p.Image,
+                    MainImage = p.Image,
                     Description = p.Description,
                     StockQuantity = p.StockQuantity,
                     Rating = p.Rating,
@@ -94,7 +124,14 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                     BrandId = p.BrandId,
                     BrandName = p.Brand?.Name ?? string.Empty,
                     BrandSlug = p.Brand?.Slug ?? string.Empty,
-                    CreatedAt = p.CreatedAt
+                    CreatedAt = p.CreatedAt,
+                    Tags = p.Specifications
+                        .SelectMany(s => new[] { s.Name, s.Value })
+                        .Concat(p.Attributes.Select(a => a.Name))
+                        .Concat(p.Attributes.SelectMany(a => a.Values.Select(v => v.Value)))
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList()
                 }).ToList();
 
                 // Bulk index theo batch 500 records
@@ -119,10 +156,18 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        private TimeSpan GetDelayUntilNextRun()
         {
-            _logger.LogInformation("Elasticsearch Initial Sync Service đã dừng.");
-            return Task.CompletedTask;
+            var now = DateTimeOffset.UtcNow;
+            var hour = Math.Clamp(_options.DailyReindexHourUtc, 0, 23);
+            var next = new DateTimeOffset(now.Year, now.Month, now.Day, hour, 0, 0, TimeSpan.Zero);
+
+            if (next <= now)
+            {
+                next = next.AddDays(1);
+            }
+
+            return next - now;
         }
     }
 }

@@ -18,6 +18,7 @@ namespace Ecommerce.Infrastructure.Logging
             services.AddScoped<IEnhancedLogger, EnhancedLogger>();
 
             services.AddHostedService<LoggingBackgroundWorker>();
+            services.AddHostedService<LogRetentionCleanupService>();
 
             return services;
         }

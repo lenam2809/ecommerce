@@ -4,6 +4,7 @@ using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
@@ -310,10 +311,14 @@ namespace Ecommerce.Application.Common.Logging
             var userId = _currentUserService.UserId?.ToString() ?? "anonymous";
             var userName = GetUserName();
             var correlationId = GetCorrelationId();
+            var activity = Activity.Current;
             var clientIp = GetClientIpAddress();
             var userAgent = GetUserAgent();
 
             enrichedProperties.TryAdd("CorrelationId", correlationId);
+            enrichedProperties.TryAdd("TraceId", activity?.TraceId.ToString());
+            enrichedProperties.TryAdd("SpanId", activity?.SpanId.ToString());
+            enrichedProperties.TryAdd("TraceFlags", activity?.ActivityTraceFlags.ToString());
             enrichedProperties.TryAdd("RequestId", _httpContextAccessor.HttpContext?.TraceIdentifier);
             enrichedProperties.TryAdd("UserId", userId);
             enrichedProperties.TryAdd("UserName", userName);

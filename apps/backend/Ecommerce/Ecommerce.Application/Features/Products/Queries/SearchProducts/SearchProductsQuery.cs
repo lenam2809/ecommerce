@@ -13,6 +13,9 @@ namespace Ecommerce.Application.Features.Products.Queries.SearchProducts
         /// <summary>Từ khóa tìm kiếm (search Name + Description với fuzzy)</summary>
         public string? Keyword { get; set; }
 
+        /// <summary>Alias public query parameter: q</summary>
+        public string? Query { get; set; }
+
         /// <summary>Lọc theo danh mục</summary>
         public Guid? CategoryId { get; set; }
 
@@ -27,6 +30,9 @@ namespace Ecommerce.Application.Features.Products.Queries.SearchProducts
 
         /// <summary>Trang hiện tại (mặc định 1)</summary>
         public int PageNumber { get; set; } = 1;
+
+        /// <summary>Alias public query parameter: page</summary>
+        public int? Page { get; set; }
 
         /// <summary>Số item mỗi trang (mặc định 12)</summary>
         public int PageSize { get; set; } = 12;

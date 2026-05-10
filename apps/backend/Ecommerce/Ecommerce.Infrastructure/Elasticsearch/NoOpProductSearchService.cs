@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Features.Products.Dto;
 
 namespace Ecommerce.Infrastructure.Elasticsearch
@@ -21,7 +22,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             bool isDescending = false,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult((new List<ProductSearchResultDto>(), 0L));
+            throw new SearchServiceUnavailableException("Elasticsearch search is disabled.");
         }
 
         public Task<List<ProductSuggestionDto>> GetSuggestionsAsync(

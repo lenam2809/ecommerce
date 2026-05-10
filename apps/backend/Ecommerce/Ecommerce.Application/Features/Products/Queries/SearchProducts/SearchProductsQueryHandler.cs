@@ -1,6 +1,7 @@
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
+using Ecommerce.Application.Common.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -40,13 +41,16 @@ namespace Ecommerce.Application.Features.Products.Queries.SearchProducts
                     request.Keyword, request.CategoryId, request.BrandId,
                     request.MinPrice, request.MaxPrice, request.PageNumber, request.PageSize);
 
+                var keyword = string.IsNullOrWhiteSpace(request.Keyword) ? request.Query : request.Keyword;
+                var pageNumber = request.Page ?? request.PageNumber;
+
                 var (items, totalCount) = await _searchService.SearchProductsAsync(
-                    keyword: request.Keyword,
+                    keyword: keyword,
                     categoryId: request.CategoryId,
                     brandId: request.BrandId,
                     minPrice: request.MinPrice,
                     maxPrice: request.MaxPrice,
-                    pageNumber: request.PageNumber,
+                    pageNumber: pageNumber,
                     pageSize: request.PageSize,
                     sortBy: request.SortBy,
                     isDescending: request.IsDescending,
@@ -55,10 +59,16 @@ namespace Ecommerce.Application.Features.Products.Queries.SearchProducts
                 var result = new PaginatedList<ProductSearchResultDto>(
                     items,
                     (int)totalCount,
-                    request.PageNumber,
+                    pageNumber,
                     request.PageSize);
 
                 return Result<PaginatedList<ProductSearchResultDto>>.Success(result);
+            }
+            catch (SearchServiceUnavailableException ex)
+            {
+                _logger.LogWarning(ex, "Elasticsearch unavailable while searching products.");
+                return Result<PaginatedList<ProductSearchResultDto>>.ServiceUnavailable(
+                    "Search is temporarily unavailable. Please try again shortly.");
             }
             catch (Exception ex)
             {

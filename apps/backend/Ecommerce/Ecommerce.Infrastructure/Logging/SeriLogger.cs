@@ -99,6 +99,8 @@ namespace Ecommerce.Infrastructure.Logging
             var minimumAcceptedLevel = defaultLevel > LogEventLevel.Information
                 ? LogEventLevel.Information
                 : defaultLevel;
+            var informationRetentionDays = ParsePositiveInt(configuration["Serilog:Retention:InformationDays"], 14);
+            var errorRetentionDays = ParsePositiveInt(configuration["Serilog:Retention:ErrorDays"], 90);
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(minimumAcceptedLevel)
@@ -114,16 +116,20 @@ namespace Ecommerce.Infrastructure.Logging
                         defaultLevel,
                         importantInformationEventNames))
                 .WriteTo.Console(jsonFormatter)
-                .WriteTo.File(
-                    formatter: jsonFormatter,
-                    path: "logs/log-.json",
-                    rollingInterval: RollingInterval.Day,
-                    shared: true,
-                    restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.Logger(logs => logs
+                    .Filter.ByIncludingOnly(logEvent => logEvent.Level < LogEventLevel.Error)
+                    .WriteTo.File(
+                        formatter: jsonFormatter,
+                        path: "logs/log-.json",
+                        rollingInterval: RollingInterval.Day,
+                        retainedFileCountLimit: informationRetentionDays,
+                        shared: true,
+                        restrictedToMinimumLevel: LogEventLevel.Information))
                 .WriteTo.File(
                     formatter: jsonFormatter,
                     path: "logs/error-.json",
                     rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: errorRetentionDays,
                     shared: true,
                     restrictedToMinimumLevel: LogEventLevel.Error)
                 .CreateLogger();
@@ -142,6 +148,13 @@ namespace Ecommerce.Infrastructure.Logging
         private static LogEventLevel ParseLogLevel(string? configuredValue, LogEventLevel fallback)
         {
             return Enum.TryParse<LogEventLevel>(configuredValue, ignoreCase: true, out var parsed)
+                ? parsed
+                : fallback;
+        }
+
+        private static int ParsePositiveInt(string? configuredValue, int fallback)
+        {
+            return int.TryParse(configuredValue, out var parsed) && parsed > 0
                 ? parsed
                 : fallback;
         }

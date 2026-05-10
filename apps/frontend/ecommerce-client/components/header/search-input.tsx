@@ -4,13 +4,14 @@ import { Search, X, Clock, RotateCcw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useSearchSuggestions } from "@/hooks/use-search-suggestions"
-import { SearchSuggestion } from "@/types/search-suggestion"
 import SearchSuggestions from "../search-suggestions"
+import { useRouter } from "next/navigation"
 
 const SEARCH_HISTORY_KEY = "ecommerce_search_history"
 const MAX_HISTORY_ITEMS = 10
 
 export function SearchInput() {
+    const router = useRouter()
     const [searchQuery, setSearchQuery] = useState("")
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [debouncedQuery, setDebouncedQuery] = useState("")
@@ -93,6 +94,15 @@ export function SearchInput() {
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [showSuggestions, selectedIndex, searchHistory, apiSuggestions])
 
+    const submitSearch = (text: string) => {
+        const query = text.trim()
+        if (!query) return
+
+        const params = new URLSearchParams()
+        params.set("q", query)
+        router.push(`/products?${params.toString()}`)
+    }
+
     const handleSelectSuggestion = (text: string) => {
         // Add to history
         const updated = [text, ...searchHistory.filter((h) => h !== text)].slice(0, MAX_HISTORY_ITEMS)
@@ -102,7 +112,7 @@ export function SearchInput() {
         setSearchQuery(text)
         setShowSuggestions(false)
         setDebouncedQuery(text)
-        searchInputRef.current?.focus()
+        submitSearch(text)
     }
 
     const handleClearSearch = () => {
@@ -137,6 +147,12 @@ export function SearchInput() {
                 onChange={(e) => {
                     setSearchQuery(e.target.value)
                     setShowSuggestions(true)
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" && selectedIndex < 0) {
+                        e.preventDefault()
+                        handleSelectSuggestion(searchQuery)
+                    }
                 }}
                 onFocus={() => {
                     if (!searchQuery && searchHistory.length > 0) {
@@ -240,8 +256,8 @@ export function SearchInput() {
                                             }`}
                                         >
                                             <div className="font-medium text-foreground">{suggestion.text}</div>
-                                            {suggestion.category && (
-                                                <div className="text-xs text-muted-foreground">{suggestion.category}</div>
+                                            {suggestion.categoryName && (
+                                                <div className="text-xs text-muted-foreground">{suggestion.categoryName}</div>
                                             )}
                                         </button>
                                     ))}

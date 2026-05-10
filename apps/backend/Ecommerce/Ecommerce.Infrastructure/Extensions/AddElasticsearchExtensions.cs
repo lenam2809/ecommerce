@@ -1,5 +1,6 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Infrastructure.Elasticsearch;
 using Ecommerce.Infrastructure.Elasticsearch.Documents;
@@ -17,15 +18,22 @@ namespace Ecommerce.Infrastructure.Extensions
         public static IServiceCollection AddElasticsearch(
             this IServiceCollection services, IConfiguration configuration)
         {
-            var useElasticsearch = configuration.GetValue<bool>("Elasticsearch:UseElasticsearch", true);
+            services.Configure<ElasticsearchOptions>(configuration.GetSection(ElasticsearchOptions.SectionName));
+
+            var options = configuration
+                .GetSection(ElasticsearchOptions.SectionName)
+                .Get<ElasticsearchOptions>() ?? new ElasticsearchOptions();
+
+            var useElasticsearch = options.UseElasticsearch;
             if (!useElasticsearch)
             {
                 services.AddScoped<IProductSearchService, NoOpProductSearchService>();
+                services.AddScoped<IElasticsearchIndexService>(sp => sp.GetRequiredService<IProductSearchService>());
                 return services;
             }
 
-            var uri = configuration["Elasticsearch:Uri"] ?? "http://localhost:9200";
-            var indexName = configuration["Elasticsearch:IndexName"] ?? "shopviet-products";
+            var uri = options.Uri;
+            var indexName = options.ResolvedIndexName;
 
             // Cấu hình Elasticsearch Client
             var settings = new ElasticsearchClientSettings(new Uri(uri))
@@ -37,9 +45,14 @@ namespace Ecommerce.Infrastructure.Extensions
                 .EnableDebugMode() // Bật debug mode cho dev (nên tắt ở production)
                 .RequestTimeout(TimeSpan.FromSeconds(30));
 
+            if (!string.IsNullOrWhiteSpace(options.Username) &&
+                !string.IsNullOrWhiteSpace(options.Password))
+            {
+                settings.Authentication(new BasicAuthentication(options.Username, options.Password));
+            }
+
             // Tắt SSL verification nếu cần (dev environment)
-            var enableSsl = configuration.GetValue<bool>("Elasticsearch:EnableSsl", false);
-            if (!enableSsl)
+            if (!options.EnableSsl)
             {
                 settings.ServerCertificateValidationCallback(
                     (sender, certificate, chain, sslPolicyErrors) => true);
@@ -52,6 +65,8 @@ namespace Ecommerce.Infrastructure.Extensions
 
             // Register IProductSearchService
             services.AddScoped<IProductSearchService, ElasticsearchProductSearchService>();
+            services.AddScoped<IElasticsearchIndexService>(sp => sp.GetRequiredService<IProductSearchService>());
+            services.AddScoped<IElasticsearchSyncService, ElasticsearchSyncService>();
 
             // Register HostedService cho initial sync
             services.AddHostedService<ElasticsearchInitialSyncService>();
@@ -105,18 +120,28 @@ namespace Ecommerce.Infrastructure.Extensions
                             .Text(t => t.Description, t => t
                                 .Analyzer("vietnamese_analyzer")
                             )
+                            .Text(t => t.Tags, t => t
+                                .Analyzer("vietnamese_analyzer")
+                            )
 
                             // --- Keyword fields (exact match, filter, aggregation) ---
                             .Keyword(t => t.Code)
                             .Keyword(t => t.Sku)
                             .Keyword(t => t.Slug)
                             .Keyword(t => t.CategoryId)
-                            .Keyword(t => t.CategoryName)
                             .Keyword(t => t.CategorySlug)
                             .Keyword(t => t.BrandId)
-                            .Keyword(t => t.BrandName)
                             .Keyword(t => t.BrandSlug)
                             .Keyword(t => t.Image)
+                            .Keyword(t => t.MainImage)
+                            .Text(t => t.CategoryName, t => t
+                                .Analyzer("vietnamese_analyzer")
+                                .Fields(f => f.Keyword("keyword"))
+                            )
+                            .Text(t => t.BrandName, t => t
+                                .Analyzer("vietnamese_analyzer")
+                                .Fields(f => f.Keyword("keyword"))
+                            )
 
                             // --- Numeric fields ---
                             .DoubleNumber(t => t.Price)

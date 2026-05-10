@@ -1,65 +1,53 @@
-﻿namespace Ecommerce.Application.Common.Interfaces
+namespace Ecommerce.Application.Common.Interfaces
 {
     public interface IEmailService
     {
+        Task SendEmailAsync(EmailMessage message, CancellationToken cancellationToken = default);
+
         /// <summary>
-        /// Gửi email đến một địa chỉ email cụ thể
+        /// Gui email den mot dia chi email cu the.
         /// </summary>
-        /// <param name="to">Địa chỉ email người nhận</param>
-        /// <param name="subject">Tiêu đề email</param>
-        /// <param name="message">Nội dung email dạng text</param>
-        /// <param name="htmlContent">Nội dung email dạng HTML (nếu có)</param>
-        /// <param name="attachments">Danh sách các tệp đính kèm (nếu có)</param>
-        /// <returns>Task</returns>
         Task SendEmailAsync(string to, string subject, string message, string? htmlContent = null, List<EmailAttachment>? attachments = null);
 
         /// <summary>
-        /// Gửi email đến nhiều địa chỉ email cùng lúc
+        /// Gui email den nhieu dia chi email cung luc.
         /// </summary>
-        /// <param name="recipients">Danh sách địa chỉ email người nhận</param>
-        /// <param name="subject">Tiêu đề email</param>
-        /// <param name="message">Nội dung email dạng text</param>
-        /// <param name="htmlContent">Nội dung email dạng HTML (nếu có)</param>
-        /// <param name="attachments">Danh sách các tệp đính kèm (nếu có)</param>
-        /// <returns>Task</returns>
         Task SendBulkEmailAsync(List<string> recipients, string subject, string message, string? htmlContent = null, List<EmailAttachment>? attachments = null);
 
         /// <summary>
-        /// Gửi email với tệp đính kèm
+        /// Gui email voi tep dinh kem.
         /// </summary>
-        /// <param name="to">Địa chỉ email người nhận</param>
-        /// <param name="subject">Tiêu đề email</param>
-        /// <param name="message">Nội dung email dạng text</param>
-        /// <param name="attachmentFilePath">Đường dẫn đến tệp đính kèm</param>
-        /// <param name="attachmentFileName">Tên tệp đính kèm</param>
-        /// <param name="htmlContent">Nội dung email dạng HTML (nếu có)</param>
-        /// <returns>Task</returns>
         Task SendEmailWithAttachmentAsync(string to, string subject, string message, string attachmentFilePath, string attachmentFileName, string? htmlContent = null);
-
 
         Task SendOrderConfirmationEmailAsync(string to, string orderCode, string customerName, decimal totalAmount);
         Task SendOrderStatusUpdateEmailAsync(string to, string orderCode, string customerName, string status);
     }
 
+    public interface IEmailQueue
+    {
+        ValueTask QueueEmailAsync(EmailMessage message, CancellationToken cancellationToken = default);
+        ValueTask<EmailMessage> DequeueAsync(CancellationToken cancellationToken);
+    }
+
+    public interface IEmailTemplateRenderer
+    {
+        Task<string> RenderAsync(string templateName, IReadOnlyDictionary<string, string> values, CancellationToken cancellationToken = default);
+    }
+
+    public sealed record EmailMessage(
+        string To,
+        string Subject,
+        string Body,
+        string? PlainTextBody = null,
+        IReadOnlyCollection<EmailAttachment>? Attachments = null);
+
     /// <summary>
-    /// Đối tượng chứa thông tin của tệp đính kèm
+    /// Doi tuong chua thong tin cua tep dinh kem.
     /// </summary>
     public class EmailAttachment
     {
-        /// <summary>
-        /// Dữ liệu của tệp đính kèm
-        /// </summary>
         public required byte[] Content { get; set; }
-
-        /// <summary>
-        /// Tên tệp đính kèm
-        /// </summary>
         public required string FileName { get; set; }
-
-        /// <summary>
-        /// Loại nội dung (MIME type)
-        /// </summary>
         public required string ContentType { get; set; }
     }
 }
-

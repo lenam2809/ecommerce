@@ -18,6 +18,7 @@ namespace Ecommerce.WebAPI.Extensions
                 ResultError.Conflict => ConflictResult(result.Error),
                 ResultError.Forbidden => ForbiddenResult(result.Error),
                 ResultError.ValidationError => UnprocessableEntityResult(result.Error), // 422 Unprocessable Entity
+                ResultError.ServiceUnavailable => ServiceUnavailableResult(result.Error),
                 _ => UnknownErrorResult()
             };
         }
@@ -50,6 +51,12 @@ namespace Ecommerce.WebAPI.Extensions
             new ObjectResult(new { Success = false, Error = error ?? "Validation failed" })
             {
                 StatusCode = StatusCodes.Status422UnprocessableEntity
+            };
+
+        private static ObjectResult ServiceUnavailableResult(string? error) =>
+            new ObjectResult(new { Success = false, Error = error ?? "Service unavailable" })
+            {
+                StatusCode = StatusCodes.Status503ServiceUnavailable
             };
 
         private static ObjectResult UnknownErrorResult() =>

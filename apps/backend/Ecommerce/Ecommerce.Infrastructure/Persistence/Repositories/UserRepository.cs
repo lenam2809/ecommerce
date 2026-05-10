@@ -39,6 +39,11 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             return await _userManager.FindByEmailAsync(email);
         }
 
+        public async Task<ApplicationUser?> GetByLoginAsync(string loginProvider, string providerKey)
+        {
+            return await _userManager.FindByLoginAsync(loginProvider, providerKey);
+        }
+
         public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
         {
             return await _userManager.Users.ToListAsync();
@@ -52,6 +57,11 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 return user;
             }
             return null;
+        }
+
+        public async Task<IdentityResult> AddLoginAsync(ApplicationUser user, UserLoginInfo loginInfo)
+        {
+            return await _userManager.AddLoginAsync(user, loginInfo);
         }
 
         public async Task UpdateAsync(ApplicationUser user)

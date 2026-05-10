@@ -1,8 +1,11 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Logging;
 using Ecommerce.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Threading.Channels;
 
 namespace Ecommerce.Infrastructure.Logging
@@ -25,12 +28,26 @@ namespace Ecommerce.Infrastructure.Logging
             long executionTimeMs,
             Guid? userId = null)
         {
+            var activity = Activity.Current;
+            var metricTags = new TagList
+            {
+                { "class_name", className },
+                { "method_name", methodName }
+            };
+
+            EcommerceDiagnostics.MethodExecutionDuration.Record(executionTimeMs, metricTags);
+
             // Log warning for long-running methods
             if (executionTimeMs > 1000)
             {
+                EcommerceDiagnostics.SlowMethods.Add(1, metricTags);
                 _logger.LogWarning(
-                    "Long-running method: {ClassName}.{MethodName} took {ExecutionTime}ms",
-                    className, methodName, executionTimeMs);
+                    "Long-running method: {ClassName}.{MethodName} took {ExecutionTime}ms TraceId={TraceId} SpanId={SpanId}",
+                    className,
+                    methodName,
+                    executionTimeMs,
+                    activity?.TraceId.ToString(),
+                    activity?.SpanId.ToString());
             }
 
             var performanceLog = new PerformanceLog

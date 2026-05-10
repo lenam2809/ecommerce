@@ -4,14 +4,26 @@ import { useQuery } from "@tanstack/react-query"
 import productService from "@/services/product-service"
 import { ProductFilters } from "@/types/product";
 
-export function useProducts(filters: ProductFilters = {}) {
+export function useProducts(filters: ProductFilters = {}, enabled = true) {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: () => productService.getProducts(filters),
+    enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
     select: (data) => {
       return data.data
     },
+    throwOnError: true,
+  })
+}
+
+export function useSearchProducts(filters: ProductFilters = {}, enabled = true) {
+  return useQuery({
+    queryKey: ["products", "search", filters],
+    queryFn: () => productService.searchProducts(filters),
+    enabled,
+    staleTime: 1000 * 30,
+    select: (data) => data.data,
     throwOnError: true,
   })
 }

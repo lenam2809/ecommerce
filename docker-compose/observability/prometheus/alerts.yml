@@ -1,0 +1,30 @@
+groups:
+  - name: ecommerce-api
+    rules:
+      - alert: EcommerceHighErrorRate
+        expr: |
+          sum(rate(ecommerce_http_request_errors_total[5m]))
+          /
+          clamp_min(sum(rate(ecommerce_http_requests_total[5m])), 1)
+          > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          service: ecommerce-api
+        annotations:
+          summary: "Ecommerce API error rate is above 1%"
+          description: "5xx responses are more than 1% of total API traffic over the last 5 minutes."
+
+      - alert: EcommerceHighAverageLatency
+        expr: |
+          sum(rate(ecommerce_http_request_duration_ms_sum[5m]))
+          /
+          clamp_min(sum(rate(ecommerce_http_request_duration_ms_count[5m])), 1)
+          > 2000
+        for: 5m
+        labels:
+          severity: warning
+          service: ecommerce-api
+        annotations:
+          summary: "Ecommerce API average response time is above 2s"
+          description: "Average API response time has stayed above 2 seconds for 5 minutes."

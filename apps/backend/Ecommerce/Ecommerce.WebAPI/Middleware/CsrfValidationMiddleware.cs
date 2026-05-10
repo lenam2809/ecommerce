@@ -52,6 +52,7 @@ namespace Ecommerce.WebAPI.Middleware
             if (path.Contains("/auth/register") ||
                 path.Contains("/auth/forgot-password") ||
                 path.Contains("/auth/reset-password") ||
+                path.Contains("/auth/external-login") ||
                 path.Contains("/auth/login"))
             {
                 // Public endpoints - không có access_token cookie nên skip là đúng

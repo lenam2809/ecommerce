@@ -16,6 +16,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch.Documents
         public decimal Price { get; set; }
         public decimal? SalePrice { get; set; }
         public string Image { get; set; } = string.Empty;
+        public string MainImage { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int StockQuantity { get; set; }
         public double Rating { get; set; }
@@ -37,6 +38,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch.Documents
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<string> Tags { get; set; } = [];
     }
 
     /// <summary>

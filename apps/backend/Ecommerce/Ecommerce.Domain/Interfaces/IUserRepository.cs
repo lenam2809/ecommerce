@@ -8,8 +8,10 @@ namespace Ecommerce.Domain.Interfaces
     {
         Task<ApplicationUser?> GetByIdAsync(Guid id);
         Task<ApplicationUser?> GetByEmailAsync(string email);
+        Task<ApplicationUser?> GetByLoginAsync(string loginProvider, string providerKey);
         Task<IEnumerable<ApplicationUser>> GetAllAsync();
         Task<ApplicationUser?> AddAsync(ApplicationUser user, string password);
+        Task<IdentityResult> AddLoginAsync(ApplicationUser user, UserLoginInfo loginInfo);
         Task UpdateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);
         Task<bool> CheckPasswordAsync(ApplicationUser user, string password);

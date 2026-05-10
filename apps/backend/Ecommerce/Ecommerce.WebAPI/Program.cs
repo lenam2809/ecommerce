@@ -1,4 +1,5 @@
-using Ecommerce.Application.Common.Configs;
+﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Observability;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
@@ -10,6 +11,9 @@ using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Globalization;
 using System.Threading.RateLimiting;
 
@@ -28,8 +32,61 @@ builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<RequestLoggingOptions>(
     builder.Configuration.GetSection(RequestLoggingOptions.SectionName));
+builder.Services.Configure<ObservabilityOptions>(
+    builder.Configuration.GetSection(ObservabilityOptions.SectionName));
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+var observabilityOptions = builder.Configuration
+    .GetSection(ObservabilityOptions.SectionName)
+    .Get<ObservabilityOptions>()
+    ?? new ObservabilityOptions();
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(resource => resource
+        .AddService(
+            serviceName: observabilityOptions.ServiceName,
+            serviceVersion: observabilityOptions.ServiceVersion,
+            serviceInstanceId: Environment.MachineName)
+        .AddAttributes(new Dictionary<string, object>
+        {
+            ["deployment.environment"] = builder.Environment.EnvironmentName
+        }))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation(options =>
+            {
+                options.Filter = context => !context.Request.Path.StartsWithSegments("/metrics");
+                options.EnrichWithHttpRequest = (activity, request) =>
+                {
+                    if (request.HttpContext.Items.TryGetValue(GlobalLogEnrichmentMiddleware.CorrelationIdItemKey, out var correlationId))
+                    {
+                        activity.SetTag("correlation.id", correlationId);
+                    }
+                };
+                options.EnrichWithHttpResponse = (activity, response) =>
+                {
+                    activity.SetTag("http.response.status_code", response.StatusCode);
+                };
+            })
+            .AddHttpClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddRedisInstrumentation()
+            .AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri(observabilityOptions.OtlpEndpoint);
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddMeter(EcommerceDiagnostics.MeterName)
+            .AddPrometheusExporter();
+    });
 
 // Configure VNPay Settings
 builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPay"));
@@ -165,6 +222,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -176,12 +235,9 @@ using (var scope = app.Services.CreateScope())
 
     // Always apply migrations
     await context.Database.MigrateAsync();
-    await ApplicationDbContextSeed.SeedAsync(services, app.Environment.IsDevelopment());
-    // // Only seed data in Development
-    // if (app.Environment.IsDevelopment())
-    // {
-    //     await ApplicationDbContextSeed.SeedAsync(services);
-    // }
+    //await ApplicationDbContextSeed.SeedAsync(services, app.Environment.IsDevelopment());
+    await ApplicationDbContextSeed.SeedAsync(services, true);
+
 }
 
 app.UseRateLimiter();

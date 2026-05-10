@@ -13,6 +13,7 @@ namespace Ecommerce.Application.Features.Products.Dto
         public decimal Price { get; set; }
         public decimal? SalePrice { get; set; }
         public string Image { get; set; } = string.Empty;
+        public string MainImage { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int StockQuantity { get; set; }
         public double Rating { get; set; }
@@ -28,5 +29,6 @@ namespace Ecommerce.Application.Features.Products.Dto
         public string BrandSlug { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; }
+        public List<string> Tags { get; set; } = [];
     }
 }

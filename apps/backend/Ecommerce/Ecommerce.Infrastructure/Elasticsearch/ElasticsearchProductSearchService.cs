@@ -1,6 +1,8 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Infrastructure.Elasticsearch.Documents;
@@ -25,7 +27,9 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             ILogger<ElasticsearchProductSearchService> logger)
         {
             _client = client;
-            _indexName = configuration["Elasticsearch:IndexName"] ?? "shopviet-products";
+            var options = configuration.GetSection(ElasticsearchOptions.SectionName).Get<ElasticsearchOptions>()
+                ?? new ElasticsearchOptions();
+            _indexName = options.ResolvedIndexName;
             _logger = logger;
         }
 
@@ -66,7 +70,16 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                                 b.Must(m => m
                                     .MultiMatch(mm => mm
                                         .Query(keyword)
-                                        .Fields(new[] { "name^3", "description" })
+                                        .Fields(new[]
+                                        {
+                                            "name^3",
+                                            "tags^2",
+                                            "brandName^2",
+                                            "categoryName^1.5",
+                                            "description",
+                                            "sku",
+                                            "code"
+                                        })
                                         .Fuzziness(new Fuzziness("AUTO"))
                                         .PrefixLength(1)
                                         .Type(TextQueryType.BestFields)
@@ -124,7 +137,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                 if (!response.IsValidResponse)
                 {
                     _logger.LogWarning("Elasticsearch search failed: {DebugInfo}", response.DebugInformation);
-                    return (new List<ProductSearchResultDto>(), 0);
+                    throw new SearchServiceUnavailableException("Elasticsearch search failed.");
                 }
 
                 var items = response.Documents.Select(MapToDto).ToList();
@@ -137,7 +150,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi search Elasticsearch với keyword: {Keyword}", keyword);
-                return (new List<ProductSearchResultDto>(), 0);
+                throw new SearchServiceUnavailableException("Elasticsearch is unavailable.", ex);
             }
         }
 
@@ -342,6 +355,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             Price = doc.Price,
             SalePrice = doc.SalePrice,
             Image = doc.Image,
+            MainImage = string.IsNullOrWhiteSpace(doc.MainImage) ? doc.Image : doc.MainImage,
             Description = doc.Description,
             StockQuantity = doc.StockQuantity,
             Rating = doc.Rating,
@@ -353,7 +367,8 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             BrandId = doc.BrandId,
             BrandName = doc.BrandName,
             BrandSlug = doc.BrandSlug,
-            CreatedAt = doc.CreatedAt
+            CreatedAt = doc.CreatedAt,
+            Tags = doc.Tags
         };
 
         /// <summary>
@@ -369,6 +384,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             Price = dto.Price,
             SalePrice = dto.SalePrice,
             Image = dto.Image,
+            MainImage = string.IsNullOrWhiteSpace(dto.MainImage) ? dto.Image : dto.MainImage,
             Description = dto.Description,
             StockQuantity = dto.StockQuantity,
             Rating = dto.Rating,
@@ -381,6 +397,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             BrandName = dto.BrandName,
             BrandSlug = dto.BrandSlug,
             CreatedAt = dto.CreatedAt,
+            Tags = dto.Tags,
             // Tạo suggest input từ Name (gợi ý khi gõ)
             Suggest = new CompletionField
             {
@@ -431,6 +448,18 @@ namespace Ecommerce.Infrastructure.Elasticsearch
             {
                 switch (sortBy?.ToLowerInvariant())
                 {
+                    case "relevance":
+                        if (!string.IsNullOrWhiteSpace(keyword))
+                        {
+                            sort.Score(new ScoreSort { Order = SortOrder.Desc });
+                        }
+                        break;
+                    case "price_asc":
+                        sort.Field(p => p.Price, f => f.Order(SortOrder.Asc));
+                        break;
+                    case "price_desc":
+                        sort.Field(p => p.Price, f => f.Order(SortOrder.Desc));
+                        break;
                     case "price":
                         sort.Field(p => p.Price, f => f.Order(order));
                         break;
@@ -438,6 +467,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                         sort.Field(p => p.Rating, f => f.Order(order));
                         break;
                     case "createdat":
+                    case "newest":
                         sort.Field(p => p.CreatedAt, f => f.Order(order));
                         break;
                     default:

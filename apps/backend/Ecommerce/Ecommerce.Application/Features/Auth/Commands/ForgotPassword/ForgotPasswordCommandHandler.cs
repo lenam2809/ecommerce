@@ -11,16 +11,16 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
     public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, Result<string>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IEmailService _emailService;
+        private readonly IEmailQueue _emailQueue;
         private readonly IConfiguration _configuration;
 
         public ForgotPasswordCommandHandler(
             IUnitOfWork unitOfWork,
-            IEmailService emailService,
+            IEmailQueue emailQueue,
             IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
-            _emailService = emailService;
+            _emailQueue = emailQueue;
             _configuration = configuration;
         }
 
@@ -65,12 +65,11 @@ namespace Ecommerce.Application.Features.Auth.Commands.ForgotPassword
                     var resetLink = $"{frontendUrl}/reset-password?requestId={resetToken.Id:D}";
 
                     var htmlBody = BuildResetEmailHtml(user.FirstName ?? "Bạn", resetLink);
-                    await _emailService.SendEmailAsync(
-                        to: request.Email,
-                        subject: "Đặt lại mật khẩu - ShopViet",
-                        message: $"Nhấn vào link sau để đặt lại mật khẩu: {resetLink}",
-                        htmlContent: htmlBody
-                    );
+                    await _emailQueue.QueueEmailAsync(new EmailMessage(
+                        request.Email,
+                        "Đặt lại mật khẩu - ShopViet",
+                        htmlBody,
+                        $"Nhấn vào link sau để đặt lại mật khẩu: {resetLink}"), cancellationToken);
                 }
 
                 // Luôn trả về Success bất kể email có tồn tại hay không

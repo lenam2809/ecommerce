@@ -12,6 +12,22 @@ class ProductService extends BaseService {
     return await this.get<ProductsResponse>('/products/paged', filters);
   }
 
+  async searchProducts(filters: ProductFilters = {}): Promise<Result<ProductsResponse>> {
+    const params = {
+      q: filters.q ?? filters.searchTerm ?? filters.keyword,
+      categoryId: filters.categoryId ?? firstId(filters.categoryIds),
+      brandId: filters.brandId ?? firstId(filters.brandIds),
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      sortBy: normalizeSearchSort(filters.sortBy),
+      isDescending: filters.isDescending,
+      pageNumber: filters.pageNumber,
+      pageSize: filters.pageSize,
+    };
+
+    return await this.get<ProductsResponse>('/search/products', params);
+  }
+
   async getProductById(id: string): Promise<Result<Product>> {
     return await this.getById<Product>(id);
   }
@@ -40,6 +56,23 @@ class ProductService extends BaseService {
     return await this.get<Product[]>('/products/search-suggestions');
   }
 
+}
+
+function firstId(value?: string) {
+  return value?.split(",").map((item) => item.trim()).find(Boolean);
+}
+
+function normalizeSearchSort(sortBy?: string) {
+  switch (sortBy?.toLowerCase()) {
+    case "createdat":
+      return "newest";
+    case "price-asc":
+      return "price_asc";
+    case "price-desc":
+      return "price_desc";
+    default:
+      return sortBy;
+  }
 }
 
 const productService = new ProductService();

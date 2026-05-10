@@ -35,7 +35,9 @@ namespace Ecommerce.Application.Features.Products.EventHandlers
                     notification.ProductId,
                     false,
                     p => p.Category,
-                    p => p.Brand);
+                    p => p.Brand,
+                    p => p.Specifications,
+                    p => p.Attributes);
 
                 if (product == null)
                 {
@@ -53,6 +55,7 @@ namespace Ecommerce.Application.Features.Products.EventHandlers
                     Price = product.Price,
                     SalePrice = product.SalePrice,
                     Image = product.Image,
+                    MainImage = product.Image,
                     Description = product.Description,
                     StockQuantity = product.StockQuantity,
                     Rating = product.Rating,
@@ -64,7 +67,13 @@ namespace Ecommerce.Application.Features.Products.EventHandlers
                     BrandId = product.BrandId,
                     BrandName = product.Brand?.Name ?? string.Empty,
                     BrandSlug = product.Brand?.Slug ?? string.Empty,
-                    CreatedAt = product.CreatedAt
+                    CreatedAt = product.CreatedAt,
+                    Tags = product.Specifications
+                        .SelectMany(s => new[] { s.Name, s.Value })
+                        .Concat(product.Attributes.Select(a => a.Name))
+                        .Where(t => !string.IsNullOrWhiteSpace(t))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList()
                 };
 
                 await _productSearchService.IndexProductAsync(dto, cancellationToken);
