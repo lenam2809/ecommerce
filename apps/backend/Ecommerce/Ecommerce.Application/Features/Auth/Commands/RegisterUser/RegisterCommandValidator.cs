@@ -16,7 +16,7 @@ namespace Ecommerce.Application.Features.Auth.Commands.RegisterUser
                 .Matches(@"[A-Z]+").WithMessage("Mật khẩu phải chứa ít nhất 1 chữ HOA.")
                 .Matches(@"[a-z]+").WithMessage("Mật khẩu phải chứa ít nhất 1 chữ thường.")
                 .Matches(@"[0-9]+").WithMessage("Mật khẩu phải chứa ít nhất 1 chữ số.")
-                .Matches(@"[\!\?\*\.\@\#\$\%\^\&\+\=\-\_]+").WithMessage("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!?*.@#$%^&+=-_).");
+                .Matches(@"[!?\*.@#$%^&+=\-_]+").WithMessage("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!?*.@#$%^&+=-_).");
 
             RuleFor(v => v.FirstName)
                 .NotEmpty().WithMessage("Họ là bắt buộc.")
