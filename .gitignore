@@ -103,13 +103,15 @@ iTunesDB
 CLAUDE.md
 .claude/settings.local.json
 /apps/backend/Ecommerce/Ecommerce.WebAPI/build_output.txt
-docs/reports/auth-security-audit-summary.md
-docs/reports/feature-expansion-report.md
-docs/reports/SECURITY_PERFORMANCE_AUDIT.md
-docs/reports/ux-analysis-report.md
 output/pdf/shopviet-app-summary.pdf
 tmp/pdfs/generate_app_summary_pdf.py
 apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings*.json
 !apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings.example.json
 !apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings.Development.example.json
 !apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings.Production.example.json
+
+# .NET
+.dotnet-home/
+
+# Documentation
+docs/
