@@ -9,7 +9,8 @@ export function useProducts(filters: ProductFilters = {}, enabled = true) {
     queryKey: ["products", filters],
     queryFn: () => productService.getProducts(filters),
     enabled,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
     select: (data) => {
       return data.data
     },
@@ -23,6 +24,7 @@ export function useSearchProducts(filters: ProductFilters = {}, enabled = true) 
     queryFn: () => productService.searchProducts(filters),
     enabled,
     staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
     select: (data) => data.data,
     throwOnError: true,
   })
@@ -32,7 +34,8 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: ["product", id],
     queryFn: () => productService.getProductById(id),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     enabled: !!id,
     select: (data) => {
       return data.data
@@ -45,7 +48,8 @@ export function useProductBySlug(slug: string) {
   return useQuery({
     queryKey: ["productBySlug", slug],
     queryFn: () => productService.getProductBySlug(slug),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     enabled: !!slug,
     select: (data) => {
       return data.data
@@ -58,7 +62,8 @@ export function useSimilarProducts(id: string) {
   return useQuery({
     queryKey: ["product", id, "similar"],
     queryFn: () => productService.getSimilarProducts(id),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     enabled: !!id,
     select: (data) => {
       return data.data
@@ -71,7 +76,8 @@ export function useProductReviews(id: string) {
   return useQuery({
     queryKey: ["product", id, "reviews"],
     queryFn: () => productService.getProductReviews(id),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     enabled: !!id,
     select: (data) => {
       return data.data
@@ -84,7 +90,8 @@ export function useBestsellingProducts() {
   return useQuery({
     queryKey: ["products", "bestselling"],
     queryFn: () => productService.getBestsellingProducts(),
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
     select: (data) => {
       return data.data
     },
@@ -96,7 +103,8 @@ export function useFeaturedProducts() {
   return useQuery({
     queryKey: ["products", "featured"],
     queryFn: () => productService.getFeaturedProducts(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
     select: (data) => {
       return data.data
     },

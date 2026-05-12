@@ -24,7 +24,8 @@ export const useGetProducts = (params: any = {}) => {
   return useQuery({
     queryKey: productKeys.list(params),
     queryFn: () => productService.getAllProducts(params),
-    staleTime: 1000 * 60 * 5, // 5 phút
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
   });
 };
 
@@ -33,7 +34,8 @@ export const useGetProduct = (id: string) => {
     queryKey: productKeys.detail(id),
     queryFn: () => productService.getProductById(id),
     enabled: !!id, // Chỉ chạy query khi có id
-    staleTime: 1000 * 60 * 5, // 5 phút
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
   });
 };
 
@@ -41,7 +43,8 @@ export const useGetOptionProducts = () => {
   return useQuery({
     queryKey: productKeys.options,
     queryFn: () => productService.getOptions<OptionType>(),
-    staleTime: 1000 * 60 * 5, // 5 phút
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 };
 
@@ -50,7 +53,8 @@ export const useGetProductsByCategory = (categoryId: string) => {
     queryKey: productKeys.byCategory(categoryId),
     queryFn: () => productService.getProductsByCategoryId(categoryId),
     enabled: !!categoryId, // Chỉ chạy query khi có categoryId
-    staleTime: 1000 * 60 * 5, // 5 phút
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
   });
 };
 
@@ -59,7 +63,8 @@ export const useGetProductsByBrand = (brandId: string) => {
     queryKey: productKeys.byBrand(brandId),
     queryFn: () => productService.getProductsByBrandId(brandId),
     enabled: !!brandId, // Chỉ chạy query khi có brandId
-    staleTime: 1000 * 60 * 5, // 5 phút
+    staleTime: 1000 * 30,
+    gcTime: 1000 * 60 * 5,
   });
 };
 

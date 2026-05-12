@@ -15,19 +15,19 @@ namespace Ecommerce.Application.Features.Products.Commands.DeleteProduct
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileStorageService _fileStorageService;
         private readonly IEnhancedLogger _logger;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
         private readonly IMediator _mediator;
 
         public DeleteProductCommandHandler(IUnitOfWork unitOfWork,
             IFileStorageService fileStorageService,
             IEnhancedLogger logger,
-            ICacheService cacheService,
+            ICacheInvalidationService cacheInvalidationService,
             IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _logger = logger;
-            _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
             _mediator = mediator;
         }
 
@@ -87,8 +87,7 @@ namespace Ecommerce.Application.Features.Products.Commands.DeleteProduct
                     });
 
                 // Xóa cache liên quan
-                await _cacheService.RemoveAsync(CacheKeys.GetProducts());
-                await _cacheService.RemoveAsync(CacheKeys.GetOptionProducts());
+                await _cacheInvalidationService.InvalidateProductCache(request.Id);
 
                 // Publish event để sync Elasticsearch
                 await _mediator.Publish(new ProductDeletedEvent(request.Id), cancellationToken);

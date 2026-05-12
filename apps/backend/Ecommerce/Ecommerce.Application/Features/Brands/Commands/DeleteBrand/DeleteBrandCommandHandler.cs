@@ -15,7 +15,7 @@ namespace Ecommerce.Application.Features.Brands.Commands.DeleteBrand
         private readonly IEnhancedLogger _logger;
         private readonly IFileStorageService _fileStorageService;
         private readonly IMediator _mediator;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
 
 
         public DeleteBrandCommandHandler(
@@ -23,13 +23,13 @@ namespace Ecommerce.Application.Features.Brands.Commands.DeleteBrand
             IEnhancedLogger logger,
             IFileStorageService fileStorageService,
             IMediator mediator,
-            ICacheService cacheService)
+            ICacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _fileStorageService = fileStorageService;
             _mediator = mediator;
-            _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<Result<bool>> Handle(DeleteBrandCommand request, CancellationToken cancellationToken)
@@ -72,8 +72,7 @@ namespace Ecommerce.Application.Features.Brands.Commands.DeleteBrand
                     });
 
                 // Xóa cache liên quan
-                await _cacheService.RemoveAsync(CacheKeys.GetOptionBrands()); // static key
-                await _cacheService.RemoveAsync(CacheKeys.GetAllBrands()); // static key
+                await _cacheInvalidationService.InvalidateBrandCache(request.Id);
 
                 return Result<bool>.Success(true);
             }

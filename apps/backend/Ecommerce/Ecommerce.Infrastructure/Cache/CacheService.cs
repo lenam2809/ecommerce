@@ -30,10 +30,7 @@ namespace Ecommerce.Infrastructure.Cache
             _distributedCache = distributedCache;
             _logger = logger;
             _cacheConfig = cacheOptions.Value;
-            if (_cacheConfig.UseRedis)
-            {
-                _redisConnection = serviceProvider.GetService<IConnectionMultiplexer>();
-            }
+            _redisConnection = serviceProvider.GetService<IConnectionMultiplexer>();
         }
 
         public async Task<T?> GetAsync<T>(string key) where T : class
@@ -160,10 +157,18 @@ namespace Ecommerce.Infrastructure.Cache
                 if (_redisConnection != null)
                 {
                     var server = _redisConnection.GetServer(_redisConnection.GetEndPoints().First());
-                    var keys = server.Keys(pattern: prefixKey + "*");
+                    var physicalPrefix = $"{_cacheConfig.InstanceName}{prefixKey}";
+                    var keys = server.Keys(pattern: physicalPrefix + "*");
                     foreach (var key in keys)
                     {
-                        await _distributedCache.RemoveAsync(key);
+                        var logicalKey = key.ToString();
+                        if (!string.IsNullOrEmpty(_cacheConfig.InstanceName) &&
+                            logicalKey.StartsWith(_cacheConfig.InstanceName, StringComparison.Ordinal))
+                        {
+                            logicalKey = logicalKey[_cacheConfig.InstanceName.Length..];
+                        }
+
+                        await _distributedCache.RemoveAsync(logicalKey);
                     }
                     await _logger.LogAsync(
                         ELogLevel.Debug,
@@ -190,38 +195,129 @@ namespace Ecommerce.Infrastructure.Cache
                     });
             }
         }
+
+        public async Task TrackKeyAsync(string tag, string key, TimeSpan? expiration = null)
+        {
+            if (string.IsNullOrWhiteSpace(tag) || string.IsNullOrWhiteSpace(key) || _redisConnection == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var database = _redisConnection.GetDatabase();
+                var tagKey = GetTagKey(tag);
+
+                await database.SetAddAsync(tagKey, key);
+
+                var ttl = expiration ?? TimeSpan.FromMinutes(_cacheConfig.DefaultExpirationMinutes);
+                await database.KeyExpireAsync(tagKey, ttl.Add(TimeSpan.FromMinutes(5)));
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "TrackCacheKeyAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "CacheTag", tag },
+                        { "CacheKey", key }
+                    });
+            }
+        }
+
+        public async Task RemoveByTagAsync(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag) || _redisConnection == null)
+            {
+                await RemoveByPrefixAsync(tag);
+                return;
+            }
+
+            try
+            {
+                var database = _redisConnection.GetDatabase();
+                var tagKey = GetTagKey(tag);
+                var keys = await database.SetMembersAsync(tagKey);
+
+                if (keys.Length > 0)
+                {
+                    foreach (var key in keys.Where(k => k.HasValue))
+                    {
+                        await _distributedCache.RemoveAsync(key.ToString());
+                    }
+                }
+
+                await database.KeyDeleteAsync(tagKey);
+
+                await _logger.LogAsync(
+                    ELogLevel.Debug,
+                    "Removed cache entries by tag {CacheTag}",
+                    "RemoveByTagAsync",
+                    properties: new Dictionary<string, object?>
+                    {
+                        { "CacheTag", tag },
+                        { "RemovedCount", keys.Length }
+                    });
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogExceptionAsync(
+                    ex,
+                    "RemoveByTagAsync",
+                    new Dictionary<string, object?>
+                    {
+                        { "CacheTag", tag }
+                    });
+            }
+        }
+
+        private static string GetTagKey(string tag)
+        {
+            return $"cachetag:{tag.Trim()}";
+        }
     }
 
     public static class CacheServiceExtensions
     {
         public static IServiceCollection AddCachingServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Đăng ký cấu hình CacheConfig
             services.Configure<CacheConfig>(configuration.GetSection("CacheSettings"));
 
-            var cacheConfig = configuration.GetSection("CacheSettings").Get<CacheConfig>() ?? new CacheConfig { RedisConnection = string.Empty };
+            var cacheConfig = configuration.GetSection("CacheSettings").Get<CacheConfig>() ?? new CacheConfig();
+            var redisConnection = configuration["Redis:ConnectionString"]
+                ?? configuration.GetConnectionString("Redis")
+                ?? cacheConfig.RedisConnection;
+            var redisInstanceName = configuration["Redis:InstanceName"]
+                ?? cacheConfig.InstanceName;
+
+            cacheConfig.RedisConnection = redisConnection;
+            cacheConfig.InstanceName = redisInstanceName;
 
             services.AddMemoryCache();
 
-            // Đăng ký ICacheService
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
 
-            // Cấu hình cache
-            if (cacheConfig.UseRedis)
+            services.PostConfigure<CacheConfig>(options =>
             {
-                services.AddStackExchangeRedisCache(options =>
-                {
-                    options.Configuration = cacheConfig.RedisConnection;
-                    options.InstanceName = cacheConfig.InstanceName;
-                });
-                
-                services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(cacheConfig.RedisConnection));
-            }
-            else
+                options.UseRedis = true;
+                options.RedisConnection = redisConnection;
+                options.InstanceName = redisInstanceName;
+            });
+
+            services.AddStackExchangeRedisCache(options =>
             {
-                services.AddDistributedMemoryCache();
-            }
+                options.Configuration = redisConnection;
+                options.InstanceName = redisInstanceName;
+            });
+
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+            {
+                var redisOptions = ConfigurationOptions.Parse(redisConnection);
+                redisOptions.AbortOnConnectFail = false;
+                return ConnectionMultiplexer.Connect(redisOptions);
+            });
 
             return services;
         }

@@ -1,9 +1,12 @@
 ﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Attributes;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Features.Products.Dto;
 using MediatR;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
 {
+    [Cacheable(CacheKeys.ProductAll)]
     public class GetPagedProductsQuery : IRequest<Result<PaginatedList<ProductDto>>>
     {
         public int PageNumber { get; set; } = 1;

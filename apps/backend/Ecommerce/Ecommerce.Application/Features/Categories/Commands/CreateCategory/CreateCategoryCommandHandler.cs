@@ -19,7 +19,7 @@ namespace Ecommerce.Application.Features.Categories.Commands.CreateCategory
         private readonly IEnhancedLogger _logger;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
 
 
         public CreateCategoryCommandHandler(IUnitOfWork unitOfWork,
@@ -27,14 +27,14 @@ namespace Ecommerce.Application.Features.Categories.Commands.CreateCategory
             IEnhancedLogger logger,
             IMapper mapper,
             IMediator mediator,
-            ICacheService cacheService)
+            ICacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _logger = logger;
             _mapper = mapper;
             _mediator = mediator;
-            _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<Result<Guid>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ namespace Ecommerce.Application.Features.Categories.Commands.CreateCategory
                     });
 
                 // Xóa cache liên quan
-                await _cacheService.RemoveAsync(CacheKeys.GetAllCategories()); // static key
+                await _cacheInvalidationService.InvalidateCategoryCache(result.Id);
 
                 return Result<Guid>.Success(result.Id);
             }

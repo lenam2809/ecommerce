@@ -19,19 +19,19 @@ namespace Ecommerce.Application.Features.Brands.Commands.CreateBrand
         private readonly IMapper _mapper;
         private readonly IFileStorageService _fileStorageService;
         private readonly IMediator _mediator;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
 
 
         public CreateBrandCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
             IFileStorageService fileStorageService,
             IMediator mediator,
-            ICacheService cacheService)
+            ICacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _fileStorageService = fileStorageService;
             _mediator = mediator;
-            _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<Result<Guid>> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
@@ -67,8 +67,7 @@ namespace Ecommerce.Application.Features.Brands.Commands.CreateBrand
                 }
 
                 // Xóa cache liên quan
-                await _cacheService.RemoveAsync(CacheKeys.GetOptionBrands()); // static key
-                await _cacheService.RemoveAsync(CacheKeys.GetAllBrands()); // static key
+                await _cacheInvalidationService.InvalidateBrandCache(addedBrand.Id);
 
                 return Result<Guid>.Success(addedBrand.Id);
             }

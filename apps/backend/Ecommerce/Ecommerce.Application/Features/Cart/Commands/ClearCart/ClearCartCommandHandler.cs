@@ -11,11 +11,13 @@ namespace Ecommerce.Application.Features.Cart.Commands.ClearCart
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IGuestCartService _guestCartService;
 
-        public ClearCartCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public ClearCartCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IGuestCartService guestCartService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<CartDto>> Handle(ClearCartCommand request, CancellationToken cancellationToken)
@@ -24,6 +26,11 @@ namespace Ecommerce.Application.Features.Cart.Commands.ClearCart
             if (_currentUserService.UserId == null && string.IsNullOrEmpty(_currentUserService.GuestId))
             {
                 throw new Exception("Vui lòng đăng nhập hoặc cung cấp Guest ID.");
+            }
+
+            if (_currentUserService.UserId == null && !string.IsNullOrEmpty(_currentUserService.GuestId))
+            {
+                return Result<CartDto>.Success(await _guestCartService.ClearCartAsync(_currentUserService.GuestId, cancellationToken));
             }
 
             Domain.Entities.Cart? cart = null;

@@ -25,6 +25,8 @@
         Task SetAsync<T>(string key, T value, TimeSpan? absoluteExpireTime = null, TimeSpan? slidingExpireTime = null) where T : class;
         Task RemoveAsync(string key);
         Task RemoveByPrefixAsync(string prefixKey);
+        Task TrackKeyAsync(string tag, string key, TimeSpan? expiration = null);
+        Task RemoveByTagAsync(string tag);
     }
 
 }

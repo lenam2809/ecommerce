@@ -1,18 +1,33 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Star } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/contants"
 import AddToWishlistButton from "./add-to-wishlist-button"
 import { Product } from "@/types/product"
 import AddToCartButton from "./add-to-cart-button"
+import productService from "@/services/product-service"
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const queryClient = useQueryClient()
   const discount = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0
+  const prefetchProduct = () => {
+    if (!product.slug) return
+
+    queryClient.prefetchQuery({
+      queryKey: ["productBySlug", product.slug],
+      queryFn: () => productService.getProductBySlug(product.slug),
+      staleTime: 1000 * 60,
+      gcTime: 1000 * 60 * 5,
+    })
+  }
 
   return (
     <div className="group relative flex flex-col h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1.5 focus-within:shadow-xl focus-within:-translate-y-1.5 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background">
@@ -33,7 +48,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         />
       </div>
 
-      <Link href={`/product/${product.slug}`} className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0 outline-none block focus-visible:ring-2 focus-visible:ring-primary rounded-lg">
+      <Link href={`/product/${product.slug}`} onMouseEnter={prefetchProduct} onFocus={prefetchProduct} className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0 outline-none block focus-visible:ring-2 focus-visible:ring-primary rounded-lg">
         <Image
           src={product.mainImage || "/placeholder.svg"}
           alt={`${product.name}${product.salePrice ? ` - ₫${product.salePrice.toLocaleString('vi-VN')}` : ""}`}
@@ -46,7 +61,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       <div className="p-4 flex flex-col flex-grow gap-3 relative bg-card">
-        <Link href={`/product/${product.slug}`} className="outline-none focus-visible:underline">
+        <Link href={`/product/${product.slug}`} onMouseEnter={prefetchProduct} onFocus={prefetchProduct} className="outline-none focus-visible:underline">
           <h3 className="text-sm md:text-base font-medium leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200">
             {product.name}
           </h3>

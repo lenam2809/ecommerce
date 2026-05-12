@@ -15,25 +15,42 @@ namespace Ecommerce.Application.Features.Cart.Commands.ApplyPromoCode
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IGuestCartService _guestCartService;
 
-        public ApplyPromoCodeCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public ApplyPromoCodeCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IGuestCartService guestCartService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<CartDto>> Handle(ApplyPromoCodeCommand request, CancellationToken cancellationToken)
         {
             if (_currentUserService.UserId == null)
             {
-                Result<CartDto>.Unauthorized("Người dùng chưa đăng nhập.");
+                if (string.IsNullOrEmpty(_currentUserService.GuestId))
+                {
+                    return Result<CartDto>.Unauthorized("Nguoi dung chua dang nhap.");
+                }
+
+                try
+                {
+                    return Result<CartDto>.Success(await _guestCartService.ApplyPromoCodeAsync(_currentUserService.GuestId, request.Code, cancellationToken));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Result<CartDto>.BadRequest(ex.Message);
+                }
             }
 
             var cart = await _unitOfWork.Carts.GetCartAsync(_currentUserService.UserId.Value, cancellationToken);
 
             if (cart == null)
             {
-                Result<CartDto>.NotFound("Không tìm thấy giỏ hàng.");
+                return Result<CartDto>.NotFound("Không tìm thấy giỏ hàng.");
             }
 
             // In a real application, you would validate the promo code against a database

@@ -6,7 +6,7 @@
 #   - frontend-client: Next.js 15 Customer Website
 #   - frontend-dashboard: Next.js 15 Admin Dashboard
 #   - postgres: PostgreSQL Database
-#   - redis: Redis Cache (optional)
+#   - redis: Redis Cache
 # =============================================================================
 
 services:
@@ -34,7 +34,7 @@ services:
       retries: 5
 
   # ===========================================================================
-  # Redis Cache (Optional)
+  # Redis Cache
   # ===========================================================================
   redis:
     image: redis:7-alpine
@@ -93,9 +93,16 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING:-Host=postgres;Database=ecommerce_db;Username=postgres;Password=yourpassword;}
       - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING:-redis:6379}
-      - CacheSettings__UseRedis=${USE_REDIS:-false}
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-redis:6379}
+      - Redis__InstanceName=${REDIS_INSTANCE_NAME:-ecommerce:}
+      - CacheSettings__UseRedis=true
       - CacheSettings__RedisConnection=${REDIS_CONNECTION_STRING:-redis:6379}
+      - CacheSettings__InstanceName=${REDIS_INSTANCE_NAME:-ecommerce:}
       - CacheSettings__DefaultExpirationMinutes=${CACHE_DEFAULT_EXPIRATION_MINUTES:-60}
+      - CacheSettings__ProductExpirationMinutes=${CACHE_PRODUCT_EXPIRATION_MINUTES:-10}
+      - CacheSettings__CategoryExpirationMinutes=${CACHE_CATEGORY_EXPIRATION_MINUTES:-30}
+      - CacheSettings__BrandExpirationMinutes=${CACHE_BRAND_EXPIRATION_MINUTES:-30}
+      - CacheSettings__GuestCartExpirationDays=${CACHE_GUEST_CART_EXPIRATION_DAYS:-7}
       - CacheSettings__UserCacheDuration=${CACHE_USER_DURATION:-10}
       - CacheSettings__RoleCacheDuration=${CACHE_ROLE_DURATION:-30}
       - CacheSettings__PermissionCacheDuration=${CACHE_PERMISSION_DURATION:-60}

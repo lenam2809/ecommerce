@@ -121,7 +121,10 @@ namespace Ecommerce.Infrastructure.Services
             try
             {
                 // Xóa cache danh sách sản phẩm
-                await _cacheService.RemoveByPrefixAsync(CacheKeys.ProductAll);
+                await _cacheService.RemoveByTagAsync(CacheKeys.ProductAll);
+                await _cacheService.RemoveByTagAsync(CacheKeys.ProductDetail);
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetBestsellingProducts());
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetOptionProducts());
                 
                 // Xóa cache chi tiết sản phẩm (Tạm thời xóa hết detail để đảm bảo tính đúng đắn do key phức tạp)
                 // Cải tiến sau: Chỉ xóa key chứa ID
@@ -151,8 +154,11 @@ namespace Ecommerce.Infrastructure.Services
         {
             try
             {
-                await _cacheService.RemoveByPrefixAsync(CacheKeys.CategoryAll);
-                await _cacheService.RemoveByPrefixAsync(CacheKeys.CategoryDetail);
+                await _cacheService.RemoveByTagAsync(CacheKeys.CategoryAll);
+                await _cacheService.RemoveByTagAsync(CacheKeys.CategoryDetail);
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetAllCategories());
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetOptionCategories(new Application.Features.Categories.Queries.GetOptionCategories.GetOptionCategoriesQuery()));
+                await InvalidateProductCollections();
 
                 // Legacy
                 await _cacheService.RemoveAsync(CacheKeys.GetAllCategories());
@@ -185,8 +191,11 @@ namespace Ecommerce.Infrastructure.Services
         {
             try
             {
-                await _cacheService.RemoveByPrefixAsync(CacheKeys.BrandAll);
-                await _cacheService.RemoveByPrefixAsync(CacheKeys.BrandDetail);
+                await _cacheService.RemoveByTagAsync(CacheKeys.BrandAll);
+                await _cacheService.RemoveByTagAsync(CacheKeys.BrandDetail);
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetAllBrands());
+                await _cacheService.RemoveByTagAsync(CacheKeys.GetOptionBrands());
+                await InvalidateProductCollections();
 
                 // Legacy
                 await _cacheService.RemoveAsync(CacheKeys.GetAllBrands()); // get_brands_all
@@ -288,6 +297,16 @@ namespace Ecommerce.Infrastructure.Services
             {
                 await _logger.LogExceptionAsync(ex, "InvalidateContactCache", new Dictionary<string, object?> { { "ContactId", contactId } });
             }
+        }
+
+        private async Task InvalidateProductCollections()
+        {
+            await _cacheService.RemoveByTagAsync(CacheKeys.ProductAll);
+            await _cacheService.RemoveByTagAsync(CacheKeys.ProductDetail);
+            await _cacheService.RemoveByTagAsync(CacheKeys.GetProducts());
+            await _cacheService.RemoveByTagAsync(CacheKeys.GetOptionProducts());
+            await _cacheService.RemoveAsync(CacheKeys.GetProducts());
+            await _cacheService.RemoveAsync(CacheKeys.GetOptionProducts());
         }
     }
 }

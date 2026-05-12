@@ -12,14 +12,17 @@ namespace Ecommerce.Application.Features.Cart.Queries.GetCart
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IGuestCartService _guestCartService;
 
         public GetCartQueryHandler(IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IGuestCartService guestCartService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _fileStorageService = fileStorageService;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<CartDto>> Handle(GetCartQuery request, CancellationToken cancellationToken)
@@ -36,11 +39,7 @@ namespace Ecommerce.Application.Features.Cart.Queries.GetCart
                 // If not authenticated, check for guest ID
                 else if (!string.IsNullOrEmpty(_currentUserService.GuestId))
                 {
-                    cart = await _unitOfWork.Carts
-                        .GetQueryable()
-                        .Include(c => c.CartItems)
-                            .ThenInclude(i => i.Product)
-                        .FirstOrDefaultAsync(c => c.AnonymousId == _currentUserService.GuestId, cancellationToken);
+                    return Result<CartDto>.Success(await _guestCartService.GetCartAsync(_currentUserService.GuestId, cancellationToken));
                 }
 
                 // Return empty cart if no cart found

@@ -14,16 +14,19 @@ namespace Ecommerce.Application.Features.Categories.Commands.DeleteCategory
         private readonly IFileStorageService _fileStorageService;
         private readonly IEnhancedLogger _logger;
         private readonly IMediator _mediator;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
 
         public DeleteCategoryCommandHandler(IUnitOfWork unitOfWork,
             IFileStorageService fileStorageService,
             IEnhancedLogger logger,
-            IMediator mediator)
+            IMediator mediator,
+            ICacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _fileStorageService = fileStorageService;
             _logger = logger;
             _mediator = mediator;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<Result<bool>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
@@ -71,6 +74,8 @@ namespace Ecommerce.Application.Features.Categories.Commands.DeleteCategory
 
 
 
+
+                await _cacheInvalidationService.InvalidateCategoryCache(request.Id);
 
                 return Result<bool>.Success(true);
             }

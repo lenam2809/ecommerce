@@ -8,10 +8,12 @@ namespace Ecommerce.Infrastructure.Services
     public class MergeCartService : IMergeCartService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IGuestCartService _guestCartService;
 
-        public MergeCartService(IUnitOfWork unitOfWork)
+        public MergeCartService(IUnitOfWork unitOfWork, IGuestCartService guestCartService)
         {
             _unitOfWork = unitOfWork;
+            _guestCartService = guestCartService;
         }
 
         public async Task MergeGuestCartToUserAsync(Guid userId, string guestId, CancellationToken cancellationToken = default)
@@ -19,6 +21,50 @@ namespace Ecommerce.Infrastructure.Services
             if (string.IsNullOrEmpty(guestId))
             {
                 return; // No guest cart to merge
+            }
+
+            var redisGuestCart = await _guestCartService.GetCartAsync(guestId, cancellationToken);
+            if (redisGuestCart.Items.Any())
+            {
+                var redisUserCart = await _unitOfWork.Carts.GetCartAsync(userId, cancellationToken);
+
+                foreach (var guestItem in redisGuestCart.Items)
+                {
+                    var existingItem = redisUserCart.CartItems.FirstOrDefault(i =>
+                        i.ProductId == guestItem.ProductId &&
+                        i.Color == guestItem.Color &&
+                        i.Size == guestItem.Size);
+
+                    if (existingItem != null)
+                    {
+                        await _unitOfWork.BaseRepository<CartItem>().ExecuteCommandAsync(
+                            "UPDATE \"CartItems\" SET \"Quantity\" = \"Quantity\" + {0} " +
+                            "WHERE \"CartId\" = {1} AND \"ProductId\" = {2}",
+                            [guestItem.Quantity, existingItem.CartId, existingItem.ProductId],
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        var product = await _unitOfWork.Products.GetByIdAsync(guestItem.ProductId, cancellationToken);
+                        if (product == null)
+                        {
+                            continue;
+                        }
+
+                        var newItem = new CartItem(
+                            redisUserCart.Id,
+                            product,
+                            guestItem.Quantity,
+                            guestItem.Color,
+                            guestItem.Size);
+
+                        await _unitOfWork.BaseRepository<CartItem>().AddAsync(newItem, cancellationToken);
+                    }
+                }
+
+                await _unitOfWork.CompleteAsync(cancellationToken);
+                await _guestCartService.DeleteCartAsync(guestId, cancellationToken);
+                return;
             }
 
             // Find guest cart

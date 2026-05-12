@@ -25,7 +25,8 @@ export const useGetCategories = (params: any = {}) => {
     return useQuery({
         queryKey: categoryKeys.list(params),
         queryFn: () => categoryService.getAllCategories(params),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -33,7 +34,8 @@ export const useGetOptionCategories = () => {
     return useQuery({
         queryKey: categoryKeys.options,
         queryFn: () => categoryService.getOptions<OptionType>(),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -41,7 +43,8 @@ export const useGetOptionGroupCategories = (includeChildren?: boolean) => {
     return useQuery({
         queryKey: categoryKeys.optionGroups(includeChildren),
         queryFn: () => categoryService.getOptions<OptionGroupType>(includeChildren),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -50,7 +53,8 @@ export const useGetCategory = (id: string) => {
         queryKey: categoryKeys.detail(id),
         queryFn: () => categoryService.getCategoryById(id),
         enabled: !!id, // Chỉ chạy query khi có id
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -58,7 +62,8 @@ export const useGetCategoriesByBrandId = (id: string) => {
     return useQuery({
         queryKey: categoryKeys.byBrandId(id),
         queryFn: () => categoryService.getCategoriesByBrandId(id),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 

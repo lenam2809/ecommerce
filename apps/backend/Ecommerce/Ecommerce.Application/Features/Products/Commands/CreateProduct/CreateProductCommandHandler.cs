@@ -19,7 +19,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
         private readonly IMediator _mediator;
         private readonly IFileStorageService _fileStorageService;
 
@@ -27,14 +27,14 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         public CreateProductCommandHandler(IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
             IMapper mapper,
-            ICacheService cacheService,
+            ICacheInvalidationService cacheInvalidationService,
             IMediator mediator,
             IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
-            _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
             _mediator = mediator;
             _fileStorageService = fileStorageService;
         }
@@ -111,8 +111,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
                 });
 
             // Xóa cache liên quan
-            await _cacheService.RemoveAsync(CacheKeys.GetProducts());
-            await _cacheService.RemoveAsync(CacheKeys.GetOptionProducts());
+            await _cacheInvalidationService.InvalidateProductCache(result.Id);
 
             // Publish event để sync Elasticsearch
             await _mediator.Publish(new ProductCreatedEvent(result.Id), cancellationToken);

@@ -14,15 +14,18 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IShippingCalculator _shippingCalculator;
+        private readonly IGuestCartService _guestCartService;
 
         public AddToCartCommandHandler(
             IUnitOfWork unitOfWork, 
             ICurrentUserService currentUserService,
-            IShippingCalculator shippingCalculator)
+            IShippingCalculator shippingCalculator,
+            IGuestCartService guestCartService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _shippingCalculator = shippingCalculator;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<CartDto>> Handle(AddToCartCommand request, CancellationToken cancellationToken)
@@ -39,6 +42,19 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
             if (product == null)
             {
                 throw new Exception($"Không tìm thấy sản phẩm với ID {request.ProductId}");
+            }
+
+            if (_currentUserService.UserId == null && !string.IsNullOrEmpty(_currentUserService.GuestId))
+            {
+                var guestCart = await _guestCartService.AddItemAsync(
+                    _currentUserService.GuestId,
+                    product,
+                    request.Quantity,
+                    request.Color,
+                    request.Size,
+                    cancellationToken);
+
+                return Result<CartDto>.Success(guestCart);
             }
 
             Domain.Entities.Cart? cartNullable = null;

@@ -7,6 +7,7 @@ using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Persistence.Seed;
 using Ecommerce.Infrastructure.SignalR;
 using Ecommerce.WebAPI.Configuration;
+using Ecommerce.WebAPI.HealthChecks;
 using Ecommerce.WebAPI.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -172,6 +173,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks()
+    .AddCheck<RedisHealthCheck>("redis");
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -281,5 +284,7 @@ app.MapGet("/api/health", () => Results.Ok(new
     timestamp = DateTime.UtcNow,
     version = "1.0"
 })).AllowAnonymous();
+
+app.MapHealthChecks("/api/health/redis").AllowAnonymous();
 
 app.Run();

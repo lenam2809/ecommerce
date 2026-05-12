@@ -2,6 +2,7 @@ using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Services;
 using Ecommerce.Domain.Services;
+using Ecommerce.Infrastructure.Cache;
 using Ecommerce.Infrastructure.Identity;
 using Ecommerce.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,7 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<CustomerLevelService>();
             services.AddScoped<PromoCodeService>();
             services.AddScoped<IMergeCartService, MergeCartService>();
+            services.AddScoped<IGuestCartService, RedisGuestCartService>();
             services.AddScoped<IShippingCalculator, ShippingCalculator>();
 
             return services;

@@ -23,7 +23,8 @@ export const useGetBrands = (params: any = {}) => {
     return useQuery({
         queryKey: brandKeys.list(params),
         queryFn: () => brandService.getAllBrands(params),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -31,7 +32,8 @@ export const useGetOptionBrands = () => {
     return useQuery({
         queryKey: brandKeys.options,
         queryFn: () => brandService.getOptions<OptionType>(),
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 
@@ -40,7 +42,8 @@ export const useGetBrand = (id: string) => {
         queryKey: brandKeys.detail(id),
         queryFn: () => brandService.getBrandById(id),
         enabled: !!id, // Chỉ chạy query khi có id
-        staleTime: 1000 * 60 * 5, // 5 phút
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
     });
 };
 

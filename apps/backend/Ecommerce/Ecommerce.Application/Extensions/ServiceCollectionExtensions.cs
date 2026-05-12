@@ -1,5 +1,7 @@
 ﻿using Ecommerce.Application.Common.Behaviors;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Services;
 using Ecommerce.Application.Features.Payments.VnPay;
 using FluentValidation;
 using MediatR;
@@ -17,6 +19,7 @@ namespace Ecommerce.Application.Extensions
 
             // Register all validators from the assembly
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddSingleton<ICacheKeyService, CacheKeyService>();
 
             // Register MediatR
             services.AddMediatR(cfg =>
@@ -28,8 +31,8 @@ namespace Ecommerce.Application.Extensions
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));           // 📝 Ghi log (First to capture everything)
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));        // 🟢 Validate
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));     // 🔐 Kiểm tra quyền
-                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));       // 💾 Quản lý Transaction tự động
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));           // 📦 Trả từ cache nếu có
+                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));       // 💾 Quản lý Transaction tự động
 
             });
 

@@ -14,15 +14,18 @@ namespace Ecommerce.Application.Features.Cart.Commands.UpdateCartItem
         private readonly IUnitOfWork _unitofwork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IShippingCalculator _shippingCalculator;
+        private readonly IGuestCartService _guestCartService;
 
         public UpdateCartItemCommandHandler(
             IUnitOfWork unitofwork, 
             ICurrentUserService currentUserService,
-            IShippingCalculator shippingCalculator)
+            IShippingCalculator shippingCalculator,
+            IGuestCartService guestCartService)
         {
             _unitofwork = unitofwork;
             _currentUserService = currentUserService;
             _shippingCalculator = shippingCalculator;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<CartDto>> Handle(UpdateCartItemCommand request, CancellationToken cancellationToken)
@@ -31,6 +34,17 @@ namespace Ecommerce.Application.Features.Cart.Commands.UpdateCartItem
             if (_currentUserService.UserId == null && string.IsNullOrEmpty(_currentUserService.GuestId))
             {
                 throw new Exception("Vui lòng đăng nhập hoặc cung cấp Guest ID.");
+            }
+
+            if (_currentUserService.UserId == null && !string.IsNullOrEmpty(_currentUserService.GuestId))
+            {
+                var guestCart = await _guestCartService.UpdateItemAsync(
+                    _currentUserService.GuestId,
+                    request.ItemId,
+                    request.Quantity,
+                    cancellationToken);
+
+                return Result<CartDto>.Success(guestCart);
             }
 
             Domain.Entities.Cart? cart = null;

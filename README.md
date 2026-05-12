@@ -48,7 +48,7 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 
 ### Database
 - **Primary**: SQL Server (chạy local, không container)
-- **Cache**: Redis (optional, qua Docker)
+- **Cache**: Redis (required, distributed cache + guest carts)
 
 ### DevOps
 - **Containerization**: Docker, Docker Compose
@@ -115,7 +115,7 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              DATA LAYER                                      │
 │  ┌─────────────────────────────┐    ┌─────────────────────────────────────┐ │
-│  │      SQL Server (Local)     │    │       Redis (Docker - Optional)    │ │
+│  │      SQL Server (Local)     │    │       Redis (Docker - Required)    │ │
 │  │      Database: ecommerce_db │    │       Port: 6379                   │ │
 │  └─────────────────────────────┘    └─────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -125,7 +125,7 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 1. **Frontend → Backend**: RESTful API qua HTTP (JSON), hỗ trợ Cookie-based authentication
 2. **Real-time**: SignalR WebSocket cho notifications và live reviews
 3. **Backend → Database**: Entity Framework Core với SQL Server
-4. **Caching**: Memory Cache (mặc định) hoặc Redis (optional)
+4. **Caching**: Redis distributed cache for read models and guest carts
 
 ---
 
@@ -202,7 +202,7 @@ ecommerce/
 - **Node.js**: v18.x hoặc cao hơn
 - **.NET SDK**: 8.0
 - **SQL Server**: 2019 hoặc cao hơn (có thể dùng SQL Server Express)
-- **Docker Desktop**: (tùy chọn, cho Redis và deployment)
+- **Docker Desktop**: (khuyến nghị, Redis là service bắt buộc khi chạy Docker Compose)
 - **Git**
 
 ### Bước 1: Clone repository
@@ -262,7 +262,7 @@ Dashboard sẽ chạy tại: `http://localhost:3001`
 | Swagger | 5000 | http://localhost:5000/swagger |
 | Client Website | 3000 | http://localhost:3000 |
 | Admin Dashboard | 3001 | http://localhost:3001 |
-| Redis (Optional) | 6379 | localhost:6379 |
+| Redis | 6379 | localhost:6379 |
 
 ---
 
@@ -273,14 +273,14 @@ Dashboard sẽ chạy tại: `http://localhost:3001`
 | Biến | Mô tả | Bắt buộc |
 |------|-------|----------|
 | `ConnectionStrings:DefaultConnection` | Connection string SQL Server | ✅ |
-| `ConnectionStrings:Redis` | Redis connection (nếu dùng) | ❌ |
+| `Redis:ConnectionString` | Redis connection | ✅ |
 | `Jwt:SecretKey` | Secret key cho JWT (min 32 chars) | ✅ |
 | `Jwt:Issuer` | JWT Issuer | ✅ |
 | `Jwt:Audience` | JWT Audience | ✅ |
 | `Jwt:AccessTokenExpirationMinutes` | Thời hạn access token | ✅ |
 | `FileStorage:AppUrl` | URL base của backend | ✅ |
 | `FileStorage:UploadFolder` | Thư mục lưu file upload | ✅ |
-| `CacheSettings:UseRedis` | Bật/tắt Redis cache | ❌ |
+| `CacheSettings:UseRedis` | Redis cache is expected to be enabled | ✅ |
 | `VnPay:TmnCode` | VNPay Terminal Code | ❌ |
 | `VnPay:HashSecret` | VNPay Secret Key | ❌ |
 | `AuthConfig:UseCookieAuth` | Bật cookie-based auth | ✅ |
@@ -531,7 +531,7 @@ DELETE /api/products/{id}     # Delete
 ### Hạn chế hiện tại
 
 1. **Testing**: Chưa có unit tests và integration tests
-2. **Caching Strategy**: Redis chưa được tối ưu cho tất cả queries
+2. **Caching Strategy**: Redis is mandatory for distributed query caching and guest carts. See `docs/caching-strategy.md`.
 3. **Search**: Tìm kiếm đơn giản bằng SQL LIKE, chưa có full-text search
 4. **File Storage**: Lưu trữ local, chưa tích hợp cloud storage (S3, Azure Blob)
 5. **Email Service**: Chưa có service gửi email thông báo đơn hàng
