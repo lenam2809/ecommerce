@@ -288,3 +288,5 @@ app.MapGet("/api/health", () => Results.Ok(new
 app.MapHealthChecks("/api/health/redis").AllowAnonymous();
 
 app.Run();
+
+public partial class Program;
