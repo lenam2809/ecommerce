@@ -5,8 +5,10 @@ using Ecommerce.Application.Features.Contact.Commands.UpdateContactStatus;
 using Ecommerce.Application.Features.Contact.Queries.GetActiveContact;
 using Ecommerce.Application.Features.Contact.Queries.GetContactById;
 using Ecommerce.Application.Features.Contact.Queries.GetContacts;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -46,6 +48,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Create a new contact section
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Create([FromBody] CreateContactCommand command)
         {
             var result = await _mediator.Send(command);
@@ -58,6 +61,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Update a contact section
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateContactCommand command)
         {
             if (id != command.Id)
@@ -71,6 +75,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Delete a contact section
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteContactCommand { Id = id });
@@ -91,6 +96,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Update contact section status
         /// </summary>
         [HttpPatch("{id}/status")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] bool isActive)
         {
             var result = await _mediator.Send(new UpdateContactStatusCommand(id, isActive));

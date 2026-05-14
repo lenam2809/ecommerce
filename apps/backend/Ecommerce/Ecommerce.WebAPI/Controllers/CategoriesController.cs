@@ -9,8 +9,10 @@ using Ecommerce.Application.Features.Categories.Queries.GetCategoryById;
 using Ecommerce.Application.Features.Categories.Queries.GetCategoryBySlug;
 using Ecommerce.Application.Features.Categories.Queries.GetOptionCategories;
 using Ecommerce.Application.Features.Categories.Queries.GetTopPopularCategories;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -30,6 +32,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tất cả các category
         /// </summary>
         [HttpGet("paged")]
+        [Authorize(Policy = EPermissions.ViewCategories)]
         public async Task<IActionResult> GetAll([FromQuery] GetCategoriesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -102,6 +105,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Thêm mới một category
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = EPermissions.CreateCategory)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateCategoryCommand command)
         {
@@ -121,6 +125,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// </summary>
 
         [HttpPut("{id}")]
+        [Authorize(Policy = EPermissions.EditCategory)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UpdateCategoryCommand command)
         {
@@ -135,6 +140,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa một category theo ID
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Policy = EPermissions.DeleteCategory)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteCategoryCommand { Id = id });
