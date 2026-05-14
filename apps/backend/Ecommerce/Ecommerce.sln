@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ecommerce.Domain.Tests", "tests\Ecommerce.Domain.Tests\Ecommerce.Domain.Tests.csproj", "{A373662F-3D05-4382-9C99-193573D5D582}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ecommerce.WebAPI.IntegrationTests", "Ecommerce.WebAPI.IntegrationTests\Ecommerce.WebAPI.IntegrationTests.csproj", "{8FDF5CEB-643B-4DBE-93F2-8A54F67A58C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{A373662F-3D05-4382-9C99-193573D5D582}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A373662F-3D05-4382-9C99-193573D5D582}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A373662F-3D05-4382-9C99-193573D5D582}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FDF5CEB-643B-4DBE-93F2-8A54F67A58C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FDF5CEB-643B-4DBE-93F2-8A54F67A58C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FDF5CEB-643B-4DBE-93F2-8A54F67A58C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FDF5CEB-643B-4DBE-93F2-8A54F67A58C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
