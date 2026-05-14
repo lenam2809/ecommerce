@@ -36,7 +36,9 @@ builder.Services.Configure<RequestLoggingOptions>(
 builder.Services.Configure<ObservabilityOptions>(
     builder.Configuration.GetSection(ObservabilityOptions.SectionName));
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(
+    builder.Configuration,
+    requireHttpsMetadata: !builder.Environment.IsDevelopment());
 
 var observabilityOptions = builder.Configuration
     .GetSection(ObservabilityOptions.SectionName)
@@ -228,8 +230,11 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -258,7 +263,10 @@ app.UseRouting();
 // Đặt middleware CORS sau UseRouting và trước UseAuthentication
 app.UseCors("AllowAll");
 
-//app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // Thêm middleware để phục vụ hình ảnh tĩnh
 app.UseStaticFiles();

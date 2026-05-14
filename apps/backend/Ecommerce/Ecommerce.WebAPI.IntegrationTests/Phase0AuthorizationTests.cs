@@ -16,6 +16,7 @@ public sealed class Phase0AuthorizationTests : IDisposable
     {
         _client = _factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
         {
+            BaseAddress = new Uri("https://localhost"),
             AllowAutoRedirect = false,
             HandleCookies = true
         });

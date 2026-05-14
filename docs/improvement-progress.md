@@ -21,8 +21,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | --- | --- | --- | --- | --- | --- |
 | AUDIT-001 | Create improvement tracking document and record audit scope. | DONE | `docs/improvement-progress.md` | None | Documentation-only task. |
 | P0-001 | Add explicit authorization/policies to public admin/content mutations. | DONE | `AboutController.cs`, `ContactController.cs`, `BannerController.cs`, `BrandsController.cs`, `CategoriesController.cs`, `PromoCodesController.cs`, `ProductsController.cs`, `ReportsController.cs` | `Phase0AuthorizationTests.cs` | Phase 0A secured high-risk content/catalog/promo/report mutations. |
-| P0-002 | Gate Swagger/UI by environment or config. | TODO | `apps/backend/Ecommerce/Ecommerce.WebAPI/Program.cs` | TBD | Currently enabled for all environments. |
-| P0-003 | Re-enable or explicitly configure HTTPS redirection/proxy behavior. | TODO | `apps/backend/Ecommerce/Ecommerce.WebAPI/Program.cs` | TBD | `UseHttpsRedirection()` is commented out. |
+| P0-002 | Gate Swagger/UI by environment or config. | DONE | `apps/backend/Ecommerce/Ecommerce.WebAPI/Program.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables Swagger/UI only in Development. |
+| P0-003 | Re-enable or explicitly configure HTTPS redirection/proxy behavior. | DONE | `Program.cs`, `DependencyInjection.cs`, `AddAuthenticationExtensions.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables HTTPS redirection outside Development and requires JWT HTTPS metadata outside Development. |
 | P0-004 | Remove or protect test/dev controllers. | DONE | `DevelopmentOnlyAttribute.cs`, `TestStorageController.cs`, `WeatherForecastController.cs` | `Phase0AuthorizationTests.cs` | Test/dev controllers now return 404 outside Development. |
 | P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | TODO | `PaymentsController.cs`, `VnPayService.cs`, payment commands | TBD | Current create-url accepts amount and order id from request body. |
 | P1-002 | Make VNPay callbacks/IPN idempotent and update orders through Application command boundary. | TODO | `PaymentsController.cs`, `VnPayService.cs` | TBD | IPN delegates to service; create-url and service use Web types in Application. |
@@ -72,6 +72,36 @@ Endpoints not handled in this pass:
 | --- | --- |
 | Swagger/UI and HTTPS redirection in `Program.cs` | Tracked as P0-002 and P0-003; not included in Phase 0A endpoint hardening. |
 | `LogsController`, `UserActivitiesController`, address/search-history/wishlist ownership hardening | Tracked for later Phase 0/Phase 3 work; not in the requested priority list for this pass. |
+
+### Phase 0B update
+
+Status: DONE for production runtime hardening of Swagger, HTTPS redirection, JWT metadata, and CSRF test coverage.
+
+| Area | Before | After |
+| --- | --- | --- |
+| Swagger/UI | `app.UseSwagger()` and `app.UseSwaggerUI()` were called unconditionally in `Program.cs`. | Swagger and Swagger UI are only registered when `app.Environment.IsDevelopment()`. |
+| HTTPS redirection | `UseHttpsRedirection()` was commented out. | `UseHttpsRedirection()` runs when `!app.Environment.IsDevelopment()`, preserving local Development behavior. |
+| JWT metadata | `JwtBearerOptions.RequireHttpsMetadata` was hard-coded to `false`. | `AddInfrastructure` accepts a runtime flag and Program passes `requireHttpsMetadata: !builder.Environment.IsDevelopment()`. |
+| CSRF | Middleware already required double-submit CSRF for state-changing cookie-auth requests, but integration coverage was missing and default test factory disabled CSRF. | Added CSRF-enabled integration tests for login without CSRF header and authenticated mutation without `X-CSRF-Token`. |
+| Security headers | `app.UseSecurityHeaders()` was already present in the pipeline before routing/auth. | No code change; audited as active. CSP still allows Swagger-friendly inline/eval directives and should be revisited if Swagger remains Development-only. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `Swagger_InNonDevelopmentEnvironment_ReturnsNotFound` | `/swagger` and `/swagger/index.html` return 404 in `IntegrationTesting`. |
+| `HttpRequest_InNonDevelopmentEnvironment_RedirectsToHttps` | HTTP request redirects to HTTPS outside Development. |
+| `Login_WithoutCsrfHeader_ReturnsOkAndSetsCsrfCookie` | Login remains usable without a CSRF header and sets `csrf_token`. |
+| `CookieAuthenticatedMutation_WithoutCsrfHeader_ReturnsForbidden` | Authenticated cookie request to a state-changing endpoint returns 403 with `CSRF_VALIDATION_FAILED` when CSRF header is missing. |
+
+Runtime files audited:
+
+| File | Notes |
+| --- | --- |
+| `appsettings.Production.json` | `AuthConfig.AllowHeaderFallback=false`, `EnableCsrfProtection=true`, `IncludeTokensInResponse=false`, `CookieSettings.ForceSecure=true`. |
+| `appsettings.Development.json` | Development keeps header fallback and token response body enabled for local compatibility. |
+| `CsrfValidationMiddleware.cs` | Active after authentication and before authorization; validates unsafe methods only when `access_token` cookie is present. |
+| `SecurityHeadersMiddleware.cs` | Active in pipeline. Includes CSP that allows inline/eval for Swagger compatibility; revisit after Swagger is no longer production-exposed. |
 
 ### Public mutation/admin endpoints
 
@@ -164,6 +194,9 @@ The following controllers have POST/PUT/PATCH/DELETE actions without controller/
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 0A | PASS | Completed with 1 warning and 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build` after Phase 0A | PASS | 15/15 integration tests passed, including new Phase 0 authorization coverage. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 0A | PASS | Domain 57/57, Application 173/173, WebAPI Integration 15/15, total 245/245. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 0B | PASS | 0 warnings, 0 errors on the post-change build run. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build` after Phase 0B | PASS | 20/20 integration tests passed, including Swagger, HTTPS redirect, and CSRF coverage. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 0B | PASS | Domain 57/57, Application 173/173, WebAPI Integration 20/20, total 250/250. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt

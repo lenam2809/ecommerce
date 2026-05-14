@@ -14,7 +14,10 @@ namespace Ecommerce.Infrastructure.Extensions
 {
     public static class AddAuthenticationExtensions
     {
-        public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddJwtAuthentication(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            bool requireHttpsMetadata = true)
         {
             services.Configure<JwtConfig>(configuration.GetSection("Jwt"));
             services.Configure<AuthConfig>(configuration.GetSection("AuthConfig"));
@@ -35,7 +38,7 @@ namespace Ecommerce.Infrastructure.Extensions
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false;
+                options.RequireHttpsMetadata = requireHttpsMetadata;
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

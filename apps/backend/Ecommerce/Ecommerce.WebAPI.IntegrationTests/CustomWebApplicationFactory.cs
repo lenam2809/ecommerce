@@ -17,14 +17,17 @@ namespace Ecommerce.WebAPI.IntegrationTests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private readonly bool _enableCsrfProtection;
     private readonly string _databasePath = Path.Combine(
         Path.GetTempPath(),
         "ecommerce-integration-tests",
         $"{Guid.NewGuid():N}.db");
     private readonly Dictionary<string, string?> _previousEnvironmentValues = new();
 
-    public CustomWebApplicationFactory()
+    public CustomWebApplicationFactory(bool enableCsrfProtection = false)
     {
+        _enableCsrfProtection = enableCsrfProtection;
+
         SetEnvironmentVariable("ConnectionStrings__DefaultConnection", $"Data Source={_databasePath}");
         SetEnvironmentVariable("Jwt__SecretKey", "integration-test-secret-key-with-more-than-32-chars");
         SetEnvironmentVariable("Jwt__Issuer", "Ecommerce.IntegrationTests");
@@ -33,7 +36,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         SetEnvironmentVariable("AuthConfig__UseCookieAuth", "true");
         SetEnvironmentVariable("AuthConfig__AllowHeaderFallback", "true");
         SetEnvironmentVariable("AuthConfig__IncludeTokensInResponse", "true");
-        SetEnvironmentVariable("AuthConfig__EnableCsrfProtection", "false");
+        SetEnvironmentVariable("AuthConfig__EnableCsrfProtection", _enableCsrfProtection.ToString());
+        SetEnvironmentVariable("ASPNETCORE_HTTPS_PORT", "443");
         SetEnvironmentVariable("Auth__TokenHashSecret", "integration-test-refresh-token-hash-secret");
         SetEnvironmentVariable("Elasticsearch__UseElasticsearch", "false");
         SetEnvironmentVariable("CacheSettings__UseRedis", "false");
@@ -63,7 +67,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["AuthConfig:UseCookieAuth"] = "true",
                 ["AuthConfig:AllowHeaderFallback"] = "true",
                 ["AuthConfig:IncludeTokensInResponse"] = "true",
-                ["AuthConfig:EnableCsrfProtection"] = "false",
+                ["AuthConfig:EnableCsrfProtection"] = _enableCsrfProtection.ToString(),
+                ["ASPNETCORE_HTTPS_PORT"] = "443",
                 ["Auth:TokenHashSecret"] = "integration-test-refresh-token-hash-secret",
                 ["Elasticsearch:UseElasticsearch"] = "false",
                 ["CacheSettings:UseRedis"] = "false",
