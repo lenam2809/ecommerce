@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Ecommerce.WebAPI.Filters;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[DevelopmentOnly]
 public class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
@@ -29,7 +31,4 @@ public class WeatherForecastController : ControllerBase
         })
         .ToArray();
     }
-
 }
-
-

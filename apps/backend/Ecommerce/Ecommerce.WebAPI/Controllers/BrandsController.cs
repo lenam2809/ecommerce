@@ -8,8 +8,10 @@ using Ecommerce.Application.Features.Brands.Queries.GetBrandsByCategoryId;
 using Ecommerce.Application.Features.Brands.Queries.GetCategories;
 using Ecommerce.Application.Features.Brands.Queries.GetOptionBrands;
 using Ecommerce.Application.Features.CategoryBrands.Commands.CreateCategoryBrand;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -39,6 +41,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tất cả các brand theo phân trang
         /// </summary>
         [HttpGet("paged")]
+        [Authorize(Policy = EPermissions.ViewBrands)]
         public async Task<IActionResult> GetPaged([FromQuery] GetBrandsQuery query)
         {
             var result = await _mediator.Send(query);
@@ -82,6 +85,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Thêm mới một brand
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = EPermissions.CreateBrand)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateBrandCommand command)
         {
@@ -95,6 +99,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Cập nhật thông tin của một brand
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = EPermissions.EditBrand)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UpdateBrandCommand command)
         {
@@ -109,6 +114,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa một brand theo ID
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Policy = EPermissions.DeleteBrand)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteBrandCommand { Id = id });
@@ -117,6 +123,7 @@ namespace Ecommerce.WebAPI.Controllers
 
 
         [HttpPost("link-category-brand")]
+        [Authorize(Policy = EPermissions.EditBrand)]
         public async Task<IActionResult> LinkCategoryBrand([FromBody] CreateCategoryBrandCommand command)
         {
             var result = await _mediator.Send(command);

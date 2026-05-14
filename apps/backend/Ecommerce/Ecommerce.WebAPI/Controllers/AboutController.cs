@@ -5,8 +5,10 @@ using Ecommerce.Application.Features.About.Commands.UpdateAboutStatus;
 using Ecommerce.Application.Features.About.Queries.GetAboutById;
 using Ecommerce.Application.Features.About.Queries.GetAbouts;
 using Ecommerce.Application.Features.About.Queries.GetActiveAbout;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -46,6 +48,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Create a new about section
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Create([FromBody] CreateAboutCommand command)
         {
             var result = await _mediator.Send(command);
@@ -58,6 +61,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Update an about section
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAboutCommand command)
         {
             if (id != command.Id)
@@ -71,6 +75,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Delete an about section
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteAboutCommand { Id = id });
@@ -91,6 +96,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Update about section status
         /// </summary>
         [HttpPatch("{id}/status")]
+        [Authorize(Policy = EPermissions.EditSettings)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] bool isActive)
         {
             var result = await _mediator.Send(new UpdateAboutStatusCommand(id, isActive));

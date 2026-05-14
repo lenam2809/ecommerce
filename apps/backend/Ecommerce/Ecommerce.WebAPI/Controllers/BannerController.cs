@@ -4,8 +4,10 @@ using Ecommerce.Application.Features.Banners.Commands.UpdateBanner;
 using Ecommerce.Application.Features.Banners.Queries.GetBannerById;
 using Ecommerce.Application.Features.Banners.Queries.GetBanners;
 using Ecommerce.Application.Features.Banners.Queries.GetPaged;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -35,6 +37,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tất cả các brand theo phân trang
         /// </summary>
         [HttpGet("paged")]
+        [Authorize(Policy = EPermissions.ViewBanners)]
         public async Task<IActionResult> GetPaged([FromQuery] GetPagedBannerQuery query)
         {
             var result = await _mediator.Send(query);
@@ -55,6 +58,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Thêm mới một banner
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = EPermissions.CreateBanner)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateBannerCommand command)
         {
@@ -68,6 +72,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Cập nhật thông tin của một banner
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = EPermissions.EditBanner)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UpdateBannerCommand command)
         {
@@ -82,6 +87,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa một banner theo ID
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Policy = EPermissions.DeleteBanner)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteBannerCommand { Id = id });

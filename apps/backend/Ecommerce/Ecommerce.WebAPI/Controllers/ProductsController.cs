@@ -120,7 +120,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "CreateProduct")]
+        [Authorize(Policy = EPermissions.CreateProduct)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateProductCommand command)
         {
@@ -131,7 +131,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Policy = "EditProduct")]
+        [Authorize(Policy = EPermissions.EditProduct)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UpdateProductCommand command)
         {
@@ -167,6 +167,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost("validate-import")]
+        [Authorize(Policy = EPermissions.CreateProduct)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ValidateImport([FromForm] ImportProductsCommand command)
         {
@@ -182,7 +183,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("export")]
-        [Authorize(Policy = "ViewProducts")]
+        [Authorize(Policy = EPermissions.ViewProducts)]
         public async Task<IActionResult> ExportProducts([FromQuery] ExportProductsCommand command)
         {
             var result = await _mediator.Send(command);
