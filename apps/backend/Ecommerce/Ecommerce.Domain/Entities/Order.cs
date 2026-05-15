@@ -213,6 +213,22 @@ namespace Ecommerce.Domain.Entities
             DeliveryInstructions = deliveryInstructions;
         }
 
+        public void ApplyDiscount(string discountCode, decimal discountAmount)
+        {
+            if (string.IsNullOrWhiteSpace(discountCode))
+            {
+                return;
+            }
+
+            if (discountAmount < 0)
+            {
+                throw new DomainException("Số tiền giảm giá không hợp lệ.");
+            }
+
+            DiscountCode = discountCode.Trim();
+            TotalAmount = Math.Max(0, TotalAmount - discountAmount);
+        }
+
         public Order Snapshot()
         {
             return (Order)this.MemberwiseClone();

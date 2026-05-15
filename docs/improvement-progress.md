@@ -26,7 +26,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P0-004 | Remove or protect test/dev controllers. | DONE | `DevelopmentOnlyAttribute.cs`, `TestStorageController.cs`, `WeatherForecastController.cs` | `Phase0AuthorizationTests.cs` | Test/dev controllers now return 404 outside Development. |
 | P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | DONE | `PaymentsController.cs`, `CreatePaymentForOrderCommand*`, `IVnPayService.cs`, `VnPayService.cs`, appsettings production files | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 1A create-url now requires auth and derives amount/orderInfo/txnRef from backend order by `orderId`; client amount/orderInfo are ignored. Guest VNPay payment is intentionally blocked pending a clear guest ownership mechanism. |
 | P1-002 | Make VNPay callbacks/IPN idempotent and update orders/payments consistently. | DONE | `PaymentsController.cs`, `VnPayService.cs`, `PaymentTransaction.cs`, `PaymentCorrectnessTests.cs` | `PaymentCorrectnessTests.cs` | Phase 1B verifies signature before DB writes, uses `PaymentTransactions.TxnRef` as idempotency key, prevents duplicate `Payment`, and keeps invalid/mismatch/failed responses from marking orders paid. Callback logic remains in Application `VnPayService`; moving the gateway adapter remains P4-001. |
-| P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | TODO | Promo handlers/repositories/cart | TBD | Current promo apply increments `TimesUsed` in multiple paths. |
+| P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | DONE | `PromoCodesController.cs`, `ApplyPromoCodeCommandHandler.cs`, `CreateOrderCommandHandler.cs`, `Order.cs`, `CartRepository.cs` | `ApplyPromoCodeCommandHandlerTests.cs`, `CreateOrderCommandHandlerTests.cs` | Phase 1C makes promo apply/preview read-only and increments `TimesUsed` once during valid order creation. No migration added; redemption table and explicit discount amount column are deferred. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | TODO | Product/order/inventory handlers | TBD | Order creation currently decrements `Products.StockQuantity` only. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
 | P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | TODO | Addresses/SearchSuggestions/Wishlist controllers and handlers | TBD | Several endpoints infer/accept user state without endpoint auth attributes. |
@@ -236,6 +236,48 @@ Migration notes:
 | Cart promo paths | `CartRepository.ApplyPromoCodeAsync` increments `validationResult.PromoCode.TimesUsed++` and updates promo in `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/CartRepository.cs:200`; `RefreshCartTotalsAsync` can also increment at `CartRepository.cs:227`. |
 | Naming | Current entity uses `TimesUsed`, not `CurrentUsage`; older `Discount.CurrentUsageCount` also exists. The report risk maps to `TimesUsed` mutation timing. |
 
+### Phase 1C update
+
+Status: DONE for separating promo validation/preview from checkout redemption.
+
+| Area | Before | After |
+| --- | --- | --- |
+| Promo preview endpoint | `POST /api/promo-codes/apply` referenced cart apply behavior at the controller and the DB-backed promo apply handler incremented `TimesUsed` during preview. | Controller now routes to `Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode`. Handler validates and returns preview only; it never calls `CompleteAsync`, transaction APIs, or usage increment SQL. |
+| Preview validation | Existing handler validated active/date/usage through an atomic update side effect. | Preview validates code existence, active state, date range, usage limit, and positive order total without mutating DB. No minimum-order/category/product constraints exist in the current `PromoCode` model. |
+| Cart apply/refresh | `CartRepository.ApplyPromoCodeAsync` and `RecalculateCartTotalsAsync` incremented `TimesUsed`, so cart previews and cart changes could burn usage. | Cart apply/refresh still updates cart discount state but no longer increments promo usage. |
+| Checkout/order redeem | `CreateOrderCommandHandler` accepted `DiscountCode` but did not revalidate or redeem usage during order creation. | Create order calculates subtotal, validates promo server-side, applies discount to order `TotalAmount`, stores `DiscountCode`, and atomically increments `PromoCodes.TimesUsed` once before persisting the order. |
+| Order discount snapshot | `Order` only stored `DiscountCode`; `TotalAmount` remained product subtotal. | `Order.DiscountCode` stores the redeemed code and `TotalAmount` stores the net discounted total. A separate `DiscountAmount` column is not present and is deferred. |
+| Admin/public endpoint | Admin CRUD policies were already applied in Phase 0A. | CRUD remains policy-protected; promo apply/preview is public read/preview behavior because it no longer mutates usage. |
+
+Files changed/audited in Phase 1C:
+
+| File/class/method | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/PromoCodesController.cs` | `ApplyPromoCode` now uses the DB-backed promo preview command and no longer requires auth because it is read-only preview. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/PromoCodes/Commands/ApplyPromoCode/ApplyPromoCodeCommandHandler.cs` | Removed usage increment transaction; added read-only validation and discount calculation helpers. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Orders/Commands/CreateOrder/CreateOrderCommandHandler.cs` | Revalidates promo during order creation, applies net total, and atomically increments `TimesUsed` only after order items are valid. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Entities/Order.cs` | Added `ApplyDiscount` to store `DiscountCode` and update net `TotalAmount`. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/CartRepository.cs` | Removed promo usage increments from cart apply and cart total refresh. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `ApplyPromoCodeCommandHandlerTests.Handle_ValidPromoCode_ReturnsPreviewWithoutIncrementingUsage` | Valid preview returns discount and does not increment usage. |
+| `ApplyPromoCodeCommandHandlerTests.Handle_InvalidPromoCode_ReturnsBadRequestWithoutIncrementingUsage` | Missing promo returns BadRequest and does not mutate usage. |
+| `ApplyPromoCodeCommandHandlerTests.Handle_PromoUsageLimitReached_ReturnsBadRequestWithoutIncrementingUsage` | Usage limit is respected during preview without mutation. |
+| `CreateOrderCommandHandlerTests.Handle_ValidPromoCode_AppliesDiscountAndIncrementsUsageOnce` | Valid order creation applies discount and increments usage once. |
+| `CreateOrderCommandHandlerTests.Handle_PromoUsageLimitReached_ReturnsBadRequestWithoutStockDeduction` | Exhausted promo rejects order before stock deduction/order persistence. |
+| `CreateOrderCommandHandlerTests.Handle_PromoRedeemRaceFails_RestoresStockAndDoesNotPersistOrder` | If promo usage becomes exhausted after stock deduction, checkout restores stock and does not persist the order. |
+
+Migration notes:
+
+| Item | Note |
+| --- | --- |
+| `PromoCodeRedemption` table | Deferred. Current idempotency relies on order creation being a single operation; there is no separate redemption table to guard duplicate redemption by `OrderId`. |
+| `Order.DiscountAmount` column | Deferred. Current snapshot is `Order.DiscountCode` plus net `Order.TotalAmount`; explicit discount amount should be added with a migration in a later pass. |
+| Payment-success redemption | Deferred by business decision. Current implementation redeems on valid order creation, not payment success. If product policy requires paid-only redemption, this should move into payment success handling after a redemption table exists. |
+
 ### Orders, reports, and stock
 
 | Item checked | Finding |
@@ -289,8 +331,11 @@ Migration notes:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests` after Phase 1B | PASS | 9/9 payment integration tests passed, covering success, duplicate, return-before-IPN, invalid signature, amount mismatch, and failed response code. |
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1B | PASS | 0 warnings, 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1B | PASS | Domain 57/57, Application 179/179, WebAPI Integration 29/29, total 265/265. Integration tests took about 7m57s. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter "ApplyPromoCodeCommandHandlerTests\|CreateOrderCommandHandlerTests"` after Phase 1C | PASS | 11/11 targeted promo/order tests passed. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1C | PASS | 0 warnings, 0 errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1C | PASS | Domain 57/57, Application 185/185, WebAPI Integration 29/29, total 271/271. Integration tests took about 7m25s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Implement Phase 1C promo correctness: stop incrementing promo usage during apply/preview, move redeem/usage increment to successful order confirmation, and add tests for apply idempotency and checkout redemption.
+Implement Phase 2 stock/order lifecycle: define stock source of truth for Product, ProductVariantSku, and InventoryItem; then align order create/cancel/return stock transitions with tests.
