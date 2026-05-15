@@ -25,7 +25,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P0-003 | Re-enable or explicitly configure HTTPS redirection/proxy behavior. | DONE | `Program.cs`, `DependencyInjection.cs`, `AddAuthenticationExtensions.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables HTTPS redirection outside Development and requires JWT HTTPS metadata outside Development. |
 | P0-004 | Remove or protect test/dev controllers. | DONE | `DevelopmentOnlyAttribute.cs`, `TestStorageController.cs`, `WeatherForecastController.cs` | `Phase0AuthorizationTests.cs` | Test/dev controllers now return 404 outside Development. |
 | P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | DONE | `PaymentsController.cs`, `CreatePaymentForOrderCommand*`, `IVnPayService.cs`, `VnPayService.cs`, appsettings production files | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 1A create-url now requires auth and derives amount/orderInfo/txnRef from backend order by `orderId`; client amount/orderInfo are ignored. Guest VNPay payment is intentionally blocked pending a clear guest ownership mechanism. |
-| P1-002 | Make VNPay callbacks/IPN idempotent and update orders through Application command boundary. | TODO | `PaymentsController.cs`, `VnPayService.cs` | TBD | IPN delegates to service; callback still lives in `VnPayService`. Do not pre-create `PaymentTransaction` until callback duplicate handling can process existing pending rows. |
+| P1-002 | Make VNPay callbacks/IPN idempotent and update orders/payments consistently. | DONE | `PaymentsController.cs`, `VnPayService.cs`, `PaymentTransaction.cs`, `PaymentCorrectnessTests.cs` | `PaymentCorrectnessTests.cs` | Phase 1B verifies signature before DB writes, uses `PaymentTransactions.TxnRef` as idempotency key, prevents duplicate `Payment`, and keeps invalid/mismatch/failed responses from marking orders paid. Callback logic remains in Application `VnPayService`; moving the gateway adapter remains P4-001. |
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | TODO | Promo handlers/repositories/cart | TBD | Current promo apply increments `TimesUsed` in multiple paths. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | TODO | Product/order/inventory handlers | TBD | Order creation currently decrements `Products.StockQuantity` only. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
@@ -153,7 +153,7 @@ Status: DONE for server-derived VNPay payment URL initiation.
 | Ownership | Create-url was public and did not verify owner. | Authenticated user must match `Order.ApplicationUserId`; other users receive Forbidden. Guest VNPay payment returns Forbidden because guest ownership for payment initiation is not yet safely defined. |
 | Payable state | No server-side payable-state check before generating URL. | Only `EOrderStatus.Pending` orders with positive totals and no successful `Payment` can create a VNPay URL. Paid/processing/cancelled/non-payable orders return BadRequest. |
 | Return URL | `PaymentCallback` redirected to hardcoded `http://localhost:3000`. | `PaymentCallback` reads `AppUrl:Frontend` or `AppUrl` from configuration and returns 500 if frontend URL is missing. `appsettings.Production*.json` now include `AppUrl:Frontend`. |
-| Payment transaction | Create-url did not create pending transaction. | Still intentionally not creating pending transaction in Phase 1A. Current callback uses `INSERT ... ON CONFLICT DO NOTHING` and returns immediately on existing `TxnRef`, so pre-creating pending rows would block real callback processing. Tracked for P1-002. |
+| Payment transaction | Create-url did not create pending transaction. | Phase 1A intentionally deferred pending transaction creation. Phase 1B fixed callback handling for existing pending/terminal `TxnRef`; per-attempt retry references remain a later design item. |
 
 Files audited/changed in Phase 1A:
 
@@ -179,6 +179,53 @@ Tests added/updated:
 | `PaymentCorrectnessTests.Anonymous_CreatePaymentUrl_ReturnsUnauthorized` | Payment URL creation requires auth. |
 | `PaymentCorrectnessTests.Customer_CreatePaymentUrlForOwnOrder_IgnoresClientAmount` | Endpoint ignores client `Amount` and returns URL amount derived from the order. |
 | `PaymentCorrectnessTests.Customer_CreatePaymentUrlForAnotherUsersOrder_ReturnsForbidden` | Endpoint returns 403 for another user's order. |
+
+### Phase 1B update
+
+Status: DONE for VNPay callback/IPN idempotency and consistent transaction/payment/order updates.
+
+State machine and idempotency:
+
+| Item | Current behavior |
+| --- | --- |
+| Idempotency key | `PaymentTransactions.TxnRef`, populated from VNPay `vnp_TxnRef`; current payment initiation uses `Order.Id` as `TxnRef`. |
+| Transaction states | `PaymentTransactionStatus.Pending`, `Success`, `Failed`, and new `Expired`. Enum is stored as int; no schema migration required. |
+| Success state | Valid signature, matching amount, existing order, `vnp_ResponseCode == "00"`, and `Order.Status == Pending` creates at most one successful `Payment`, updates `PaymentTransaction` to `Success`, and moves order to `Processing`. |
+| Duplicate callback/IPN | Existing terminal transaction returns the stored result and does not create another `Payment` or update order again. |
+| Invalid signature | Returns VNPay IPN code `97`; does not create/update `PaymentTransaction`, `Payment`, or `Order`. |
+| Amount mismatch | Marks `PaymentTransaction` as `Failed` with `AMOUNT_MISMATCH`; does not create `Payment` or update order. |
+| Failed VNPay response code | Marks `PaymentTransaction` as `Failed` with the gateway response code; does not create `Payment` or update order. |
+| Expired callback | Marks `PaymentTransaction` as `Expired` with `EXPIRED_CALLBACK`; does not create `Payment` or update order. |
+| Return vs IPN | Both endpoints use the same `VnPayService.PaymentExecuteAsync` path; return-before-IPN and duplicate IPN are idempotent. IPN maps processing outcomes to stable VNPay `RspCode` values. |
+
+Files changed/audited in Phase 1B:
+
+| File/class/method | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/VnPay/VnPayService.cs` | Signature verification now happens before DB writes. Pending transactions are processed, terminal transactions are idempotently returned, success/failure updates are centralized. |
+| `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/PaymentsController.cs` | `PaymentIpn` no longer has update comments; it delegates to service and maps response to VNPay `RspCode`. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Entities/PaymentTransaction.cs` | Added `Expired` status. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/EntityConfigurations/PaymentTransactionConfiguration.cs` | Existing unique index on `TxnRef` confirmed; no new migration needed. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/EntityConfigurations/PaymentConfiguration.cs` | Existing unique index on `Payment.TransactionId` confirmed; duplicate payments are also guarded in service. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `PaymentCorrectnessTests.VnPayIpn_ValidSuccess_UpdatesPaymentTransactionPaymentAndOrder` | Valid signed IPN creates one `Payment`, marks transaction `Success`, and moves order to `Processing`. |
+| `PaymentCorrectnessTests.VnPayIpn_DuplicateValidSuccess_DoesNotCreateDuplicatePayment` | Duplicate valid IPN keeps one payment and stable success state. |
+| `PaymentCorrectnessTests.VnPayReturnBeforeIpn_DuplicateCallback_DoesNotCreateDuplicatePayment` | Return endpoint processing before IPN remains idempotent. |
+| `PaymentCorrectnessTests.VnPayIpn_InvalidSignature_DoesNotUpdatePaymentOrOrder` | Invalid signature creates no transaction/payment and keeps order `Pending`. |
+| `PaymentCorrectnessTests.VnPayIpn_AmountMismatch_MarksTransactionFailedAndDoesNotMarkOrderPaid` | Signed amount mismatch marks transaction failed and keeps order unpaid. |
+| `PaymentCorrectnessTests.VnPayIpn_FailedResponseCode_MarksTransactionFailedAndDoesNotMarkOrderPaid` | Gateway failed response marks transaction failed and keeps order unpaid. |
+
+Migration notes:
+
+| Item | Note |
+| --- | --- |
+| `PaymentTransactions.TxnRef` uniqueness | Already configured as unique in `PaymentTransactionConfiguration`; no migration generated in Phase 1B. Production rollout should pre-check duplicate historical `TxnRef` rows before applying existing/expected unique constraints. |
+| `Payment.TransactionId` uniqueness | Already configured as unique in `PaymentConfiguration`; service checks transaction id and successful order payment before inserting. |
+| Retry model | Current `TxnRef` is order-scoped, so a terminal failed transaction can block retry for the same order. A later payment-attempt model should introduce per-attempt references while still linking to `Order.Id`. |
 
 ### Promo code apply/redeem timing
 
@@ -239,8 +286,11 @@ Tests added/updated:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests` after Phase 1A | PASS | 3/3 payment endpoint integration tests passed. |
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1A | PASS | 0 warnings, 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1A | PASS | Domain 57/57, Application 179/179, WebAPI Integration 23/23, total 259/259. Required a longer timeout because integration tests took about 6m23s. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests` after Phase 1B | PASS | 9/9 payment integration tests passed, covering success, duplicate, return-before-IPN, invalid signature, amount mismatch, and failed response code. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1B | PASS | 0 warnings, 0 errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1B | PASS | Domain 57/57, Application 179/179, WebAPI Integration 29/29, total 265/265. Integration tests took about 7m57s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Implement Phase 1B payment callback/IPN correctness: make VNPay callback idempotency process existing pending transactions safely, move callback order/payment updates behind an Application command boundary, and then enable pending `PaymentTransaction` creation during payment URL initiation.
+Implement Phase 1C promo correctness: stop incrementing promo usage during apply/preview, move redeem/usage increment to successful order confirmation, and add tests for apply idempotency and checkout redemption.

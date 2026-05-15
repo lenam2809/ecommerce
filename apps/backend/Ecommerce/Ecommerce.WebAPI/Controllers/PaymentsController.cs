@@ -1,5 +1,6 @@
 using Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder;
 using Ecommerce.Application.Features.Payments.VnPay;
+using Ecommerce.Application.Features.Payments.VnPay.Dto;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -60,16 +61,26 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpGet("vnpay/ipn")]
         public async Task<IActionResult> PaymentIpn(CancellationToken cancellationToken)
         {
-             // Optional: Handle Server to Server notification
              var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
-             if (response.Success)
-             {
-                 // Update order status in database here
-                 // await _mediator.Send(new UpdateOrderStatusCommand { ... })
-                 return Ok(new { RspCode = "00", Message = "Confirm Success" });
-             }
-             
-             return Ok(new { RspCode = "02", Message = "Order already confirmed" }); // Or error code
+             return Ok(ToVnPayIpnResult(response));
+        }
+
+        private static object ToVnPayIpnResult(PaymentResponseModel response)
+        {
+            if (response.Success)
+            {
+                return new { RspCode = "00", Message = "Confirm Success" };
+            }
+
+            return response.VnPayResponseCode switch
+            {
+                "INVALID_SIGNATURE" => new { RspCode = "97", Message = "Invalid signature" },
+                "ORDER_NOT_FOUND" => new { RspCode = "01", Message = "Order not found" },
+                "AMOUNT_MISMATCH" => new { RspCode = "04", Message = "Invalid amount" },
+                "EXPIRED_CALLBACK" => new { RspCode = "99", Message = "Expired callback" },
+                "ORDER_NOT_PAYABLE" => new { RspCode = "02", Message = "Order not payable" },
+                _ => new { RspCode = "00", Message = "Confirm Success" }
+            };
         }
     }
 
