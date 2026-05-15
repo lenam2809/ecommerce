@@ -19,6 +19,7 @@ public sealed class ProductsEndpointsTests : IDisposable
     {
         _client = _factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
         {
+            BaseAddress = new Uri("https://localhost"),
             AllowAutoRedirect = false,
             HandleCookies = true
         });

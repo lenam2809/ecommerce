@@ -1,5 +1,9 @@
+using Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder;
 using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Application.Features.Payments.VnPay.Dto;
+using Ecommerce.WebAPI.Extensions;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -8,30 +12,48 @@ namespace Ecommerce.WebAPI.Controllers
     [ApiController]
     public class PaymentsController : ControllerBase
     {
+        private readonly IMediator _mediator;
         private readonly IVnPayService _vnPayService;
         private readonly IConfiguration _configuration;
 
-        public PaymentsController(IVnPayService vnPayService, IConfiguration configuration)
+        public PaymentsController(IMediator mediator, IVnPayService vnPayService, IConfiguration configuration)
         {
+            _mediator = mediator;
             _vnPayService = vnPayService;
             _configuration = configuration;
         }
 
         [HttpPost("vnpay/create-url")]
-        public IActionResult CreatePaymentUrl([FromBody] PaymentInformationModel model)
+        [Authorize]
+        public async Task<IActionResult> CreatePaymentUrl([FromBody] CreatePaymentUrlRequest request, CancellationToken cancellationToken)
         {
-            var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
-            return Ok(new { paymentUrl = url });
+            var command = new CreatePaymentForOrderCommand
+            {
+                OrderId = request.OrderId,
+                PaymentMethod = request.PaymentMethod ?? "VNPay",
+                ClientIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            };
+
+            var result = await _mediator.Send(command, cancellationToken);
+            return result.ToActionResult();
         }
 
         [HttpGet("vnpay/return")]
         public async Task<IActionResult> PaymentCallback(CancellationToken cancellationToken)
         {
             var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
-            
-            // Redirect to frontend with status
-            var feBaseUrl = "http://localhost:3000"; // Should come from config
-            var returnUrl = $"{feBaseUrl}/payment/vnpay-return?vnp_ResponseCode={response.VnPayResponseCode}&vnp_TransactionNo={response.TransactionId}&vnp_TxnRef={response.OrderId}&success={response.Success}";
+
+            var feBaseUrl = _configuration["AppUrl:Frontend"] ?? _configuration["AppUrl"];
+            if (string.IsNullOrWhiteSpace(feBaseUrl))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Frontend URL is not configured." });
+            }
+
+            var returnUrl = $"{feBaseUrl.TrimEnd('/')}/payment/vnpay-return" +
+                $"?vnp_ResponseCode={Uri.EscapeDataString(response.VnPayResponseCode)}" +
+                $"&vnp_TransactionNo={Uri.EscapeDataString(response.TransactionId)}" +
+                $"&vnp_TxnRef={Uri.EscapeDataString(response.OrderId)}" +
+                $"&success={response.Success.ToString().ToLowerInvariant()}";
 
             return Redirect(returnUrl);
         }
@@ -39,16 +61,32 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpGet("vnpay/ipn")]
         public async Task<IActionResult> PaymentIpn(CancellationToken cancellationToken)
         {
-             // Optional: Handle Server to Server notification
              var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
-             if (response.Success)
-             {
-                 // Update order status in database here
-                 // await _mediator.Send(new UpdateOrderStatusCommand { ... })
-                 return Ok(new { RspCode = "00", Message = "Confirm Success" });
-             }
-             
-             return Ok(new { RspCode = "02", Message = "Order already confirmed" }); // Or error code
+             return Ok(ToVnPayIpnResult(response));
         }
+
+        private static object ToVnPayIpnResult(PaymentResponseModel response)
+        {
+            if (response.Success)
+            {
+                return new { RspCode = "00", Message = "Confirm Success" };
+            }
+
+            return response.VnPayResponseCode switch
+            {
+                "INVALID_SIGNATURE" => new { RspCode = "97", Message = "Invalid signature" },
+                "ORDER_NOT_FOUND" => new { RspCode = "01", Message = "Order not found" },
+                "AMOUNT_MISMATCH" => new { RspCode = "04", Message = "Invalid amount" },
+                "EXPIRED_CALLBACK" => new { RspCode = "99", Message = "Expired callback" },
+                "ORDER_NOT_PAYABLE" => new { RspCode = "02", Message = "Order not payable" },
+                _ => new { RspCode = "00", Message = "Confirm Success" }
+            };
+        }
+    }
+
+    public class CreatePaymentUrlRequest
+    {
+        public Guid OrderId { get; set; }
+        public string? PaymentMethod { get; set; }
     }
 }

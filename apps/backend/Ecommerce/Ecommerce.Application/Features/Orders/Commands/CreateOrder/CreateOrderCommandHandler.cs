@@ -1,5 +1,7 @@
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Features.Orders.Dto;
+using Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Exceptions;
@@ -45,6 +47,8 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
                         var order = orderContext.Order!;
                         var customerNameForEvent = orderContext.CustomerNameForEvent;
+                        var orderProducts = new List<(CreateOrderItemDto Item, Product Product)>();
+                        PromoRedeemContext? promoRedeemContext = null;
 
                         foreach (var item in request.OrderItems)
                         {
@@ -68,6 +72,21 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                                 item.Color,
                                 item.Size);
 
+                            orderProducts.Add((item, product));
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(request.DiscountCode))
+                        {
+                            promoRedeemContext = await ValidatePromoCodeForOrderAsync(order, request.DiscountCode);
+                            if (promoRedeemContext.ErrorResult != null)
+                            {
+                                return promoRedeemContext.ErrorResult;
+                            }
+                        }
+
+                        var decrementedStockItems = new List<(Guid ProductId, int Quantity)>();
+                        foreach (var (item, product) in orderProducts)
+                        {
                             // B3 FIX: Atomic stock deduction – tránh race condition
                             // SQL UPDATE có điều kiện: chỉ trừ khi StockQuantity >= quantity
                             // Nếu có concurrent request khác đã lấy hết hàng thì rowsAffected = 0
@@ -80,12 +99,24 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             if (rowsAffected == 0)
                             {
                                 // Race condition: sản phẩm hết hàng giữa lúc check và update
+                                await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
                                 _unitOfWork.ClearTracking();
                                 return Result<Guid>.BadRequest($"Không đủ hàng trong kho cho sản phẩm: {product.Name}");
                             }
+
+                            decrementedStockItems.Add((product.Id, item.Quantity));
                             // Stock đã được update bởi SQL trực tiếp, không cần gọi Products.Update()
                             // để tránh EF ghi đè lại giá trị cũ khi SaveChanges
 
+                        }
+
+                        if (promoRedeemContext?.PromoCode != null)
+                        {
+                            var promoRedeemResult = await RedeemPromoCodeAsync(order, promoRedeemContext, decrementedStockItems, cancellationToken);
+                            if (promoRedeemResult != null)
+                            {
+                                return promoRedeemResult;
+                            }
                         }
 
                         order.FinalizeCreation(customerNameForEvent);
@@ -152,7 +183,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     request.Email ?? customer.Email,
                     request.Phone,
                     request.ShippingAddress,
-                    request.DiscountCode,
+                    null,
                     request.DeliveryInstructions,
                     request.ExpectedDeliveryDate);
 
@@ -165,12 +196,64 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 guestName,
                 request.Phone,
                 request.ShippingAddress,
-                request.DiscountCode,
+                null,
                 request.DeliveryInstructions,
                 request.ExpectedDeliveryDate,
                 string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim());
 
             return CreateOrderContext.WithOrder(guestOrder, guestName);
+        }
+
+        private async Task<PromoRedeemContext> ValidatePromoCodeForOrderAsync(Order order, string discountCode)
+        {
+            var promoCode = await _unitOfWork.PromoCodes.GetByCodeAsync(discountCode);
+            var validationError = ApplyPromoCodeCommandHandler.ValidatePromoCode(promoCode, order.TotalAmount, DateTime.UtcNow);
+            if (validationError != null)
+            {
+                return PromoRedeemContext.WithError(Result<Guid>.BadRequest(validationError));
+            }
+
+            var (discountAmount, _) = ApplyPromoCodeCommandHandler.CalculateDiscount(promoCode!, order.TotalAmount);
+            return PromoRedeemContext.Valid(promoCode!, discountAmount);
+        }
+
+        private async Task<Result<Guid>?> RedeemPromoCodeAsync(
+            Order order,
+            PromoRedeemContext promoRedeemContext,
+            List<(Guid ProductId, int Quantity)> decrementedStockItems,
+            CancellationToken cancellationToken)
+        {
+            var rowsAffected = await _unitOfWork.BaseRepository<PromoCode>().ExecuteCommandAsync(
+                "UPDATE \"PromoCodes\" " +
+                "SET \"TimesUsed\" = \"TimesUsed\" + 1 " +
+                "WHERE \"Code\" = {0} " +
+                "AND \"IsActive\" = TRUE " +
+                "AND \"ValidFrom\" <= {1} " +
+                "AND \"ValidTo\" >= {1} " +
+                "AND (\"UsageLimit\" = 0 OR \"TimesUsed\" < \"UsageLimit\")",
+                [promoRedeemContext.PromoCode!.Code, DateTime.UtcNow],
+                cancellationToken);
+
+            if (rowsAffected == 0)
+            {
+                await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                _unitOfWork.ClearTracking();
+                return Result<Guid>.BadRequest("Mã giảm giá không hợp lệ hoặc đã đạt giới hạn sử dụng");
+            }
+
+            order.ApplyDiscount(promoRedeemContext.PromoCode.Code, promoRedeemContext.DiscountAmount);
+            return null;
+        }
+
+        private async Task RestoreDecrementedStockAsync(List<(Guid ProductId, int Quantity)> decrementedStockItems, CancellationToken cancellationToken)
+        {
+            foreach (var (productId, quantity) in decrementedStockItems)
+            {
+                await _unitOfWork.BaseRepository<Product>().ExecuteCommandAsync(
+                    "UPDATE \"Products\" SET \"StockQuantity\" = \"StockQuantity\" + {0} WHERE \"Id\" = {1}",
+                    [quantity, productId],
+                    cancellationToken);
+            }
         }
 
         private sealed class CreateOrderContext
@@ -183,6 +266,19 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 new() { Order = order, CustomerNameForEvent = customerName };
 
             public static CreateOrderContext WithError(Result<Guid> errorResult) =>
+                new() { ErrorResult = errorResult };
+        }
+
+        private sealed class PromoRedeemContext
+        {
+            public PromoCode? PromoCode { get; private init; }
+            public decimal DiscountAmount { get; private init; }
+            public Result<Guid>? ErrorResult { get; private init; }
+
+            public static PromoRedeemContext Valid(PromoCode promoCode, decimal discountAmount) =>
+                new() { PromoCode = promoCode, DiscountAmount = discountAmount };
+
+            public static PromoRedeemContext WithError(Result<Guid> errorResult) =>
                 new() { ErrorResult = errorResult };
         }
     }

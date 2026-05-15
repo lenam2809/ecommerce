@@ -26,6 +26,11 @@ namespace Ecommerce.Application.Features.Payments.VnPay
 
         public string CreatePaymentUrl(PaymentInformationModel model, HttpContext context)
         {
+            return CreatePaymentUrl(model, Utils.GetIpAddress(context));
+        }
+
+        public string CreatePaymentUrl(PaymentInformationModel model, string clientIpAddress)
+        {
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
             var pay = new VnPayLibrary();
@@ -37,7 +42,7 @@ namespace Ecommerce.Application.Features.Payments.VnPay
             pay.AddRequestData("vnp_Amount", ((int)model.Amount * 100).ToString());
             pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             pay.AddRequestData("vnp_CurrCode", "VND");
-            pay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));
+            pay.AddRequestData("vnp_IpAddr", string.IsNullOrWhiteSpace(clientIpAddress) ? "127.0.0.1" : clientIpAddress);
             pay.AddRequestData("vnp_Locale", "vn");
             pay.AddRequestData("vnp_OrderInfo", $"{model.Name} {model.OrderDescription} {model.Amount}");
             pay.AddRequestData("vnp_OrderType", model.OrderType);
@@ -59,6 +64,13 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                 return callback;
             }
 
+            if (!callback.SignatureValid)
+            {
+                callback.Success = false;
+                callback.VnPayResponseCode = "INVALID_SIGNATURE";
+                return callback;
+            }
+
             var startedLocalTransaction = false;
             try
             {
@@ -69,46 +81,23 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                 }
 
                 var paymentTransactionsRepo = _unitOfWork.BaseRepository<PaymentTransaction>();
-                var nowUtc = DateTime.UtcNow;
-
-                var inserted = await paymentTransactionsRepo.ExecuteCommandAsync(
-                    "INSERT INTO \"PaymentTransactions\" (\"Id\", \"TxnRef\", \"Amount\", \"Status\", \"ResponseCode\", \"CreatedAt\", \"IsDeleted\", \"ConcurrencyToken\") " +
-                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, FALSE, {6}) " +
-                    "ON CONFLICT (\"TxnRef\") DO NOTHING",
-                    [Guid.NewGuid(), callback.TxnRef, callback.Amount, (int)PaymentTransactionStatus.Pending, callback.VnPayResponseCode, nowUtc, Guid.NewGuid().ToByteArray()],
-                    cancellationToken);
-
-                if (inserted == 0)
+                var transaction = await GetOrCreatePendingTransactionAsync(paymentTransactionsRepo, callback, cancellationToken);
+                if (transaction != null && transaction.Status != PaymentTransactionStatus.Pending)
                 {
-                    var existing = await paymentTransactionsRepo.FirstOrDefaultAsync(x => x.TxnRef == callback.TxnRef, cancellationToken);
                     if (startedLocalTransaction)
                     {
                         await _unitOfWork.CommitTransactionAsync(cancellationToken);
                     }
 
-                    return existing == null ? callback : MapFromExisting(callback, existing);
+                    return MapFromExisting(callback, transaction);
                 }
 
                 var order = await ResolveOrderFromTxnRef(callback.TxnRef, cancellationToken);
                 if (order == null)
                 {
-                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "ORDER_NOT_FOUND", cancellationToken);
+                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "ORDER_NOT_FOUND", callback.Amount, cancellationToken);
                     callback.Success = false;
                     callback.VnPayResponseCode = "ORDER_NOT_FOUND";
-
-                    if (startedLocalTransaction)
-                    {
-                        await _unitOfWork.CommitTransactionAsync(cancellationToken);
-                    }
-
-                    return callback;
-                }
-
-                if (!callback.SignatureValid)
-                {
-                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "INVALID_SIGNATURE", cancellationToken);
-                    callback.Success = false;
-                    callback.VnPayResponseCode = "INVALID_SIGNATURE";
 
                     if (startedLocalTransaction)
                     {
@@ -129,7 +118,7 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                     var createDateUtc = TimeZoneInfo.ConvertTimeToUtc(createDateLocal, vnTimeZone);
                     if (DateTime.UtcNow - createDateUtc > MaxCallbackAge)
                     {
-                        await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "EXPIRED_CALLBACK", cancellationToken);
+                        await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Expired, "EXPIRED_CALLBACK", callback.Amount, cancellationToken);
                         callback.Success = false;
                         callback.VnPayResponseCode = "EXPIRED_CALLBACK";
 
@@ -144,7 +133,7 @@ namespace Ecommerce.Application.Features.Payments.VnPay
 
                 if (order.TotalAmount != callback.Amount)
                 {
-                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "AMOUNT_MISMATCH", cancellationToken);
+                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "AMOUNT_MISMATCH", callback.Amount, cancellationToken);
                     callback.Success = false;
                     callback.VnPayResponseCode = "AMOUNT_MISMATCH";
 
@@ -158,8 +147,26 @@ namespace Ecommerce.Application.Features.Payments.VnPay
 
                 if (callback.VnPayResponseCode == "00")
                 {
+                    if (order.Status != EOrderStatus.Pending)
+                    {
+                        await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, "ORDER_NOT_PAYABLE", callback.Amount, cancellationToken);
+                        callback.Success = false;
+                        callback.VnPayResponseCode = "ORDER_NOT_PAYABLE";
+
+                        if (startedLocalTransaction)
+                        {
+                            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                        }
+
+                        return callback;
+                    }
+
+                    var gatewayTransactionId = string.IsNullOrWhiteSpace(callback.TransactionId)
+                        ? callback.TxnRef
+                        : callback.TransactionId;
+
                     var paymentExists = await _unitOfWork.BaseRepository<Payment>()
-                        .AnyAsync(x => x.TransactionId == callback.TransactionId, cancellationToken);
+                        .AnyAsync(x => x.TransactionId == gatewayTransactionId || (x.OrderId == order.Id && x.IsSuccessful), cancellationToken);
 
                     if (!paymentExists)
                     {
@@ -169,7 +176,7 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                             OrderId = order.Id,
                             Amount = callback.Amount,
                             PaymentMethod = EPaymentMethod.VNPay,
-                            TransactionId = string.IsNullOrWhiteSpace(callback.TransactionId) ? callback.TxnRef : callback.TransactionId,
+                            TransactionId = gatewayTransactionId,
                             PaymentDate = DateTime.UtcNow,
                             IsSuccessful = true
                         };
@@ -183,12 +190,12 @@ namespace Ecommerce.Application.Features.Payments.VnPay
                         _unitOfWork.Orders.Update(order);
                     }
 
-                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Success, callback.VnPayResponseCode, cancellationToken);
+                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Success, callback.VnPayResponseCode, callback.Amount, cancellationToken);
                     callback.Success = true;
                 }
                 else
                 {
-                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, callback.VnPayResponseCode, cancellationToken);
+                    await UpdatePaymentTransactionStatus(paymentTransactionsRepo, callback.TxnRef, PaymentTransactionStatus.Failed, callback.VnPayResponseCode, callback.Amount, cancellationToken);
                     callback.Success = false;
                 }
 
@@ -228,16 +235,39 @@ namespace Ecommerce.Application.Features.Payments.VnPay
             return await orderRepo.FirstOrDefaultAsync(o => o.Code == txnRef, cancellationToken);
         }
 
+        private async Task<PaymentTransaction?> GetOrCreatePendingTransactionAsync(
+            Ecommerce.Domain.Interfaces.Base.IRepository<PaymentTransaction> repository,
+            PaymentResponseModel callback,
+            CancellationToken cancellationToken)
+        {
+            var existing = await repository.FirstOrDefaultAsync(x => x.TxnRef == callback.TxnRef, cancellationToken);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var nowUtc = DateTime.UtcNow;
+            await repository.ExecuteCommandAsync(
+                "INSERT INTO \"PaymentTransactions\" (\"Id\", \"TxnRef\", \"Amount\", \"Status\", \"ResponseCode\", \"CreatedAt\", \"IsDeleted\", \"ConcurrencyToken\") " +
+                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, FALSE, {6}) " +
+                "ON CONFLICT (\"TxnRef\") DO NOTHING",
+                [Guid.NewGuid(), callback.TxnRef, callback.Amount, (int)PaymentTransactionStatus.Pending, callback.VnPayResponseCode, nowUtc, Guid.NewGuid().ToByteArray()],
+                cancellationToken);
+
+            return await repository.FirstOrDefaultAsync(x => x.TxnRef == callback.TxnRef, cancellationToken);
+        }
+
         private async Task UpdatePaymentTransactionStatus(
             Ecommerce.Domain.Interfaces.Base.IRepository<PaymentTransaction> repository,
             string txnRef,
             PaymentTransactionStatus status,
             string responseCode,
+            decimal amount,
             CancellationToken cancellationToken)
         {
             await repository.ExecuteCommandAsync(
-                "UPDATE \"PaymentTransactions\" SET \"Status\" = {0}, \"ResponseCode\" = {1} WHERE \"TxnRef\" = {2}",
-                [(int)status, responseCode, txnRef],
+                "UPDATE \"PaymentTransactions\" SET \"Status\" = {0}, \"ResponseCode\" = {1}, \"Amount\" = {2}, \"UpdatedAt\" = {3} WHERE \"TxnRef\" = {4}",
+                [(int)status, responseCode, amount, DateTime.UtcNow, txnRef],
                 cancellationToken);
         }
 

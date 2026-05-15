@@ -1,7 +1,6 @@
 ﻿using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
-using Ecommerce.Domain.Interfaces.Base;
 using Ecommerce.Infrastructure.Persistence.Repositories.Base;
 using Ecommerce.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +10,12 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
     public class CartRepository : BaseRepository<Cart>, ICartRepository
     {
         private readonly PromoCodeService _promoCodeService;
-        private readonly IRepository<PromoCode> _promoCodeRepository;
 
 
-        public CartRepository(ApplicationDbContext context, PromoCodeService promoCodeService, IRepository<PromoCode> promoCodeRepository)
+        public CartRepository(ApplicationDbContext context, PromoCodeService promoCodeService)
             : base(context)
         {
             _promoCodeService = promoCodeService;
-            _promoCodeRepository = promoCodeRepository;
         }
 
         public async Task<Cart> GetCartAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -196,10 +193,6 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 // Apply promo code effects using Domain Method
                 cart.ApplyPromoCode(code, validationResult.DiscountAmount);
 
-                // Update promo code usage
-                validationResult.PromoCode.TimesUsed++;
-                _promoCodeRepository.Update(validationResult.PromoCode);
-
                 await SaveChangesAsync(cancellationToken);
                 return cart;
             }
@@ -221,11 +214,6 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 if (validationResult.IsValid)
                 {
                     cart.ApplyPromoCode(cart.PromoCode, validationResult.DiscountAmount);
-
-                    // Update usage count? Maybe not here, as it might double count on every add? 
-                    // Keeping it simple as per previous logic (it updated usage in RecalculateCartTotalsAsync? Yes, it did. That seems buggy but I will match it).
-                    validationResult.PromoCode.TimesUsed++;
-                    _promoCodeRepository.Update(validationResult.PromoCode);
                 }
                 else
                 {

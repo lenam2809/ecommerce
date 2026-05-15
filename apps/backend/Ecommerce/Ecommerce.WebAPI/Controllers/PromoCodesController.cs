@@ -1,5 +1,5 @@
 ﻿using Ecommerce.Application.Common.Models;
-using Ecommerce.Application.Features.Cart.Commands.ApplyPromoCode;
+using Ecommerce.Application.Features.PromoCodes.Commands.ApplyPromoCode;
 using Ecommerce.Application.Features.PromoCodes.Commands.CreatePromoCode;
 using Ecommerce.Application.Features.PromoCodes.Commands.DeletePromoCode;
 using Ecommerce.Application.Features.PromoCodes.Commands.UpdatePromoCode;
@@ -78,7 +78,6 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost("apply")]
-        [Authorize]
         public async Task<IActionResult> ApplyPromoCode([FromBody] ApplyPromoCodeCommand command)
         {
             var result = await _mediator.Send(command);

@@ -17,14 +17,17 @@ namespace Ecommerce.WebAPI.IntegrationTests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private readonly bool _enableCsrfProtection;
     private readonly string _databasePath = Path.Combine(
         Path.GetTempPath(),
         "ecommerce-integration-tests",
         $"{Guid.NewGuid():N}.db");
     private readonly Dictionary<string, string?> _previousEnvironmentValues = new();
 
-    public CustomWebApplicationFactory()
+    public CustomWebApplicationFactory(bool enableCsrfProtection = false)
     {
+        _enableCsrfProtection = enableCsrfProtection;
+
         SetEnvironmentVariable("ConnectionStrings__DefaultConnection", $"Data Source={_databasePath}");
         SetEnvironmentVariable("Jwt__SecretKey", "integration-test-secret-key-with-more-than-32-chars");
         SetEnvironmentVariable("Jwt__Issuer", "Ecommerce.IntegrationTests");
@@ -33,13 +36,20 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         SetEnvironmentVariable("AuthConfig__UseCookieAuth", "true");
         SetEnvironmentVariable("AuthConfig__AllowHeaderFallback", "true");
         SetEnvironmentVariable("AuthConfig__IncludeTokensInResponse", "true");
-        SetEnvironmentVariable("AuthConfig__EnableCsrfProtection", "false");
+        SetEnvironmentVariable("AuthConfig__EnableCsrfProtection", _enableCsrfProtection.ToString());
+        SetEnvironmentVariable("ASPNETCORE_HTTPS_PORT", "443");
         SetEnvironmentVariable("Auth__TokenHashSecret", "integration-test-refresh-token-hash-secret");
         SetEnvironmentVariable("Elasticsearch__UseElasticsearch", "false");
         SetEnvironmentVariable("CacheSettings__UseRedis", "false");
         SetEnvironmentVariable("Redis__ConnectionString", "localhost:6379");
         SetEnvironmentVariable("Observability__OtlpEndpoint", "http://localhost:4317");
         SetEnvironmentVariable("Email__Smtp__Host", string.Empty);
+        SetEnvironmentVariable("AppUrl__Frontend", "https://frontend.test");
+        SetEnvironmentVariable("VnPay__TmnCode", "TESTTMNCODE");
+        SetEnvironmentVariable("VnPay__HashSecret", "integration-test-vnpay-hash-secret");
+        SetEnvironmentVariable("VnPay__BaseUrl", "https://vnpay.test/payment");
+        SetEnvironmentVariable("VnPay__ReturnUrl", "https://api.test/api/payments/vnpay/return");
+        SetEnvironmentVariable("VnPay__Version", "2.1.0");
     }
 
     public IServiceScope CreateScope()
@@ -63,13 +73,20 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["AuthConfig:UseCookieAuth"] = "true",
                 ["AuthConfig:AllowHeaderFallback"] = "true",
                 ["AuthConfig:IncludeTokensInResponse"] = "true",
-                ["AuthConfig:EnableCsrfProtection"] = "false",
+                ["AuthConfig:EnableCsrfProtection"] = _enableCsrfProtection.ToString(),
+                ["ASPNETCORE_HTTPS_PORT"] = "443",
                 ["Auth:TokenHashSecret"] = "integration-test-refresh-token-hash-secret",
                 ["Elasticsearch:UseElasticsearch"] = "false",
                 ["CacheSettings:UseRedis"] = "false",
                 ["Redis:ConnectionString"] = "localhost:6379",
                 ["Observability:OtlpEndpoint"] = "http://localhost:4317",
-                ["Email:Smtp:Host"] = ""
+                ["Email:Smtp:Host"] = "",
+                ["AppUrl:Frontend"] = "https://frontend.test",
+                ["VnPay:TmnCode"] = "TESTTMNCODE",
+                ["VnPay:HashSecret"] = "integration-test-vnpay-hash-secret",
+                ["VnPay:BaseUrl"] = "https://vnpay.test/payment",
+                ["VnPay:ReturnUrl"] = "https://api.test/api/payments/vnpay/return",
+                ["VnPay:Version"] = "2.1.0"
             });
         });
 
