@@ -26,6 +26,11 @@ namespace Ecommerce.Application.Features.Payments.VnPay
 
         public string CreatePaymentUrl(PaymentInformationModel model, HttpContext context)
         {
+            return CreatePaymentUrl(model, Utils.GetIpAddress(context));
+        }
+
+        public string CreatePaymentUrl(PaymentInformationModel model, string clientIpAddress)
+        {
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
             var pay = new VnPayLibrary();
@@ -37,7 +42,7 @@ namespace Ecommerce.Application.Features.Payments.VnPay
             pay.AddRequestData("vnp_Amount", ((int)model.Amount * 100).ToString());
             pay.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
             pay.AddRequestData("vnp_CurrCode", "VND");
-            pay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));
+            pay.AddRequestData("vnp_IpAddr", string.IsNullOrWhiteSpace(clientIpAddress) ? "127.0.0.1" : clientIpAddress);
             pay.AddRequestData("vnp_Locale", "vn");
             pay.AddRequestData("vnp_OrderInfo", $"{model.Name} {model.OrderDescription} {model.Amount}");
             pay.AddRequestData("vnp_OrderType", model.OrderType);

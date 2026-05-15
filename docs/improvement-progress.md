@@ -9,7 +9,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | Phase | Name | Goal | Status |
 | --- | --- | --- | --- |
 | Phase 0 | Critical security hardening | Lock down public mutations/admin endpoints, production Swagger/test endpoints, HTTPS, and obvious dev surfaces. | IN_PROGRESS |
-| Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | TODO |
+| Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | IN_PROGRESS |
 | Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | TODO |
 | Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | TODO |
 | Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | TODO |
@@ -24,8 +24,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P0-002 | Gate Swagger/UI by environment or config. | DONE | `apps/backend/Ecommerce/Ecommerce.WebAPI/Program.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables Swagger/UI only in Development. |
 | P0-003 | Re-enable or explicitly configure HTTPS redirection/proxy behavior. | DONE | `Program.cs`, `DependencyInjection.cs`, `AddAuthenticationExtensions.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables HTTPS redirection outside Development and requires JWT HTTPS metadata outside Development. |
 | P0-004 | Remove or protect test/dev controllers. | DONE | `DevelopmentOnlyAttribute.cs`, `TestStorageController.cs`, `WeatherForecastController.cs` | `Phase0AuthorizationTests.cs` | Test/dev controllers now return 404 outside Development. |
-| P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | TODO | `PaymentsController.cs`, `VnPayService.cs`, payment commands | TBD | Current create-url accepts amount and order id from request body. |
-| P1-002 | Make VNPay callbacks/IPN idempotent and update orders through Application command boundary. | TODO | `PaymentsController.cs`, `VnPayService.cs` | TBD | IPN delegates to service; create-url and service use Web types in Application. |
+| P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | DONE | `PaymentsController.cs`, `CreatePaymentForOrderCommand*`, `IVnPayService.cs`, `VnPayService.cs`, appsettings production files | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 1A create-url now requires auth and derives amount/orderInfo/txnRef from backend order by `orderId`; client amount/orderInfo are ignored. Guest VNPay payment is intentionally blocked pending a clear guest ownership mechanism. |
+| P1-002 | Make VNPay callbacks/IPN idempotent and update orders through Application command boundary. | TODO | `PaymentsController.cs`, `VnPayService.cs` | TBD | IPN delegates to service; callback still lives in `VnPayService`. Do not pre-create `PaymentTransaction` until callback duplicate handling can process existing pending rows. |
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | TODO | Promo handlers/repositories/cart | TBD | Current promo apply increments `TimesUsed` in multiple paths. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | TODO | Product/order/inventory handlers | TBD | Order creation currently decrements `Products.StockQuantity` only. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
@@ -142,6 +142,44 @@ The following controllers have POST/PUT/PATCH/DELETE actions without controller/
 | Web dependencies in Application | `IVnPayService` and `VnPayService` depend on `Microsoft.AspNetCore.Http.HttpContext` and `IQueryCollection` in `IVnPayService.cs:8` and `VnPayService.cs:27`. |
 | Callback/IPN | `PaymentsController.PaymentCallback` redirects to hardcoded `http://localhost:3000`; `PaymentIpn` calls `PaymentExecuteAsync` and returns VNPay-style response, while order update logic is inside `VnPayService` rather than an Application payment command boundary. |
 
+### Phase 1A update
+
+Status: DONE for server-derived VNPay payment URL initiation.
+
+| Area | Before | After |
+| --- | --- | --- |
+| API contract | `POST /api/Payments/vnpay/create-url` accepted `PaymentInformationModel` with client-supplied `Amount`, `OrderDescription`, `Name`, `OrderType`, and `OrderId`. | Endpoint now accepts `CreatePaymentUrlRequest` with `OrderId` and optional `PaymentMethod`; extra legacy fields are ignored by model binding. Endpoint requires `[Authorize]`. |
+| Amount/order info | VNPay request amount and order info came directly from client request body. | `CreatePaymentForOrderCommandHandler` loads `Order`, derives `Amount` from `Order.TotalAmount`, builds order description from `Order.Code`, and uses `Order.Id` as `TxnRef`. |
+| Ownership | Create-url was public and did not verify owner. | Authenticated user must match `Order.ApplicationUserId`; other users receive Forbidden. Guest VNPay payment returns Forbidden because guest ownership for payment initiation is not yet safely defined. |
+| Payable state | No server-side payable-state check before generating URL. | Only `EOrderStatus.Pending` orders with positive totals and no successful `Payment` can create a VNPay URL. Paid/processing/cancelled/non-payable orders return BadRequest. |
+| Return URL | `PaymentCallback` redirected to hardcoded `http://localhost:3000`. | `PaymentCallback` reads `AppUrl:Frontend` or `AppUrl` from configuration and returns 500 if frontend URL is missing. `appsettings.Production*.json` now include `AppUrl:Frontend`. |
+| Payment transaction | Create-url did not create pending transaction. | Still intentionally not creating pending transaction in Phase 1A. Current callback uses `INSERT ... ON CONFLICT DO NOTHING` and returns immediately on existing `TxnRef`, so pre-creating pending rows would block real callback processing. Tracked for P1-002. |
+
+Files audited/changed in Phase 1A:
+
+| File/class/method | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/PaymentsController.cs` | `CreatePaymentUrl` now maps request to `CreatePaymentForOrderCommand`; callback frontend redirect no longer hardcodes localhost. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/Commands/CreatePaymentForOrder/CreatePaymentForOrderCommandHandler.cs` | New ownership, payable-state, amount, successful-payment, and VNPay URL initiation checks. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/VnPay/IVnPayService.cs` | Added overload accepting primitive client IP string so the Application handler does not need `HttpContext`. Existing Web-dependent overload remains for compatibility and is tracked under P4-001. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/VnPay/VnPayService.cs` | New overload builds VNPay request from backend-derived `PaymentInformationModel` and supplied IP string. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Entities/Order.cs` | Audited `ApplicationUserId`, `GuestId`, `TotalAmount`, and `Status` behavior. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Entities/PaymentTransaction.cs` and `PaymentTransactionConfiguration.cs` | Audited unique `TxnRef`; found pre-created pending transactions are unsafe until callback idempotency is fixed. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Identity/CurrentUserService.cs` | Audited current user and `X-Guest-ID` availability; guest payment ownership remains TODO/BLOCKED. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `CreatePaymentForOrderCommandHandlerTests.Handle_UserCreatesPaymentForOwnPendingOrder_UsesServerDerivedAmount` | Own pending order succeeds and VNPay model amount comes from `Order.TotalAmount`. |
+| `CreatePaymentForOrderCommandHandlerTests.Handle_UserCreatesPaymentForAnotherUsersOrder_ReturnsForbidden` | Cross-user payment initiation is forbidden. |
+| `CreatePaymentForOrderCommandHandlerTests.Handle_OrderNotInPayableState_ReturnsBadRequest` | Processing/cancelled orders are rejected. |
+| `CreatePaymentForOrderCommandHandlerTests.Handle_GuestOrder_ReturnsForbidden` | Guest VNPay payment initiation is blocked until safe guest ownership is designed. |
+| `CreatePaymentForOrderCommandHandlerTests.Handle_OrderAlreadyHasSuccessfulPayment_ReturnsBadRequest` | Orders with an existing successful payment are rejected. |
+| `PaymentCorrectnessTests.Anonymous_CreatePaymentUrl_ReturnsUnauthorized` | Payment URL creation requires auth. |
+| `PaymentCorrectnessTests.Customer_CreatePaymentUrlForOwnOrder_IgnoresClientAmount` | Endpoint ignores client `Amount` and returns URL amount derived from the order. |
+| `PaymentCorrectnessTests.Customer_CreatePaymentUrlForAnotherUsersOrder_ReturnsForbidden` | Endpoint returns 403 for another user's order. |
+
 ### Promo code apply/redeem timing
 
 | Item checked | Finding |
@@ -197,8 +235,12 @@ The following controllers have POST/PUT/PATCH/DELETE actions without controller/
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 0B | PASS | 0 warnings, 0 errors on the post-change build run. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build` after Phase 0B | PASS | 20/20 integration tests passed, including Swagger, HTTPS redirect, and CSRF coverage. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 0B | PASS | Domain 57/57, Application 173/173, WebAPI Integration 20/20, total 250/250. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter CreatePaymentForOrderCommandHandlerTests` after Phase 1A | PASS | 6/6 payment command handler tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests` after Phase 1A | PASS | 3/3 payment endpoint integration tests passed. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1A | PASS | 0 warnings, 0 errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1A | PASS | Domain 57/57, Application 179/179, WebAPI Integration 23/23, total 259/259. Required a longer timeout because integration tests took about 6m23s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Implement Phase 0 security hardening only: add explicit authorization policies to public admin/content mutation endpoints, gate Swagger to Development/config, decide HTTPS redirection behavior behind proxy, and remove or protect test/dev controllers. Keep behavior-compatible tests and do not touch payment/promo/stock logic yet.
+Implement Phase 1B payment callback/IPN correctness: make VNPay callback idempotency process existing pending transactions safely, move callback order/payment updates behind an Application command boundary, and then enable pending `PaymentTransaction` creation during payment URL initiation.
