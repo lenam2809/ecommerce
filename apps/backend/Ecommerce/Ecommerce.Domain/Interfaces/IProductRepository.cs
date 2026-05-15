@@ -36,6 +36,9 @@ namespace Ecommerce.Domain.Interfaces
         Task ClearSizeAsync(Guid productId, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<Product>> GetProductsByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
+
+        Task<bool> TryDecrementStockAsync(Guid productId, int quantity, CancellationToken cancellationToken = default);
+        Task RestoreStockAsync(Guid productId, int quantity, CancellationToken cancellationToken = default);
     }
 }
 

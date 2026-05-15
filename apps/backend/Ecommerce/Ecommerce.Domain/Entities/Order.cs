@@ -121,9 +121,23 @@ namespace Ecommerce.Domain.Entities
             };
         }
 
-        public void AddOrderItem(Guid productId, string name, string image, decimal unitPrice, int quantity, string? color, string? size)
+        public void AddOrderItem(
+            Guid productId,
+            string name,
+            string image,
+            decimal unitPrice,
+            int quantity,
+            string? color,
+            string? size,
+            Guid? productVariantSkuId = null,
+            string? skuCode = null,
+            string? variantInfo = null)
         {
-            var existingItem = _orderItems.FirstOrDefault(i => i.ProductId == productId && i.Color == color && i.Size == size);
+            var existingItem = _orderItems.FirstOrDefault(i =>
+                i.ProductId == productId &&
+                i.ProductVariantSkuId == productVariantSkuId &&
+                i.Color == (color ?? string.Empty) &&
+                i.Size == (size ?? string.Empty));
             if (existingItem != null)
             {
                 existingItem.AddQuantity(quantity);
@@ -138,7 +152,10 @@ namespace Ecommerce.Domain.Entities
                     unitPrice,
                     quantity,
                     color,
-                    size
+                    size,
+                    productVariantSkuId,
+                    skuCode,
+                    variantInfo
                 );
                 _orderItems.Add(item);
             }

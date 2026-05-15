@@ -8,5 +8,7 @@ namespace Ecommerce.Domain.Interfaces
         Task<ProductVariantSku?> GetBySkuAsync(string sku, CancellationToken ct = default);
         Task<IReadOnlyList<ProductVariantSku>> GetByProductIdAsync(Guid productId, CancellationToken ct = default);
         Task<ProductVariantSku?> GetWithInventoryAsync(Guid skuId, CancellationToken ct = default);
+        Task<bool> TryDecrementStockAsync(Guid skuId, Guid productId, int quantity, CancellationToken ct = default);
+        Task RestoreStockAsync(Guid skuId, int quantity, CancellationToken ct = default);
     }
 }

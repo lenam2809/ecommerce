@@ -47,32 +47,41 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
                         var order = orderContext.Order!;
                         var customerNameForEvent = orderContext.CustomerNameForEvent;
-                        var orderProducts = new List<(CreateOrderItemDto Item, Product Product)>();
+                        var stockItems = new List<OrderStockItem>();
                         PromoRedeemContext? promoRedeemContext = null;
 
                         foreach (var item in request.OrderItems)
                         {
+                            if (item.Quantity <= 0)
+                            {
+                                return Result<Guid>.BadRequest("Số lượng phải lớn hơn 0");
+                            }
+
                             var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId, cancellationToken);
                             if (product == null)
                             {
                                 return Result<Guid>.BadRequest($"Khong tim thay san pham voi ID {item.ProductId}");
                             }
 
-                            if (product.StockQuantity < item.Quantity)
+                            var stockItem = await ResolveOrderStockItemAsync(item, product, cancellationToken);
+                            if (stockItem.ErrorResult != null)
                             {
-                                return Result<Guid>.BadRequest($"Khong du hang trong kho cho san pham: {product.Name}");
+                                return stockItem.ErrorResult;
                             }
 
                             order.AddOrderItem(
                                 product.Id,
                                 product.Name,
                                 product.Image,
-                                product.SalePrice.HasValue && product.SalePrice.Value > 0 ? product.SalePrice.Value : product.Price,
+                                stockItem.UnitPrice,
                                 item.Quantity,
                                 item.Color,
-                                item.Size);
+                                item.Size,
+                                stockItem.ProductVariantSkuId,
+                                stockItem.SkuCode,
+                                stockItem.VariantInfo);
 
-                            orderProducts.Add((item, product));
+                            stockItems.Add(stockItem);
                         }
 
                         if (!string.IsNullOrWhiteSpace(request.DiscountCode))
@@ -84,30 +93,18 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             }
                         }
 
-                        var decrementedStockItems = new List<(Guid ProductId, int Quantity)>();
-                        foreach (var (item, product) in orderProducts)
+                        var decrementedStockItems = new List<OrderStockItem>();
+                        foreach (var stockItem in stockItems)
                         {
-                            // B3 FIX: Atomic stock deduction – tránh race condition
-                            // SQL UPDATE có điều kiện: chỉ trừ khi StockQuantity >= quantity
-                            // Nếu có concurrent request khác đã lấy hết hàng thì rowsAffected = 0
-                            var rowsAffected = await _unitOfWork.BaseRepository<Product>().ExecuteCommandAsync(
-                                "UPDATE \"Products\" SET \"StockQuantity\" = \"StockQuantity\" - {0} " +
-                                "WHERE \"Id\" = {1} AND \"StockQuantity\" >= {0}",
-                                [item.Quantity, product.Id],
-                                cancellationToken);
-
-                            if (rowsAffected == 0)
+                            var stockDecremented = await TryDecrementStockAsync(stockItem, cancellationToken);
+                            if (!stockDecremented)
                             {
-                                // Race condition: sản phẩm hết hàng giữa lúc check và update
                                 await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
                                 _unitOfWork.ClearTracking();
-                                return Result<Guid>.BadRequest($"Không đủ hàng trong kho cho sản phẩm: {product.Name}");
+                                return Result<Guid>.BadRequest(stockItem.OutOfStockMessage);
                             }
 
-                            decrementedStockItems.Add((product.Id, item.Quantity));
-                            // Stock đã được update bởi SQL trực tiếp, không cần gọi Products.Update()
-                            // để tránh EF ghi đè lại giá trị cũ khi SaveChanges
-
+                            decrementedStockItems.Add(stockItem);
                         }
 
                         if (promoRedeemContext?.PromoCode != null)
@@ -220,7 +217,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         private async Task<Result<Guid>?> RedeemPromoCodeAsync(
             Order order,
             PromoRedeemContext promoRedeemContext,
-            List<(Guid ProductId, int Quantity)> decrementedStockItems,
+            List<OrderStockItem> decrementedStockItems,
             CancellationToken cancellationToken)
         {
             var rowsAffected = await _unitOfWork.BaseRepository<PromoCode>().ExecuteCommandAsync(
@@ -245,15 +242,94 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
             return null;
         }
 
-        private async Task RestoreDecrementedStockAsync(List<(Guid ProductId, int Quantity)> decrementedStockItems, CancellationToken cancellationToken)
+        private async Task<OrderStockItem> ResolveOrderStockItemAsync(
+            CreateOrderItemDto item,
+            Product product,
+            CancellationToken cancellationToken)
         {
-            foreach (var (productId, quantity) in decrementedStockItems)
+            if (product.HasVariants)
             {
-                await _unitOfWork.BaseRepository<Product>().ExecuteCommandAsync(
-                    "UPDATE \"Products\" SET \"StockQuantity\" = \"StockQuantity\" + {0} WHERE \"Id\" = {1}",
-                    [quantity, productId],
+                if (!item.ProductVariantSkuId.HasValue)
+                {
+                    return OrderStockItem.WithError(
+                        Result<Guid>.BadRequest($"Sản phẩm {product.Name} yêu cầu chọn SKU biến thể"));
+                }
+
+                var sku = await _unitOfWork.ProductVariantSkus.GetByIdAsync(item.ProductVariantSkuId.Value, cancellationToken);
+                if (sku == null || sku.ProductId != product.Id || !sku.IsActive)
+                {
+                    return OrderStockItem.WithError(
+                        Result<Guid>.BadRequest($"SKU biến thể không hợp lệ cho sản phẩm: {product.Name}"));
+                }
+
+                if (sku.StockQuantity < item.Quantity)
+                {
+                    return OrderStockItem.WithError(
+                        Result<Guid>.BadRequest($"Không đủ hàng trong kho cho SKU: {sku.Sku}"));
+                }
+
+                return OrderStockItem.ForSku(product.Id, sku.Id, item.Quantity, sku.EffectivePrice, sku.Sku, BuildVariantInfo(item), sku.Sku);
+            }
+
+            if (item.ProductVariantSkuId.HasValue)
+            {
+                return OrderStockItem.WithError(
+                    Result<Guid>.BadRequest($"Sản phẩm {product.Name} không sử dụng SKU biến thể"));
+            }
+
+            if (product.StockQuantity < item.Quantity)
+            {
+                return OrderStockItem.WithError(
+                    Result<Guid>.BadRequest($"Khong du hang trong kho cho san pham: {product.Name}"));
+            }
+
+            var unitPrice = product.SalePrice.HasValue && product.SalePrice.Value > 0
+                ? product.SalePrice.Value
+                : product.Price;
+
+            return OrderStockItem.ForProduct(product.Id, item.Quantity, unitPrice, product.Name);
+        }
+
+        private async Task<bool> TryDecrementStockAsync(OrderStockItem stockItem, CancellationToken cancellationToken)
+        {
+            if (stockItem.ProductVariantSkuId.HasValue)
+            {
+                return await _unitOfWork.ProductVariantSkus.TryDecrementStockAsync(
+                    stockItem.ProductVariantSkuId.Value,
+                    stockItem.ProductId,
+                    stockItem.Quantity,
                     cancellationToken);
             }
+
+            return await _unitOfWork.Products.TryDecrementStockAsync(
+                stockItem.ProductId,
+                stockItem.Quantity,
+                cancellationToken);
+        }
+
+        private async Task RestoreDecrementedStockAsync(List<OrderStockItem> decrementedStockItems, CancellationToken cancellationToken)
+        {
+            foreach (var stockItem in decrementedStockItems)
+            {
+                if (stockItem.ProductVariantSkuId.HasValue)
+                {
+                    await _unitOfWork.ProductVariantSkus.RestoreStockAsync(
+                        stockItem.ProductVariantSkuId.Value,
+                        stockItem.Quantity,
+                        cancellationToken);
+                    continue;
+                }
+
+                await _unitOfWork.Products.RestoreStockAsync(
+                    stockItem.ProductId,
+                    stockItem.Quantity,
+                    cancellationToken);
+            }
+        }
+
+        private static string BuildVariantInfo(CreateOrderItemDto item)
+        {
+            return string.Join(" / ", new[] { item.Color, item.Size }.Where(value => !string.IsNullOrWhiteSpace(value)));
         }
 
         private sealed class CreateOrderContext
@@ -279,6 +355,49 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 new() { PromoCode = promoCode, DiscountAmount = discountAmount };
 
             public static PromoRedeemContext WithError(Result<Guid> errorResult) =>
+                new() { ErrorResult = errorResult };
+        }
+
+        private sealed class OrderStockItem
+        {
+            public Guid ProductId { get; private init; }
+            public Guid? ProductVariantSkuId { get; private init; }
+            public int Quantity { get; private init; }
+            public decimal UnitPrice { get; private init; }
+            public string SkuCode { get; private init; } = string.Empty;
+            public string VariantInfo { get; private init; } = string.Empty;
+            public string OutOfStockMessage { get; private init; } = string.Empty;
+            public Result<Guid>? ErrorResult { get; private init; }
+
+            public static OrderStockItem ForProduct(Guid productId, int quantity, decimal unitPrice, string productName) =>
+                new()
+                {
+                    ProductId = productId,
+                    Quantity = quantity,
+                    UnitPrice = unitPrice,
+                    OutOfStockMessage = $"Không đủ hàng trong kho cho sản phẩm: {productName}"
+                };
+
+            public static OrderStockItem ForSku(
+                Guid productId,
+                Guid skuId,
+                int quantity,
+                decimal unitPrice,
+                string skuCode,
+                string variantInfo,
+                string sku) =>
+                new()
+                {
+                    ProductId = productId,
+                    ProductVariantSkuId = skuId,
+                    Quantity = quantity,
+                    UnitPrice = unitPrice,
+                    SkuCode = skuCode,
+                    VariantInfo = variantInfo,
+                    OutOfStockMessage = $"Không đủ hàng trong kho cho SKU: {sku}"
+                };
+
+            public static OrderStockItem WithError(Result<Guid> errorResult) =>
                 new() { ErrorResult = errorResult };
         }
     }
