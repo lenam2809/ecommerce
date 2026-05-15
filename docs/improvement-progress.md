@@ -10,7 +10,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | --- | --- | --- | --- |
 | Phase 0 | Critical security hardening | Lock down public mutations/admin endpoints, production Swagger/test endpoints, HTTPS, and obvious dev surfaces. | IN_PROGRESS |
 | Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | IN_PROGRESS |
-| Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | TODO |
+| Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | IN_PROGRESS |
 | Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | TODO |
 | Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | TODO |
 | Phase 5 | Frontend quality gate va observability | Re-enable frontend type/lint gates and add operational visibility around checkout/payment/security flows. | TODO |
@@ -27,7 +27,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | DONE | `PaymentsController.cs`, `CreatePaymentForOrderCommand*`, `IVnPayService.cs`, `VnPayService.cs`, appsettings production files | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 1A create-url now requires auth and derives amount/orderInfo/txnRef from backend order by `orderId`; client amount/orderInfo are ignored. Guest VNPay payment is intentionally blocked pending a clear guest ownership mechanism. |
 | P1-002 | Make VNPay callbacks/IPN idempotent and update orders/payments consistently. | DONE | `PaymentsController.cs`, `VnPayService.cs`, `PaymentTransaction.cs`, `PaymentCorrectnessTests.cs` | `PaymentCorrectnessTests.cs` | Phase 1B verifies signature before DB writes, uses `PaymentTransactions.TxnRef` as idempotency key, prevents duplicate `Payment`, and keeps invalid/mismatch/failed responses from marking orders paid. Callback logic remains in Application `VnPayService`; moving the gateway adapter remains P4-001. |
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | DONE | `PromoCodesController.cs`, `ApplyPromoCodeCommandHandler.cs`, `CreateOrderCommandHandler.cs`, `Order.cs`, `CartRepository.cs` | `ApplyPromoCodeCommandHandlerTests.cs`, `CreateOrderCommandHandlerTests.cs` | Phase 1C makes promo apply/preview read-only and increments `TimesUsed` once during valid order creation. No migration added; redemption table and explicit discount amount column are deferred. |
-| P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | TODO | Product/order/inventory handlers | TBD | Order creation currently decrements `Products.StockQuantity` only. |
+| P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | DONE | `CreateOrderCommandHandler.cs`, `CreateOrderItemDto.cs`, `Order.cs`, `IProductRepository.cs`, `IProductVariantSkuRepository.cs`, `ProductRepository.cs`, `ProductVariantSkuRepository.cs` | `CreateOrderCommandHandlerTests.cs`, `StockLifecycleTests.cs` | Phase 2A checkout now uses `Products.StockQuantity` only for non-variant products and requires/decrements `ProductVariantSkus.StockQuantity` for variant products. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
 | P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | TODO | Addresses/SearchSuggestions/Wishlist controllers and handlers | TBD | Several endpoints infer/accept user state without endpoint auth attributes. |
 | P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | TODO | Returns/Orders/Reviews features | TBD | Keep controller checks as defense-in-depth only. |
@@ -287,6 +287,65 @@ Migration notes:
 | `ReportsController` | Existing reports generally dispatch MediatR queries, but the controller has no `[Authorize]`/report policy at class or action level in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/ReportsController.cs`. |
 | Stock source of truth | `CreateOrderCommandHandler` checks/decrements `Product.StockQuantity` with SQL in `apps/backend/Ecommerce/Ecommerce.Application/Features/Orders/Commands/CreateOrder/CreateOrderCommandHandler.cs:57-77`; `ProductVariantSku.StockQuantity` and `InventoryItem` exist separately, and inventory import updates SKU stock in `ImportInventoryBatchCommandHandler.cs:59`. |
 
+### Phase 2A update
+
+Status: DONE for checkout stock source selection and atomic decrement.
+
+Stock model confirmed:
+
+| Model item | Finding |
+| --- | --- |
+| `Product.HasVariants` | Exists on `apps/backend/Ecommerce/Ecommerce.Domain/Entities/Product.cs`; `false` means stock/price come from `Product.StockQuantity` and product price fields. |
+| `ProductVariantSku` | Exists with `ProductId`, `Sku`, `Price`, `SalePrice`, `StockQuantity`, `IsActive`, and inventory navigation in `apps/backend/Ecommerce/Ecommerce.Domain/Entities/ProductVariantSku.cs`. |
+| `InventoryItem` | Exists and points to `ProductVariantSkuId`; Phase 2A does not reserve/sell serial-level inventory yet. |
+| `OrderItem.ProductVariantSkuId` | Already existed as nullable; Phase 2A now populates it for variant checkout and snapshots `SkuCode`/`VariantInfo`. |
+| `CreateOrderItemDto.ProductVariantSkuId` | Added as nullable. It is required by handler when `Product.HasVariants == true`. |
+| `CartItem.ProductVariantSkuId` | Already exists, but `AddToCartCommand` still does not expose SKU selection and cart pricing still uses product price. This remains TODO before full cart-to-checkout variant support. |
+
+Checkout behavior after Phase 2A:
+
+| Scenario | Behavior |
+| --- | --- |
+| Non-variant product | Checkout validates `Product.StockQuantity`, creates order item without SKU id, and calls `IProductRepository.TryDecrementStockAsync`. |
+| Variant product without SKU | Checkout returns business validation error and does not decrement stock. |
+| SKU not found/not active/not owned by product | Checkout returns business validation error and does not decrement stock. |
+| Variant product with valid SKU | Checkout uses `ProductVariantSku.EffectivePrice`, snapshots SKU fields on `OrderItem`, and calls `IProductVariantSkuRepository.TryDecrementStockAsync`. |
+| Concurrent checkout pressure | Product/SKU repositories use atomic `ExecuteUpdateAsync` predicates with `StockQuantity >= quantity`; integration test confirms two concurrent SKU decrements against one remaining stock allow only one success and leave stock at 0. |
+| Promo redeem failure after stock decrement | Existing Phase 1C compensation now restores either product or SKU stock through repository abstractions. |
+
+Files changed/audited in Phase 2A:
+
+| File/class/method | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Orders/Commands/CreateOrder/CreateOrderCommandHandler.cs` | Resolves stock source per item, requires SKU for variant products, uses repository abstractions for atomic decrement/restore, and keeps promo flow intact. |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Orders/Dto/CreateOrderItemDto.cs` | Adds optional `ProductVariantSkuId` to checkout contract. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Entities/Order.cs` | `AddOrderItem` now accepts SKU snapshot fields and merges by product plus SKU/color/size. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Interfaces/IProductRepository.cs` | Adds `TryDecrementStockAsync` and `RestoreStockAsync`. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Interfaces/IProductVariantSkuRepository.cs` | Adds `TryDecrementStockAsync` and `RestoreStockAsync` for SKU-level stock. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/ProductRepository.cs` | Implements atomic non-variant product stock decrement/restore. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/ProductVariantSkuRepository.cs` | Implements atomic SKU stock decrement/restore. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `CreateOrderCommandHandlerTests.Handle_ValidAuthenticatedOrder_ReturnsSuccessAndPersistsOrder` | Non-variant checkout uses product stock repository and product sale price. |
+| `CreateOrderCommandHandlerTests.Handle_ProductWithVariantsMissingSku_ReturnsBadRequest` | Variant product requires `ProductVariantSkuId`. |
+| `CreateOrderCommandHandlerTests.Handle_ProductWithVariantsSkuNotBelongingToProduct_ReturnsBadRequest` | SKU must belong to the requested product. |
+| `CreateOrderCommandHandlerTests.Handle_ProductWithVariantsInsufficientSkuStock_ReturnsBadRequest` | SKU stock shortage rejects order before decrement/persist. |
+| `CreateOrderCommandHandlerTests.Handle_ProductWithVariantsValidSku_UsesSkuStockAndPrice` | Valid variant checkout uses SKU stock, SKU price, and snapshots SKU fields. |
+| `CreateOrderCommandHandlerTests.Handle_ProductWithVariantsAtomicSkuUpdateFails_ReturnsBadRequestAndClearsTracking` | Atomic SKU decrement race failure rejects order and clears tracking. |
+| `StockLifecycleTests.ConcurrentSkuStockDecrement_AllowsOnlyOneSuccessAndDoesNotGoNegative` | Two concurrent SKU decrement attempts against one unit result in one success and stock 0. |
+
+Remaining work:
+
+| Item | Note |
+| --- | --- |
+| Cart variant flow | `CartItem.ProductVariantSkuId` exists, but `AddToCartCommand` does not expose it and cart subtotal still uses product price. Variant cart support should be completed before frontend cart checkout depends on SKU stock. |
+| Reservation/release | Phase 2A decrements at valid order creation. There is still no reservation expiry or release on payment failure/abandoned pending order. |
+| Cancel/return restore | Order cancellation, deletion, returns, and serial-level inventory transitions still need alignment in P2-002. |
+| DB check constraints | No migration added for `StockQuantity >= 0`; atomic predicates prevent checkout from making stock negative. A later migration can add provider-specific check constraints after production data pre-check. |
+
 ### Ownership, privacy, and lifecycle checks
 
 | Item checked | Finding |
@@ -334,8 +393,12 @@ Migration notes:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter "ApplyPromoCodeCommandHandlerTests\|CreateOrderCommandHandlerTests"` after Phase 1C | PASS | 11/11 targeted promo/order tests passed. |
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 1C | PASS | 0 warnings, 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 1C | PASS | Domain 57/57, Application 185/185, WebAPI Integration 29/29, total 271/271. Integration tests took about 7m25s. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter CreateOrderCommandHandlerTests` after Phase 2A | PASS | 13/13 order command tests passed, including product/SKU stock source cases. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter StockLifecycleTests` after Phase 2A | PASS | 1/1 integration test passed for concurrent SKU stock decrement. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 2A | PASS | 73 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the Phase 2A stock changes. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 2A | PASS | Domain 57/57, Application 190/190, WebAPI Integration 30/30, total 277/277. Integration tests took about 8m27s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Implement Phase 2 stock/order lifecycle: define stock source of truth for Product, ProductVariantSku, and InventoryItem; then align order create/cancel/return stock transitions with tests.
+Implement Phase 2B order lifecycle stock release: restore Product/SKU stock consistently on cancellation/payment failure/return flows, and define when InventoryItem serials move between Available/Reserved/Sold/Returned.

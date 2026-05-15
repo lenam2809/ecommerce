@@ -33,5 +33,25 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 .Include(s => s.InventoryItems)
                 .FirstOrDefaultAsync(s => s.Id == skuId, ct);
         }
+
+        public async Task<bool> TryDecrementStockAsync(Guid skuId, Guid productId, int quantity, CancellationToken ct = default)
+        {
+            var rowsAffected = await _context.ProductVariantSkus
+                .Where(s => s.Id == skuId && s.ProductId == productId && s.IsActive && s.StockQuantity >= quantity)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(s => s.StockQuantity, s => s.StockQuantity - quantity),
+                    ct);
+
+            return rowsAffected == 1;
+        }
+
+        public async Task RestoreStockAsync(Guid skuId, int quantity, CancellationToken ct = default)
+        {
+            await _context.ProductVariantSkus
+                .Where(s => s.Id == skuId)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(s => s.StockQuantity, s => s.StockQuantity + quantity),
+                    ct);
+        }
     }
 }
