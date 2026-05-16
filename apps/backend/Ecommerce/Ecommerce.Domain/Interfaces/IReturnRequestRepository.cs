@@ -11,5 +11,7 @@ namespace Ecommerce.Domain.Interfaces
         Task<IReadOnlyList<ReturnRequest>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct = default);
         Task<IReadOnlyList<ReturnRequest>> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default);
         Task<IReadOnlyList<ReturnRequest>> GetByStatusAsync(EReturnStatus status, CancellationToken ct = default);
+        Task<bool> HasOpenReturnForOrderItemAsync(Guid orderItemId, CancellationToken ct = default);
+        Task<int> GetNonRejectedQuantityByOrderItemAsync(Guid orderItemId, CancellationToken ct = default);
     }
 }
