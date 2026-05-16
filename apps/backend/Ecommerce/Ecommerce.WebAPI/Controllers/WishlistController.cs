@@ -4,12 +4,14 @@ using Ecommerce.Application.Features.Wishlists.Queries.CheckProductInWishlist;
 using Ecommerce.Application.Features.Wishlists.Queries.GetUserWishlist;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WishlistController : ControllerBase
     {
         private readonly IMediator _mediator;

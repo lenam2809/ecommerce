@@ -1,6 +1,8 @@
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Returns.Dto;
 using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
 
@@ -10,15 +12,40 @@ namespace Ecommerce.Application.Features.Returns.Queries.GetReturnRequests
         : IRequestHandler<GetReturnRequestsQuery, Result<List<ReturnRequestListDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetReturnRequestsQueryHandler(IUnitOfWork unitOfWork)
+        public GetReturnRequestsQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<List<ReturnRequestListDto>>> Handle(
             GetReturnRequestsQuery request, CancellationToken cancellationToken)
         {
+            var currentUserId = _currentUserService.UserId;
+            if (!currentUserId.HasValue)
+            {
+                return Result<List<ReturnRequestListDto>>.Unauthorized();
+            }
+
+            var canViewAll = _currentUserService.IsInRole(EUserRoles.Admin)
+                             || _currentUserService.IsInRole(EUserRoles.Manager);
+            if (!canViewAll)
+            {
+                if (request.OrderId.HasValue || request.Status.HasValue)
+                {
+                    return Result<List<ReturnRequestListDto>>.Forbidden("Bạn không có quyền xem danh sách đổi/trả này.");
+                }
+
+                if (request.CustomerId.HasValue && request.CustomerId.Value != currentUserId.Value)
+                {
+                    return Result<List<ReturnRequestListDto>>.Forbidden("Bạn không có quyền xem danh sách đổi/trả này.");
+                }
+
+                request.CustomerId = currentUserId.Value;
+            }
+
             IReadOnlyList<ReturnRequest> entities;
 
             if (request.CustomerId.HasValue)

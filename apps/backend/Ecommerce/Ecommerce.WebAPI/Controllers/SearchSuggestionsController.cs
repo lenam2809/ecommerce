@@ -5,6 +5,7 @@ using Ecommerce.Application.Features.SearchSuggestions.Queries.GetSearchSuggesti
 using Ecommerce.Application.Features.SearchSuggestions.Queries.GetTrendingSuggestions;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
@@ -38,6 +39,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lưu lịch sử tìm kiếm từ header
         /// </summary>
         [HttpPost("search-history")]
+        [Authorize]
         public async Task<IActionResult> SaveSearchHistory([FromBody] SaveSearchHistoryCommand command)
         {
             var result = await _mediator.Send(command);
@@ -58,6 +60,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa một gợi ý tìm kiếm từ lịch sử của người dùng
         /// </summary>
         [HttpDelete("search-history/{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteHeaderSearchHistory(Guid id)
         {
             var result = await _mediator.Send(new DeleteSearchHistoryCommand { Id = id });
@@ -68,9 +71,10 @@ namespace Ecommerce.WebAPI.Controllers
         /// Xóa toàn bộ lịch sử tìm kiếm của người dùng
         /// </summary>
         [HttpDelete("search-history")]
-        public async Task<IActionResult> ClearHeaderSearchHistory([FromQuery] Guid userId)
+        [Authorize]
+        public async Task<IActionResult> ClearHeaderSearchHistory()
         {
-            var result = await _mediator.Send(new ClearSearchHistoryCommand { UserId = userId });
+            var result = await _mediator.Send(new ClearSearchHistoryCommand());
             return result.ToActionResult();
         }
     }

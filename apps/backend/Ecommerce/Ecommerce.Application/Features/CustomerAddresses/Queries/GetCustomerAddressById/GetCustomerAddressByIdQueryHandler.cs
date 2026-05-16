@@ -1,7 +1,8 @@
-﻿using Ecommerce.Application.Common.Models;
+using AutoMapper;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.CustomerAddresses.Dto;
 using Ecommerce.Domain.Interfaces;
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -12,25 +13,35 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Queries.GetCustomerAd
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetCustomerAddressByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetCustomerAddressByIdQueryHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<CustomerAddressDto>> Handle(GetCustomerAddressByIdQuery request, CancellationToken cancellationToken)
         {
             try
             {
+                var currentUserId = _currentUserService.UserId;
+                if (!currentUserId.HasValue)
+                {
+                    return Result<CustomerAddressDto>.Unauthorized();
+                }
+
                 var address = await _unitOfWork.CustomerAddresses.GetByIdAsync(request.Id, cancellationToken);
                 if (address == null)
                 {
                     return Result<CustomerAddressDto>.NotFound("Địa chỉ không tồn tại");
                 }
 
-                // Check ownership
-                if (address.ApplicationUserId != request.ApplicationUserId)
+                if (address.ApplicationUserId != currentUserId.Value)
                 {
                     return Result<CustomerAddressDto>.Forbidden("Bạn không có quyền truy cập địa chỉ này");
                 }
@@ -45,4 +56,3 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Queries.GetCustomerAd
         }
     }
 }
-
