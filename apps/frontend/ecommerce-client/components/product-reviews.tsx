@@ -184,7 +184,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       productId: productId || "",
       rating,
       content,
-      userId: user?.id || "",
     }
     createReviewMutation.mutate({
       ...reviewData,

@@ -12,12 +12,16 @@ namespace Ecommerce.Application.Features.Reviews.Dto
         public int Rating { get; set; }
         public required string Content { get; set; }
         public DateTime Date { get; set; }
+        public bool IsVerified { get; set; }
+        public Guid ProductId { get; set; }
+        public Guid ApplicationUserId { get; set; }
         public List<string> Images { get; set; } = new();
 
 
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<Review, ReviewDto>();
+            profile.CreateMap<Review, ReviewDto>()
+                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images.Select(img => img.Url).ToList()));
         }
     }
 }

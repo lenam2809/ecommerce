@@ -1,11 +1,11 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using AutoMapper;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reviews.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
-using AutoMapper;
 using MediatR;
-
+using System.Text.Encodings.Web;
 
 namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
 {
@@ -17,8 +17,7 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
-
-
+        private readonly ICurrentUserService _currentUserService;
 
         public CreateReviewCommandHandler(
             IReviewRepository reviewRepo,
@@ -26,7 +25,8 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
             IFileStorageService fileStorage,
             IMapper mapper,
             INotificationService notificationService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
             _reviewRepo = reviewRepo;
             _productRepo = productRepo;
@@ -34,29 +34,59 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
             _mapper = mapper;
             _notificationService = notificationService;
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<ReviewDto>> Handle(CreateReviewCommand command, CancellationToken cancellationToken)
         {
-            var product = await _productRepo.GetByIdAsync(command.ProductId, cancellationToken);
-            if (product == null) return Result<ReviewDto>.NotFound("Không tìm thấy sản phẩm");
+            if (command.Rating < 1 || command.Rating > 5)
+            {
+                return Result<ReviewDto>.ValidationError("Điểm đánh giá phải từ 1 đến 5.");
+            }
 
-            var user = await _unitOfWork.Users.GetByIdAsync(command.UserId);
+            var currentUserId = _currentUserService.UserId;
+            if (!currentUserId.HasValue)
+            {
+                return Result<ReviewDto>.Unauthorized();
+            }
+
+            var product = await _productRepo.GetByIdAsync(command.ProductId, cancellationToken);
+            if (product == null)
+            {
+                return Result<ReviewDto>.NotFound("Không tìm thấy sản phẩm");
+            }
+
+            var user = await _unitOfWork.Users.GetByIdAsync(currentUserId.Value);
+            if (user == null)
+            {
+                return Result<ReviewDto>.Unauthorized("Không thể xác định người dùng hiện tại.");
+            }
+
+            if (await _reviewRepo.ExistsForProductByUserAsync(command.ProductId, currentUserId.Value, cancellationToken))
+            {
+                return Result<ReviewDto>.Conflict("Bạn đã đánh giá sản phẩm này.");
+            }
+
+            var isVerifiedPurchase = await _reviewRepo.HasDeliveredPurchaseAsync(
+                command.ProductId,
+                currentUserId.Value,
+                cancellationToken);
+
             var review = new Review
             {
                 ProductId = command.ProductId,
-                ApplicationUserId = command.UserId,
+                ApplicationUserId = currentUserId.Value,
                 Rating = command.Rating,
-                Content = command.Content,
-                UserAvatar = user.Avatar,
-                UserName = user.UserName,
+                Content = SanitizePlainText(command.Content),
+                UserAvatar = user.Avatar ?? string.Empty,
+                UserName = user.UserName ?? user.Email ?? "User",
                 Likes = 0,
                 Replies = 0,
+                IsVerified = isVerifiedPurchase,
                 HelpfulCount = 0,
-                Date = DateTime.Now
+                Date = DateTime.UtcNow
             };
 
-            // Upload images
             foreach (var image in command.Images)
             {
                 var imageUrl = await _fileStorage.SaveFileAsync(image, "reviews");
@@ -64,44 +94,48 @@ namespace Ecommerce.Application.Features.Reviews.Commands.CreateReview
             }
 
             await _reviewRepo.AddAsync(review, cancellationToken);
+            await _unitOfWork.CompleteAsync(cancellationToken);
 
-            // Cập nhật rating của sản phẩm
-            var (newRating, reviewCount) = await UpdateProductRating(product);
-            await _productRepo.SaveChangesAsync(cancellationToken);
+            var (newRating, reviewCount) = await UpdateProductRating(product, cancellationToken);
+            await _unitOfWork.CompleteAsync(cancellationToken);
 
-            // Map review to DTO
             var reviewDto = _mapper.Map<ReviewDto>(review);
             var updatedImageUrls = new List<string>();
 
             foreach (var image in reviewDto.Images)
             {
-                // Chuyển đổi URL hình ảnh sang DTO
                 var imageUrl = await _fileStorage.GetFileUrlAsync(image);
                 updatedImageUrls.Add(imageUrl);
             }
+
             reviewDto.Images = updatedImageUrls;
             reviewDto.UserAvatar = await _fileStorage.GetFileUrlAsync(reviewDto.UserAvatar);
 
-
-            // Broadcast review mới qua SignalR
             await _notificationService.SendReviewNotificationAsync(command.ProductId, reviewDto, cancellationToken);
-
-            // Broadcast cập nhật rating
             await _notificationService.SendRatingNotificationAsync(command.ProductId, newRating, reviewCount, cancellationToken);
 
             return Result<ReviewDto>.Success(reviewDto);
         }
 
-        private async Task<(double rating, int count)> UpdateProductRating(Product product)
+        private async Task<(double rating, int count)> UpdateProductRating(
+            Product product,
+            CancellationToken cancellationToken)
         {
-            var avgRating = await _reviewRepo.GetAverageRatingAsync(product.Id);
-            var reviewCount = await _reviewRepo.CountAsync(x => x.ProductId == product.Id);
+            var (avgRating, reviewCount) = await _reviewRepo.GetRatingSummaryAsync(product.Id, cancellationToken);
 
             product.UpdateRating(avgRating, reviewCount);
             _productRepo.Update(product);
 
             return (avgRating, reviewCount);
         }
+
+        private static string SanitizePlainText(string content)
+        {
+            var normalized = (content ?? string.Empty)
+                .Replace("\0", string.Empty)
+                .Trim();
+
+            return HtmlEncoder.Default.Encode(normalized);
+        }
     }
 }
-

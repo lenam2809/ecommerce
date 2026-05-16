@@ -28,9 +28,11 @@ export function ReviewItem({ review, onLike }: ReviewItemProps) {
                         <div>
                             <h4 className="font-bold text-lg">{review.userName}</h4>
                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full text-xs font-medium border border-green-500/20">
-                                    Đã mua hàng
-                                </span>
+                                {review.isVerified && (
+                                    <span className="flex items-center gap-1 bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full text-xs font-medium border border-green-500/20">
+                                        Đã mua hàng
+                                    </span>
+                                )}
                                 <span>{formatDate(review.date)}</span>
                             </div>
                         </div>
