@@ -5,9 +5,11 @@ using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommand : IRequest<Result<Guid>>, IMapFrom<Order>
+    public class CreateOrderCommand : ICommand<Result<Guid>>, IMapFrom<Order>
     {
         public Guid? ApplicationUserId { get; set; }
         public string ShippingAddress { get; set; } = string.Empty;

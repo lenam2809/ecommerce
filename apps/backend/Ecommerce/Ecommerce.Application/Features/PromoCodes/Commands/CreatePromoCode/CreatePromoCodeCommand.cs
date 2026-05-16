@@ -1,12 +1,14 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using AutoMapper;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.PromoCodes.Commands.CreatePromoCode
 {
-    public class CreatePromoCodeCommand : IRequest<Result<Guid>>, IMapFrom<PromoCode>
+    public class CreatePromoCodeCommand : ICommand<Result<Guid>>, IMapFrom<PromoCode>
     {
         public required string Code { get; set; }
         public required string Description { get; set; }

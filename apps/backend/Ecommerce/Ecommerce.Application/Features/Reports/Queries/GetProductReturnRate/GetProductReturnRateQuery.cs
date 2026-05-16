@@ -1,10 +1,12 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Reports.Queries.GetProductReturnRate
 {
-    public class GetProductReturnRateQuery : IRequest<Result<List<ProductReturnRateDto>>>
+    public class GetProductReturnRateQuery : IQuery<Result<List<ProductReturnRateDto>>>
     {
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

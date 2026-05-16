@@ -2,9 +2,11 @@ using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Orders.Queries.GetOrderHistoryOverview;
 
-public sealed class GetOrderHistoryOverviewQuery : IRequest<Result<OrderHistoryOverviewDto>>
+public sealed class GetOrderHistoryOverviewQuery : IQuery<Result<OrderHistoryOverviewDto>>
 {
     public DateTime? FromDate { get; init; }
     public DateTime? ToDate { get; init; }

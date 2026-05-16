@@ -2,9 +2,11 @@ using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest
 {
-    public class CreateReturnRequestCommand : IRequest<Result<Guid>>
+    public class CreateReturnRequestCommand : ICommand<Result<Guid>>
     {
         public Guid OrderId { get; set; }
         public Guid OrderItemId { get; set; }

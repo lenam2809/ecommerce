@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Behaviors;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -89,11 +90,33 @@ public class TransactionBehaviorTests
         unitOfWork.Verify(x => x.ExecuteStrategyAsync(It.IsAny<Func<Task<Result<string>>>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    public sealed class TestQuery : IRequest<Result<string>>
+    [Fact]
+    public async Task Handle_UnmarkedRequest_BeginsTransactionForBackwardCompatibility()
+    {
+        // Arrange
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.Setup(x => x.ExecuteStrategyAsync(It.IsAny<Func<Task<Result<string>>>>(), It.IsAny<CancellationToken>()))
+            .Returns((Func<Task<Result<string>>> operation, CancellationToken _) => operation());
+        var behavior = new TransactionBehavior<UnmarkedRequest, Result<string>>(unitOfWork.Object, Mock.Of<IEnhancedLogger>());
+
+        // Act
+        var result = await behavior.Handle(new UnmarkedRequest(), () => Task.FromResult(Result<string>.Success("fallback")), CancellationToken.None);
+
+        // Assert
+        result.Value.Should().Be("fallback");
+        unitOfWork.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    public sealed class TestQuery : IQuery<Result<string>>
     {
     }
 
-    public sealed class TestCommand : IRequest<Result<string>>
+    public sealed class TestCommand : ICommand<Result<string>>
+    {
+    }
+
+    public sealed class UnmarkedRequest : IRequest<Result<string>>
     {
     }
 }
