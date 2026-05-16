@@ -1,9 +1,11 @@
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest
 {
@@ -12,11 +14,16 @@ namespace Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
+        private readonly IRmaCodeGenerator _rmaCodeGenerator;
 
-        public CreateReturnRequestCommandHandler(IUnitOfWork unitOfWork, IEnhancedLogger logger)
+        public CreateReturnRequestCommandHandler(
+            IUnitOfWork unitOfWork,
+            IEnhancedLogger logger,
+            IRmaCodeGenerator rmaCodeGenerator)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _rmaCodeGenerator = rmaCodeGenerator;
         }
 
         public async Task<Result<Guid>> Handle(
@@ -50,38 +57,66 @@ namespace Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest
                 return Result<Guid>.BadRequest($"Số lượng đổi/trả không hợp lệ. Tối đa: {orderItem.Quantity}.");
             }
 
-            var refundAmount = orderItem.UnitPrice * request.Quantity;
-            var returnRequest = ReturnRequest.Create(
-                request.OrderId,
-                request.OrderItemId,
-                request.CustomerId,
-                request.Type,
-                request.Reason,
-                request.CustomerNote,
-                request.Quantity,
-                refundAmount);
-
-            foreach (var evidence in request.EvidenceFiles)
+            for (var attempt = 1; attempt <= 3; attempt++)
             {
-                returnRequest.AddEvidence(evidence.FileUrl, evidence.FileType, evidence.Description);
+                var refundAmount = orderItem.UnitPrice * request.Quantity;
+                var returnRequest = ReturnRequest.Create(
+                    request.OrderId,
+                    request.OrderItemId,
+                    request.CustomerId,
+                    request.Type,
+                    request.Reason,
+                    request.CustomerNote,
+                    request.Quantity,
+                    refundAmount,
+                    _rmaCodeGenerator.Generate());
+
+                foreach (var evidence in request.EvidenceFiles)
+                {
+                    returnRequest.AddEvidence(evidence.FileUrl, evidence.FileType, evidence.Description);
+                }
+
+                try
+                {
+                    await _unitOfWork.ReturnRequests.AddAsync(returnRequest, cancellationToken);
+                    await _unitOfWork.CompleteAsync(cancellationToken);
+
+                    await _logger.LogAsync(
+                        ELogLevel.Information,
+                        "Created return request {ReturnRequestCode} for order {OrderCode}",
+                        "CreateReturnRequest",
+                        properties: new Dictionary<string, object?>
+                        {
+                            { "ReturnRequestId", returnRequest.Id },
+                            { "ReturnRequestCode", returnRequest.Code },
+                            { "OrderId", order.Id },
+                            { "OrderCode", order.Code }
+                        });
+
+                    return Result<Guid>.Success(returnRequest.Id);
+                }
+                catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex) && attempt < 3)
+                {
+                    _unitOfWork.ClearTracking();
+                }
+                catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
+                {
+                    _unitOfWork.ClearTracking();
+                    return Result<Guid>.Conflict("Mã RMA đã tồn tại, vui lòng thử lại.");
+                }
             }
 
-            await _unitOfWork.ReturnRequests.AddAsync(returnRequest, cancellationToken);
-            await _unitOfWork.CompleteAsync(cancellationToken);
+            return Result<Guid>.Conflict("Mã RMA đã tồn tại, vui lòng thử lại.");
+        }
 
-            await _logger.LogAsync(
-                ELogLevel.Information,
-                "Created return request {ReturnRequestCode} for order {OrderCode}",
-                "CreateReturnRequest",
-                properties: new Dictionary<string, object?>
-                {
-                    { "ReturnRequestId", returnRequest.Id },
-                    { "ReturnRequestCode", returnRequest.Code },
-                    { "OrderId", order.Id },
-                    { "OrderCode", order.Code }
-                });
-
-            return Result<Guid>.Success(returnRequest.Id);
+        private static bool IsUniqueCodeViolation(DbUpdateException exception)
+        {
+            var message = exception.InnerException?.Message ?? exception.Message;
+            return message.Contains("IX_ReturnRequests_Code", StringComparison.OrdinalIgnoreCase)
+                   || (message.Contains("ReturnRequests", StringComparison.OrdinalIgnoreCase)
+                       && message.Contains("Code", StringComparison.OrdinalIgnoreCase)
+                       && (message.Contains("unique", StringComparison.OrdinalIgnoreCase)
+                           || message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)));
         }
     }
 }

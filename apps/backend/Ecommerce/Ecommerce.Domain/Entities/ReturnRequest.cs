@@ -62,14 +62,15 @@ namespace Ecommerce.Domain.Entities
         public static ReturnRequest Create(
             Guid orderId, Guid orderItemId, Guid customerId,
             EReturnType type, EReturnReason reason,
-            string customerNote, int quantity, decimal refundAmount)
+            string customerNote, int quantity, decimal refundAmount,
+            string? code = null)
         {
             if (quantity <= 0) throw new DomainException("Số lượng đổi/trả phải lớn hơn 0.");
             if (refundAmount < 0) throw new DomainException("Số tiền hoàn không được âm.");
 
             var request = new ReturnRequest
             {
-                Code = GenerateRmaCode(),
+                Code = NormalizeCode(code),
                 OrderId = orderId,
                 OrderItemId = orderItemId,
                 CustomerId = customerId,
@@ -197,11 +198,11 @@ namespace Ecommerce.Domain.Entities
             };
         }
 
-        private static string GenerateRmaCode()
+        private static string NormalizeCode(string? code)
         {
-            var timestamp = DateTime.Now.ToString("yyMMddHHmm");
-            var random = new Random().Next(1000, 9999).ToString();
-            return $"RMA-{timestamp}-{random}";
+            return string.IsNullOrWhiteSpace(code)
+                ? $"RMA-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..27].ToUpperInvariant()
+                : code.Trim().ToUpperInvariant();
         }
     }
 }

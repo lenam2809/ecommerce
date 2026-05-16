@@ -9,6 +9,7 @@ using Ecommerce.Domain.Interfaces.Base;
 using Ecommerce.Domain.Interfaces.Logging;
 using FluentAssertions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -27,6 +28,7 @@ public class CreateOrderCommandHandlerTests
     private readonly Mock<IEnhancedLogger> _logger = new();
     private readonly Mock<IPublisher> _publisher = new();
     private readonly Mock<ICurrentUserService> _currentUserService = new();
+    private readonly Mock<IOrderCodeGenerator> _orderCodeGenerator = new();
     private readonly CreateOrderCommandHandler _handler;
 
     public CreateOrderCommandHandlerTests()
@@ -52,12 +54,16 @@ public class CreateOrderCommandHandlerTests
         _orderRepository
             .Setup(x => x.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Order order, CancellationToken _) => order);
+        _orderCodeGenerator
+            .Setup(x => x.Generate())
+            .Returns(() => $"ORD-TEST-{Guid.NewGuid():N}");
 
         _handler = new CreateOrderCommandHandler(
             _unitOfWork.Object,
             _logger.Object,
             _publisher.Object,
-            _currentUserService.Object);
+            _currentUserService.Object,
+            _orderCodeGenerator.Object);
     }
 
     [Fact]
@@ -201,6 +207,50 @@ public class CreateOrderCommandHandlerTests
             "CreateOrder",
             It.IsAny<ELogType>(),
             It.IsAny<Dictionary<string, object?>?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_OrderCodeCollision_RetriesWithNewCodeAndRestoresStock()
+    {
+        // Arrange
+        var user = CreateUser();
+        var product = CreateProduct(stockQuantity: 5);
+        var command = CreateCommand(user.Id, product.Id, quantity: 2);
+        var generatedCodes = new Queue<string>(["ORD-DUPLICATE", "ORD-UNIQUE"]);
+        var capturedOrders = new List<Order>();
+        var completeCalls = 0;
+
+        _orderCodeGenerator
+            .Setup(x => x.Generate())
+            .Returns(() => generatedCodes.Dequeue());
+        _userRepository.Setup(x => x.GetByIdAsync(user.Id)).ReturnsAsync(user);
+        _productRepository.Setup(x => x.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _orderRepository
+            .Setup(x => x.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()))
+            .Callback<Order, CancellationToken>((order, _) => capturedOrders.Add(order))
+            .ReturnsAsync((Order order, CancellationToken _) => order);
+        _unitOfWork.Setup(x => x.CompleteAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(_ =>
+            {
+                completeCalls++;
+                if (completeCalls == 1)
+                {
+                    throw new DbUpdateException("duplicate key IX_Orders_Code");
+                }
+
+                return Task.FromResult(1);
+            });
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        capturedOrders.Select(order => order.Code).Should().Equal("ORD-DUPLICATE", "ORD-UNIQUE");
+        _productRepository.Verify(x => x.TryDecrementStockAsync(product.Id, 2, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _productRepository.Verify(x => x.RestoreStockAsync(product.Id, 2, It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(x => x.ClearTracking(), Times.Once);
     }
 
     [Fact]
