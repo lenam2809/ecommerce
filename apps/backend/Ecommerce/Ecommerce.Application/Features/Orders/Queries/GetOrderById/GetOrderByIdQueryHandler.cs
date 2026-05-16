@@ -51,9 +51,10 @@ namespace Ecommerce.Application.Features.Orders.Queries.GetOrderById
                 // Check if user is allowed to view this order
                 var currentUserId = _currentUserService.UserId;
                 var isAdmin = _currentUserService.IsInRole(EUserRoles.Admin);
+                var isManager = _currentUserService.IsInRole(EUserRoles.Manager);
                 var isStaff = _currentUserService.IsInRole(EUserRoles.Staff);
 
-                if (!isAdmin && !isStaff && order.ApplicationUserId != currentUserId)
+                if (!isAdmin && !isManager && !isStaff && order.ApplicationUserId != currentUserId)
                 {
                     return Result<OrderDto>.Forbidden("Bạn không có quyền xem đơn hàng này.");
                 }

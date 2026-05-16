@@ -1,5 +1,7 @@
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Returns.Dto;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
 
@@ -9,10 +11,14 @@ namespace Ecommerce.Application.Features.Returns.Queries.GetReturnRequestById
         : IRequestHandler<GetReturnRequestByIdQuery, Result<ReturnRequestDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetReturnRequestByIdQueryHandler(IUnitOfWork unitOfWork)
+        public GetReturnRequestByIdQueryHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<ReturnRequestDto>> Handle(
@@ -23,6 +29,19 @@ namespace Ecommerce.Application.Features.Returns.Queries.GetReturnRequestById
 
             if (entity is null)
                 return Result<ReturnRequestDto>.NotFound("Yêu cầu đổi/trả không tồn tại.");
+
+            var currentUserId = _currentUserService.UserId;
+            if (!currentUserId.HasValue)
+            {
+                return Result<ReturnRequestDto>.Unauthorized();
+            }
+
+            var canViewAll = _currentUserService.IsInRole(EUserRoles.Admin)
+                             || _currentUserService.IsInRole(EUserRoles.Manager);
+            if (!canViewAll && entity.CustomerId != currentUserId.Value)
+            {
+                return Result<ReturnRequestDto>.Forbidden("Bạn không có quyền xem yêu cầu đổi/trả này.");
+            }
 
             var dto = new ReturnRequestDto
             {

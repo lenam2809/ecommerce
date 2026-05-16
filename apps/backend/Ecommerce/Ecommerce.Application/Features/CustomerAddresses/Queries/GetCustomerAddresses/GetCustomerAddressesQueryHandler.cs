@@ -1,7 +1,8 @@
-﻿using Ecommerce.Application.Common.Models;
+using AutoMapper;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.CustomerAddresses.Dto;
 using Ecommerce.Domain.Interfaces;
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -12,18 +13,29 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Queries.GetCustomerAd
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetCustomerAddressesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetCustomerAddressesQueryHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<List<CustomerAddressDto>>> Handle(GetCustomerAddressesQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                var addresses = await _unitOfWork.CustomerAddresses.GetByUserIdAsync(request.ApplicationUserId, cancellationToken);
+                var currentUserId = _currentUserService.UserId;
+                if (!currentUserId.HasValue)
+                {
+                    return Result<List<CustomerAddressDto>>.Unauthorized();
+                }
+
+                var addresses = await _unitOfWork.CustomerAddresses.GetByUserIdAsync(currentUserId.Value, cancellationToken);
                 var addressDtos = _mapper.Map<List<CustomerAddressDto>>(addresses);
 
                 return Result<List<CustomerAddressDto>>.Success(addressDtos);
@@ -35,4 +47,3 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Queries.GetCustomerAd
         }
     }
 }
-

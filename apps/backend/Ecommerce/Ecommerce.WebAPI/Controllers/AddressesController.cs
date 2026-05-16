@@ -6,6 +6,7 @@ using Ecommerce.Application.Features.CustomerAddresses.Queries.GetCustomerAddres
 using Ecommerce.Application.Features.CustomerAddresses.Queries.SetDefaultAddress;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -13,6 +14,7 @@ namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AddressesController : ControllerBase
     {
         private readonly IMediator _mediator;

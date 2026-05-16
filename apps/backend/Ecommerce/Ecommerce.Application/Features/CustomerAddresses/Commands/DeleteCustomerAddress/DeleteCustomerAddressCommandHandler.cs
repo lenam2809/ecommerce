@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -9,24 +10,33 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Commands.DeleteCustom
     public class DeleteCustomerAddressCommandHandler : IRequestHandler<DeleteCustomerAddressCommand, Result<Unit>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public DeleteCustomerAddressCommandHandler(IUnitOfWork unitOfWork)
+        public DeleteCustomerAddressCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<Unit>> Handle(DeleteCustomerAddressCommand request, CancellationToken cancellationToken)
         {
             try
             {
+                var currentUserId = _currentUserService.UserId;
+                if (!currentUserId.HasValue)
+                {
+                    return Result<Unit>.Unauthorized();
+                }
+
                 var address = await _unitOfWork.CustomerAddresses.GetByIdAsync(request.Id, cancellationToken);
                 if (address == null)
                 {
                     return Result<Unit>.NotFound("Địa chỉ không tồn tại");
                 }
 
-                // Check ownership
-                if (address.ApplicationUserId != request.ApplicationUserId)
+                if (address.ApplicationUserId != currentUserId.Value)
                 {
                     return Result<Unit>.Forbidden("Bạn không có quyền xóa địa chỉ này");
                 }
@@ -34,10 +44,9 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Commands.DeleteCustom
                 var isDefault = address.IsDefault;
                 _unitOfWork.CustomerAddresses.Delete(address);
 
-                // If deleted address was default, set another address as default
                 if (isDefault)
                 {
-                    var remainingAddresses = await _unitOfWork.CustomerAddresses.GetByUserIdAsync(request.ApplicationUserId, cancellationToken);
+                    var remainingAddresses = await _unitOfWork.CustomerAddresses.GetByUserIdAsync(currentUserId.Value, cancellationToken);
                     if (remainingAddresses.Any())
                     {
                         var firstAddress = remainingAddresses.First();
@@ -56,4 +65,3 @@ namespace Ecommerce.Application.Features.CustomerAddresses.Commands.DeleteCustom
         }
     }
 }
-

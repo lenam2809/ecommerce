@@ -11,7 +11,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | Phase 0 | Critical security hardening | Lock down public mutations/admin endpoints, production Swagger/test endpoints, HTTPS, and obvious dev surfaces. | IN_PROGRESS |
 | Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | IN_PROGRESS |
 | Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | IN_PROGRESS |
-| Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | TODO |
+| Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | IN_PROGRESS |
 | Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | TODO |
 | Phase 5 | Frontend quality gate va observability | Re-enable frontend type/lint gates and add operational visibility around checkout/payment/security flows. | TODO |
 
@@ -29,8 +29,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | DONE | `PromoCodesController.cs`, `ApplyPromoCodeCommandHandler.cs`, `CreateOrderCommandHandler.cs`, `Order.cs`, `CartRepository.cs` | `ApplyPromoCodeCommandHandlerTests.cs`, `CreateOrderCommandHandlerTests.cs` | Phase 1C makes promo apply/preview read-only and increments `TimesUsed` once during valid order creation. No migration added; redemption table and explicit discount amount column are deferred. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | DONE | `CreateOrderCommandHandler.cs`, `CreateOrderItemDto.cs`, `Order.cs`, `IProductRepository.cs`, `IProductVariantSkuRepository.cs`, `ProductRepository.cs`, `ProductVariantSkuRepository.cs` | `CreateOrderCommandHandlerTests.cs`, `StockLifecycleTests.cs` | Phase 2A checkout now uses `Products.StockQuantity` only for non-variant products and requires/decrements `ProductVariantSkus.StockQuantity` for variant products. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
-| P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | TODO | Addresses/SearchSuggestions/Wishlist controllers and handlers | TBD | Several endpoints infer/accept user state without endpoint auth attributes. |
-| P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | TODO | Returns/Orders/Reviews features | TBD | Keep controller checks as defense-in-depth only. |
+| P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | IN_PROGRESS | `AddressesController.cs`, `WishlistController.cs`, `SearchSuggestionsController.cs`, customer address handlers, search history commands | `Phase3OwnershipTests.cs` | Address and wishlist customer surfaces now require auth and handlers use `ICurrentUserService`. Search history no longer accepts `userId` from query/body for clear and ignores body `UserId` on save, but real persistence is BLOCKED because no search-history entity/repository exists. |
+| P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | IN_PROGRESS | Return request handlers, order detail/list/history handlers, `EUserRoles.cs` | `Phase3OwnershipTests.cs` | Returns and order detail/history now enforce owner/admin-manager-staff checks in Application. Review ownership remains TODO. |
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | TODO | `Ecommerce.Application/Features/Payments/VnPay/*` | TBD | Application currently references `Microsoft.AspNetCore.Http`. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
@@ -348,6 +348,40 @@ Remaining work:
 
 ### Ownership, privacy, and lifecycle checks
 
+### Phase 3A update
+
+Status: IN_PROGRESS. Customer-owned resources now rely on Application handlers for ownership checks; controller checks remain only as endpoint metadata or defense-in-depth.
+
+Resources protected in this pass:
+
+| Area | Change |
+| --- | --- |
+| Returns `Create` | `CreateReturnRequestCommandHandler` now reads `ICurrentUserService.UserId`, overwrites `CustomerId`, blocks unauthenticated users, and forbids creating RMA for another user's order. Guest order returns remain blocked pending a verified guest ownership strategy. |
+| Returns `GetById` / list | Return query handlers now allow owner access and admin/manager access; non-owners receive Forbidden. Customer list requests are forced to current user unless privileged. |
+| Addresses | `AddressesController` now has `[Authorize]`; create/get/update/delete/set-default handlers ignore client-supplied `ApplicationUserId` and use `ICurrentUserService.UserId` for ownership. |
+| Orders detail/list/history | `GetOrdersByUserQueryHandler` uses current user for customer flow and preserves privileged admin/manager/staff target-user flow. `GetOrderHistoryQueryHandler` now checks current user ownership or privileged role before returning history. `GetOrderByIdQueryHandler` now includes manager as a privileged role. |
+| Wishlist | `WishlistController` now requires `[Authorize]`; existing handlers already use `ICurrentUserService.UserId`. |
+| Search history | `SearchSuggestionsController` protects save/delete/clear with `[Authorize]`; clear no longer accepts `userId` query. Command handlers use current user and return ServiceUnavailable because no search-history persistence model/repository exists yet. |
+
+Tests added:
+
+| Test | Expected behavior |
+| --- | --- |
+| `Phase3OwnershipTests.Customer_CannotDeleteAnotherUsersAddress` | User A deleting User B address returns 403. |
+| `Phase3OwnershipTests.Customer_CannotViewAnotherUsersReturnRequest` | User A reading User B return request returns 403. |
+| `Phase3OwnershipTests.Customer_CannotCreateReturnForAnotherUsersOrder` | User A creating RMA for User B order returns 403. |
+| `Phase3OwnershipTests.Customer_CannotViewAnotherUsersOrderHistory` | User A reading User B order history returns 403. |
+| `Phase3OwnershipTests.Anonymous_WishlistEndpoints_ReturnUnauthorized` | Anonymous wishlist access returns 401. |
+| `Phase3OwnershipTests.Customer_ClearSearchHistory_DoesNotAcceptTargetUserId` | `userId` query is ignored; endpoint uses current user and returns configured storage-blocked status. |
+
+Remaining Phase 3 risks:
+
+| Item | Status |
+| --- | --- |
+| Guest order/return access | BLOCKED until a signed guest ownership mechanism exists; do not expose guest order/RMA by GUID alone. |
+| Search history persistence | BLOCKED because no entity/repository/handler implementation existed; current change prevents client-supplied target user IDs but does not add storage. |
+| Review ownership/lifecycle | TODO for next Phase 3 pass. |
+
 | Item checked | Finding |
 | --- | --- |
 | Orders | `OrdersController.GetById` and `GetOrderHistory` perform controller-level owner/admin checks in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:54` and `OrdersController.cs:76`; this should be moved/enforced in handlers too. |
@@ -397,8 +431,11 @@ Remaining work:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter StockLifecycleTests` after Phase 2A | PASS | 1/1 integration test passed for concurrent SKU stock decrement. |
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 2A | PASS | 73 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the Phase 2A stock changes. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 2A | PASS | Domain 57/57, Application 190/190, WebAPI Integration 30/30, total 277/277. Integration tests took about 8m27s. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 3A | PASS | 0 warnings, 0 errors on the post-change build run. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build --filter Phase3OwnershipTests` after Phase 3A | PASS | 6/6 ownership integration tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 3A | PASS | Domain 57/57, Application 191/191, WebAPI Integration 36/36, total 284/284. Integration tests took about 9m56s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Implement Phase 2B order lifecycle stock release: restore Product/SKU stock consistently on cancellation/payment failure/return flows, and define when InventoryItem serials move between Available/Reserved/Sold/Returned.
+Continue Phase 3B: enforce review ownership/lifecycle rules, then design a signed guest order/RMA access strategy before exposing any guest-owned resources by GUID.

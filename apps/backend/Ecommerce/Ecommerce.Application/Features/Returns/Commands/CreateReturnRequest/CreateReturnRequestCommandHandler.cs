@@ -15,25 +15,41 @@ namespace Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
         private readonly IRmaCodeGenerator _rmaCodeGenerator;
+        private readonly ICurrentUserService _currentUserService;
 
         public CreateReturnRequestCommandHandler(
             IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
-            IRmaCodeGenerator rmaCodeGenerator)
+            IRmaCodeGenerator rmaCodeGenerator,
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _rmaCodeGenerator = rmaCodeGenerator;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<Guid>> Handle(
             CreateReturnRequestCommand request, CancellationToken cancellationToken)
         {
+            var currentUserId = _currentUserService.UserId;
+            if (!currentUserId.HasValue)
+            {
+                return Result<Guid>.Unauthorized();
+            }
+
             var order = await _unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
             if (order is null)
             {
                 return Result<Guid>.NotFound("Đơn hàng không tồn tại.");
             }
+
+            if (order.ApplicationUserId != currentUserId.Value)
+            {
+                return Result<Guid>.Forbidden("Bạn không có quyền tạo yêu cầu đổi/trả cho đơn hàng này.");
+            }
+
+            request.CustomerId = currentUserId.Value;
 
             if (order.Status != EOrderStatus.Delivered)
             {
