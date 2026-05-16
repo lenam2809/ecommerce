@@ -2616,9 +2616,9 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
                 foreach (var product in products)
                 {
-                    for (int i = 0; i < random.Next(3, 6); i++) // Mỗi sản phẩm có 3-5 đánh giá
+                    var sampleCount = Math.Min(random.Next(3, 6), users.Count);
+                    foreach (var user in users.OrderBy(_ => random.Next()).Take(sampleCount))
                     {
-                        var user = users[random.Next(users.Count)];
                         var reviewId = Guid.NewGuid();
 
                         var review = new Review

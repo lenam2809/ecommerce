@@ -92,6 +92,9 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasIndex(r => new { r.ApplicationUserId, r.Date })
                    .HasDatabaseName("IX_Reviews_ApplicationUserId_Date");
 
+            builder.HasIndex(r => new { r.ProductId, r.ApplicationUserId })
+                   .IsUnique()
+                   .HasDatabaseName("IX_Reviews_ProductId_ApplicationUserId");
 
             // Query filter cho soft delete
             builder.HasQueryFilter(r => !r.IsDeleted);

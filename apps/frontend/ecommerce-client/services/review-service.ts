@@ -8,7 +8,6 @@ import { AppToaster } from '@/components/toast/app-toaster';
 
 export interface CreateReviewRequest {
     productId: string;
-    userId: string;
     rating: number;
     content: string;
     images?: File[];
@@ -37,7 +36,6 @@ class ReviewService extends BaseService {
         try {
             const formData = new FormData();
             formData.append('productId', data.productId);
-            formData.append('userId', data.userId);
             formData.append('rating', data.rating.toString());
             formData.append('content', data.content);
 

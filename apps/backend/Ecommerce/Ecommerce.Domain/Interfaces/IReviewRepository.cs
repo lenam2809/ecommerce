@@ -7,6 +7,9 @@ namespace Ecommerce.Domain.Interfaces
     {
         Task<ProductReviews> GetProductReviewsAsync(Guid productId);
         Task<double> GetAverageRatingAsync(Guid productId);
+        Task<bool> ExistsForProductByUserAsync(Guid productId, Guid userId, CancellationToken cancellationToken = default);
+        Task<bool> HasDeliveredPurchaseAsync(Guid productId, Guid userId, CancellationToken cancellationToken = default);
+        Task<(double Rating, int Count)> GetRatingSummaryAsync(Guid productId, CancellationToken cancellationToken = default);
     }
 }
 

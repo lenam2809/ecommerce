@@ -30,7 +30,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | DONE | `CreateOrderCommandHandler.cs`, `CreateOrderItemDto.cs`, `Order.cs`, `IProductRepository.cs`, `IProductVariantSkuRepository.cs`, `ProductRepository.cs`, `ProductVariantSkuRepository.cs` | `CreateOrderCommandHandlerTests.cs`, `StockLifecycleTests.cs` | Phase 2A checkout now uses `Products.StockQuantity` only for non-variant products and requires/decrements `ProductVariantSkus.StockQuantity` for variant products. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
 | P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | IN_PROGRESS | `AddressesController.cs`, `WishlistController.cs`, `SearchSuggestionsController.cs`, customer address handlers, search history commands | `Phase3OwnershipTests.cs` | Address and wishlist customer surfaces now require auth and handlers use `ICurrentUserService`. Search history no longer accepts `userId` from query/body for clear and ignores body `UserId` on save, but real persistence is BLOCKED because no search-history entity/repository exists. |
-| P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | IN_PROGRESS | Return request handlers, order detail/list/history handlers, `EUserRoles.cs` | `Phase3OwnershipTests.cs` | Returns and order detail/history now enforce owner/admin-manager-staff checks in Application. Review ownership remains TODO. |
+| P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | DONE | Return request handlers, order detail/list/history handlers, `EUserRoles.cs`, review command/repository/configuration | `Phase3OwnershipTests.cs`, `CreateReviewCommandHandlerTests.cs` | Returns, order detail/history, and review creation now enforce current-user rules in Application. Guest-owned resources remain blocked pending signed guest ownership. |
+| P3-003 | Enforce review duplicate/verified-purchase rules and reduce review/content XSS risk. | DONE | `CreateReviewCommandHandler.cs`, `ReviewRepository.cs`, `ReviewConfiguration.cs`, review DTO/service/UI, review unique-index migration | `CreateReviewCommandHandlerTests.cs` | Authenticated users can create one review per product. Review uses current user, stores encoded plain text, and sets `IsVerified` only when a delivered/completed order contains the product. |
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | TODO | `Ecommerce.Application/Features/Payments/VnPay/*` | TBD | Application currently references `Microsoft.AspNetCore.Http`. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
@@ -380,7 +381,67 @@ Remaining Phase 3 risks:
 | --- | --- |
 | Guest order/return access | BLOCKED until a signed guest ownership mechanism exists; do not expose guest order/RMA by GUID alone. |
 | Search history persistence | BLOCKED because no entity/repository/handler implementation existed; current change prevents client-supplied target user IDs but does not add storage. |
-| Review ownership/lifecycle | TODO for next Phase 3 pass. |
+| Review creation ownership/lifecycle | DONE in Phase 3B. Update/delete flows are not implemented today; enforce the same owner/admin split if introduced later. |
+
+### Phase 3B update
+
+Status: DONE for review creation rules and focused content safety hardening.
+
+Review rule selected:
+
+| Rule | Implementation |
+| --- | --- |
+| Authentication | `CreateReviewCommandHandler` now uses `ICurrentUserService.UserId`; `CreateReviewCommand.UserId` from client is ignored. Unauthenticated or unresolved users return Unauthorized instead of throwing null reference errors. |
+| Buyer requirement | Code/UI previously allowed open authenticated reviews, so the rule remains open authenticated review. The handler sets `Review.IsVerified=true` only if the current user has a `Delivered` or `Completed` order containing the reviewed product. |
+| Duplicate prevention | One review per `(ProductId, ApplicationUserId)`. Handler pre-checks duplicates and EF configuration now has unique index `IX_Reviews_ProductId_ApplicationUserId`. |
+| Rating/content validation | Rating outside 1-5 returns validation error. Review content is stored as encoded plain text after trimming and null-character removal. |
+| Rating aggregate | Handler saves the review before calculating product rating summary, then updates `Product.Rating` and `Product.ReviewCount` from repository aggregation. |
+
+XSS/content handling:
+
+| Surface audited | Finding/change |
+| --- | --- |
+| Review content backend | Stored as encoded plain text; raw `<script>` is not persisted by `CreateReviewCommandHandler`. |
+| Review frontend render | `ReviewItem` renders review content as React text, not HTML. The "Đã mua hàng" badge now renders only when `review.isVerified` is true. |
+| Product detail description | Product descriptions in inspected client pages/tabs render as text, not `dangerouslySetInnerHTML`. |
+| `dangerouslySetInnerHTML` audit | `app/layout.tsx` and product page use internal JSON-LD via `JSON.stringify`; dashboard chart CSS is internal generated style; client `MarqueeBarClient` renders marquee HTML and relies on backend marquee handlers that use `HtmlSanitizer`. No frontend sanitizer dependency was added. |
+
+Files touched:
+
+| File | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Reviews/Commands/CreateReview/CreateReviewCommandHandler.cs` | Current-user ownership, duplicate check, verified-purchase flag, encoded content, rating summary update. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Interfaces/IReviewRepository.cs` | Added duplicate, delivered-purchase, and rating-summary repository contracts. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/ReviewRepository.cs` | Implements duplicate check, delivered/completed purchase lookup, and aggregate rating projection. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/EntityConfigurations/ReviewConfiguration.cs` | Adds unique `(ProductId, ApplicationUserId)` index. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Migrations/20260516123045_AddReviewProductUserUniqueIndex.cs` | Adds review unique index. Also captures existing model drift for unique `Orders.Code` from Phase 2 code-generation work. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Seed/ApplicationDbContextSeed.cs` | Review seed now picks distinct users per product so fresh seed data respects the unique rule. |
+| `apps/frontend/ecommerce-client/services/review-service.ts` and `components/product-reviews.tsx` | Frontend no longer sends `userId` during review creation. |
+| `apps/frontend/ecommerce-client/components/reviews/review-item.tsx` | Verified-purchase badge is conditional on `isVerified`. |
+
+Migration/pre-check notes:
+
+| Item | Note |
+| --- | --- |
+| Review unique index | Before applying to an existing database, check duplicates with `GROUP BY ProductId, ApplicationUserId HAVING COUNT(*) > 1` and resolve them first. |
+| Order code unique index | Migration also includes `IX_Orders_Code` because the model already had a unique `Order.Code` configuration from the prior order-code phase but no migration snapshot entry. Check duplicate order codes before applying. |
+
+Tests added:
+
+| Test | Expected behavior |
+| --- | --- |
+| `Handle_UserNotAuthenticated_ReturnsUnauthorizedWithoutCrashing` | Anonymous review creation is rejected and does not query product/user state. |
+| `Handle_DuplicateReview_ReturnsConflict` | Existing review by same user/product is rejected. |
+| `Handle_OpenReview_UsesCurrentUserAndStoresSanitizedPlainText` | Client `UserId` is ignored, current user is used, raw script is encoded, non-buyer review is not verified, rating summary updates. |
+| `Handle_DeliveredBuyerReview_SetsVerifiedPurchaseFlag` | Delivered/completed buyer review succeeds with `IsVerified=true`. |
+
+Remaining Phase 3 risks:
+
+| Item | Status |
+| --- | --- |
+| Guest reviews/orders/returns | Still BLOCKED until a signed guest ownership/access-token strategy exists. |
+| Review update/delete ownership | Not implemented in current codebase; add ownership checks if those commands/controllers are introduced. |
+| Marquee/content HTML contract | Backend sanitizes marquee HTML today; a later frontend hardening pass should define an explicit sanitized HTML contract for all CMS-like fields. |
 
 | Item checked | Finding |
 | --- | --- |
@@ -434,8 +495,15 @@ Remaining Phase 3 risks:
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 3A | PASS | 0 warnings, 0 errors on the post-change build run. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build --filter Phase3OwnershipTests` after Phase 3A | PASS | 6/6 ownership integration tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 3A | PASS | Domain 57/57, Application 191/191, WebAPI Integration 36/36, total 284/284. Integration tests took about 9m56s. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~CreateReviewCommandHandlerTests` after Phase 3B | PASS | 4/4 review command tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj` after Phase 3B | PASS | 195/195 application tests passed. |
+| `dotnet test apps/backend/Ecommerce/tests/Ecommerce.Domain.Tests/Ecommerce.Domain.Tests.csproj` after Phase 3B | PASS | 57/57 domain tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build` after Phase 3B | TIMEOUT | Timed out after 180s in this run; process was stopped. Previous Phase 3A integration suite passed 36/36. No new integration tests were added for Phase 3B. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln` after Phase 3B | TIMEOUT | Timed out after 240s because integration tests continued running. Application/domain tests were rerun separately and passed. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 3B | PASS | 0 warnings, 0 errors. |
+| `npm run lint` in `apps/frontend/ecommerce-client` after Phase 3B | FAIL | Fails on pre-existing lint debt, including `no-explicit-any` in unrelated files and hook rule errors in `components/product-listing.tsx`; changed review files only show existing warnings, not fatal errors. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 3B: enforce review ownership/lifecycle rules, then design a signed guest order/RMA access strategy before exposing any guest-owned resources by GUID.
+Continue Phase 3C: design a signed guest order/RMA access strategy and then harden any future review update/delete flows with Application-level ownership checks.
