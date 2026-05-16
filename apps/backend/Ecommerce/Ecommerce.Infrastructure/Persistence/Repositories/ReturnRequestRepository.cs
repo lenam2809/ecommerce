@@ -55,5 +55,22 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync(ct);
         }
+
+        public async Task<bool> HasOpenReturnForOrderItemAsync(Guid orderItemId, CancellationToken ct = default)
+        {
+            return await _context.ReturnRequests
+                .AnyAsync(r =>
+                    r.OrderItemId == orderItemId &&
+                    r.Status != EReturnStatus.Rejected &&
+                    r.Status != EReturnStatus.Completed,
+                    ct);
+        }
+
+        public async Task<int> GetNonRejectedQuantityByOrderItemAsync(Guid orderItemId, CancellationToken ct = default)
+        {
+            return await _context.ReturnRequests
+                .Where(r => r.OrderItemId == orderItemId && r.Status != EReturnStatus.Rejected)
+                .SumAsync(r => (int?)r.Quantity, ct) ?? 0;
+        }
     }
 }

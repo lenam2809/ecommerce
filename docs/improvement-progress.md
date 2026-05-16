@@ -32,6 +32,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | IN_PROGRESS | `AddressesController.cs`, `WishlistController.cs`, `SearchSuggestionsController.cs`, customer address handlers, search history commands | `Phase3OwnershipTests.cs` | Address and wishlist customer surfaces now require auth and handlers use `ICurrentUserService`. Search history no longer accepts `userId` from query/body for clear and ignores body `UserId` on save, but real persistence is BLOCKED because no search-history entity/repository exists. |
 | P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | DONE | Return request handlers, order detail/list/history handlers, `EUserRoles.cs`, review command/repository/configuration | `Phase3OwnershipTests.cs`, `CreateReviewCommandHandlerTests.cs` | Returns, order detail/history, and review creation now enforce current-user rules in Application. Guest-owned resources remain blocked pending signed guest ownership. |
 | P3-003 | Enforce review duplicate/verified-purchase rules and reduce review/content XSS risk. | DONE | `CreateReviewCommandHandler.cs`, `ReviewRepository.cs`, `ReviewConfiguration.cs`, review DTO/service/UI, review unique-index migration | `CreateReviewCommandHandlerTests.cs` | Authenticated users can create one review per product. Review uses current user, stores encoded plain text, and sets `IsVerified` only when a delivered/completed order contains the product. |
+| P3-004 | Enforce return/RMA duplicate, quantity, return window, and evidence path rules. | DONE | `CreateReturnRequestCommandHandler.cs`, `IReturnRequestRepository.cs`, `ReturnRequestRepository.cs` | `CreateReturnRequestCommandHandlerTests.cs`, `Phase3OwnershipTests.cs` | Open RMA is unique per order item, total non-rejected quantity cannot exceed purchased quantity, 7-day window uses delivered order history when available, and evidence no longer accepts arbitrary external URLs. |
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | TODO | `Ecommerce.Application/Features/Payments/VnPay/*` | TBD | Application currently references `Microsoft.AspNetCore.Http`. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
@@ -443,6 +444,56 @@ Remaining Phase 3 risks:
 | Review update/delete ownership | Not implemented in current codebase; add ownership checks if those commands/controllers are introduced. |
 | Marquee/content HTML contract | Backend sanitizes marquee HTML today; a later frontend hardening pass should define an explicit sanitized HTML contract for all CMS-like fields. |
 
+### Phase 3C update
+
+Status: DONE for scoped Returns/RMA correctness hardening.
+
+Return rules implemented:
+
+| Rule | Implementation |
+| --- | --- |
+| Duplicate open return | `CreateReturnRequestCommandHandler` calls `IReturnRequestRepository.HasOpenReturnForOrderItemAsync`. Any existing non-resolved RMA for the same `OrderItemId` returns Conflict. Open statuses are everything except `Rejected` and `Completed`. |
+| Return quantity | Handler validates `Quantity > 0` and calculates remaining quantity from `OrderItem.Quantity - nonRejectedReturnQuantity`. Requests over remaining return BadRequest. |
+| Partial returns | Multiple partial returns are still possible only after prior requests are resolved; total non-rejected quantity cannot exceed purchased quantity. |
+| Order item loading | Create return now loads the order through `IOrderRepository.GetOrderWithItemsAsync` so item validation is based on real order items. |
+| Return window | Handler prefers `OrderHistory` where `ToStatus == Delivered` for delivered date, then falls back to `Order.UpdatedAt` or `Order.CreatedAt`. The 7-day deadline remains enforced. |
+| Evidence | Evidence paths are validated before aggregate creation: max 10 files, no absolute URL/scheme, no rooted/traversal path, must be under `returns/` or `uploads/returns/`, and extension must match image/video evidence type. |
+
+Evidence validation strategy:
+
+| Item | Status |
+| --- | --- |
+| Arbitrary external URL | Rejected. Examples like `https://evil.example/evidence.png` are no longer accepted. |
+| Storage path ownership | Deferred. The current upload/storage model does not expose a durable file ownership token or upload session to validate that a path belongs to the current user/request. |
+| MIME/size validation | Deferred to upload endpoints/storage service. This pass validates path shape and extension at RMA creation. A future return evidence upload endpoint should call `IFileStorageService.SaveFileAsync` directly and enforce MIME, size, and count before returning storage ids. |
+
+Files touched:
+
+| File | Notes |
+| --- | --- |
+| `apps/backend/Ecommerce/Ecommerce.Application/Features/Returns/Commands/CreateReturnRequest/CreateReturnRequestCommandHandler.cs` | Adds duplicate open check, remaining quantity calculation, delivered-history window lookup, and evidence path validation. |
+| `apps/backend/Ecommerce/Ecommerce.Domain/Interfaces/IReturnRequestRepository.cs` | Adds open-return and non-rejected quantity query contracts. |
+| `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/Repositories/ReturnRequestRepository.cs` | Implements return duplicate/quantity queries with EF projections. |
+| `apps/backend/Ecommerce/Ecommerce.Application.Tests/Features/Returns/Commands/CreateReturnRequest/CreateReturnRequestCommandHandlerTests.cs` | Adds focused Application tests for the new RMA rules. |
+
+Tests added:
+
+| Test | Expected behavior |
+| --- | --- |
+| `Handle_OpenReturnExistsForOrderItem_ReturnsConflict` | Duplicate open RMA for the same order item is rejected. |
+| `Handle_QuantityExceedsRemainingReturnableQuantity_ReturnsBadRequest` | Quantity over remaining returnable quantity is rejected. |
+| `Handle_ReturnAfterWindow_ReturnsBadRequest` | Return after 7-day delivered window is rejected when delivered history exists. |
+| `Handle_ExternalEvidenceUrl_ReturnsBadRequest` | External evidence URL is rejected. |
+| `Handle_ValidReturnRequest_PersistsReturnWithEvidence` | Valid return with internal evidence path succeeds. |
+
+Deferred items:
+
+| Item | Status |
+| --- | --- |
+| Reliable delivered timestamp column | TODO. `OrderHistory` is preferred, but orders without history still fall back to `UpdatedAt`/`CreatedAt`; adding explicit `DeliveredAt` would make the window rule unambiguous. |
+| Evidence upload ownership | TODO. Need a customer-facing return evidence upload flow or storage token model before validating file ownership strongly. |
+| Cancel/reopen RMA flow | TODO. Current resolved statuses are `Rejected` and `Completed`; no customer cancel flow exists. |
+
 | Item checked | Finding |
 | --- | --- |
 | Orders | `OrdersController.GetById` and `GetOrderHistory` perform controller-level owner/admin checks in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:54` and `OrdersController.cs:76`; this should be moved/enforced in handlers too. |
@@ -502,8 +553,14 @@ Remaining Phase 3 risks:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln` after Phase 3B | TIMEOUT | Timed out after 240s because integration tests continued running. Application/domain tests were rerun separately and passed. |
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 3B | PASS | 0 warnings, 0 errors. |
 | `npm run lint` in `apps/frontend/ecommerce-client` after Phase 3B | FAIL | Fails on pre-existing lint debt, including `no-explicit-any` in unrelated files and hook rule errors in `components/product-listing.tsx`; changed review files only show existing warnings, not fatal errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~CreateReturnRequestCommandHandlerTests` after Phase 3C | PASS | 5/5 return command tests passed. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 3C | PASS | 28 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the RMA changes. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj` after Phase 3C | PASS | 200/200 application tests passed. |
+| `dotnet test apps/backend/Ecommerce/tests/Ecommerce.Domain.Tests/Ecommerce.Domain.Tests.csproj` after Phase 3C | PASS | 57/57 domain tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build --filter Phase3OwnershipTests` after Phase 3C | PASS | 6/6 ownership integration tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 3C | PASS | Domain 57/57, Application 200/200, WebAPI Integration 36/36, total 293/293. Integration tests took about 9m49s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 3C: design a signed guest order/RMA access strategy and then harden any future review update/delete flows with Application-level ownership checks.
+Continue Phase 3D: design a signed guest order/RMA access strategy and add a dedicated return evidence upload flow with storage ownership tokens.
