@@ -2,9 +2,11 @@ using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Orders.Queries.GetMyOrderHistoryStats;
 
-public sealed class GetMyOrderHistoryStatsQuery : IRequest<Result<MyOrderHistoryStatsDto>>
+public sealed class GetMyOrderHistoryStatsQuery : IQuery<Result<MyOrderHistoryStatsDto>>
 {
     public Guid UserId { get; init; }
 }

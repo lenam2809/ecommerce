@@ -12,7 +12,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | IN_PROGRESS |
 | Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | IN_PROGRESS |
 | Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | IN_PROGRESS |
-| Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | TODO |
+| Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | IN_PROGRESS |
 | Phase 5 | Frontend quality gate va observability | Re-enable frontend type/lint gates and add operational visibility around checkout/payment/security flows. | TODO |
 
 ## Checklist
@@ -36,6 +36,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | TODO | `Ecommerce.Application/Features/Payments/VnPay/*` | TBD | Application currently references `Microsoft.AspNetCore.Http`. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
+| P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
 | P5-001 | Re-enable frontend build type/lint gates. | TODO | `apps/frontend/ecommerce-client/next.config.ts`, `apps/frontend/ecommerce-dashboard/next.config.ts` | TBD | Client ignores eslint and TS build errors; dashboard ignores eslint. |
 | P5-002 | Add checkout/payment/promo observability and alerting. | TODO | TBD | TBD | Build on existing OpenTelemetry/Prometheus setup. |
 
@@ -494,6 +495,53 @@ Deferred items:
 | Evidence upload ownership | TODO. Need a customer-facing return evidence upload flow or storage token model before validating file ownership strongly. |
 | Cancel/reopen RMA flow | TODO. Current resolved statuses are `Rejected` and `Completed`; no customer cancel flow exists. |
 
+### Phase 4A update
+
+Status: DONE for marker-interface transaction routing and first priority request migration.
+
+Transaction strategy:
+
+| Area | Before | After |
+| --- | --- | --- |
+| Query detection | `TransactionBehavior` skipped transactions when `typeof(TRequest).Name.EndsWith("Query")`. | `TransactionBehavior` skips transactions when the request implements `IQuery<TResponse>`. |
+| Command transaction | Non-query request names opened a transaction and committed/rolled back around `next()`. | Requests implementing `ICommand<TResponse>` open the same transaction boundary. |
+| Unmarked requests | Behavior depended on naming. | Backward-compatible fallback treats unmarked requests as command-like and opens a transaction. This avoids breaking unmigrated mutation flows while remaining marker-first for migrated queries. |
+| Active transaction | Existing active transaction skipped a new transaction. | Unchanged. |
+
+Marker interfaces added:
+
+| Interface | Location | Notes |
+| --- | --- | --- |
+| `ICommand<out TResponse> : IRequest<TResponse>` | `apps/backend/Ecommerce/Ecommerce.Application/Common/Interfaces/ICommand.cs` | Marker for mutating MediatR requests. |
+| `IQuery<out TResponse> : IRequest<TResponse>` | `apps/backend/Ecommerce/Ecommerce.Application/Common/Interfaces/IQuery.cs` | Marker for read-only MediatR requests that should not open a transaction. |
+
+Request types migrated in this pass:
+
+| Group | Marker applied |
+| --- | --- |
+| Payments | `CreatePaymentForOrderCommand` -> `ICommand<Result<CreatePaymentForOrderResultDto>>`. |
+| Promo codes | Admin create/update/delete -> `ICommand`; `GetActivePromoCodesQuery`, `GetPagedPromoCodesQuery`, `GetPromoCodeByIdQuery` -> `IQuery`; `ApplyPromoCodeCommand` -> `IQuery` because Phase 1C made apply/preview read-only while preserving the existing request name. |
+| Orders | Create/update/delete/status/send-email commands -> `ICommand`; order detail/list/history/analytics/history-stats/history-overview requests -> `IQuery`. |
+| Reports | All `Features/Reports/Queries/*` request types -> `IQuery`. |
+| Returns | Create/approve/reject/update-status commands -> `ICommand`; return get/list queries -> `IQuery`. |
+
+Pending request marker migration:
+
+| Area | Status |
+| --- | --- |
+| Remaining `IRequest<T>` feature folders | TODO: `About`, `Account`, `AccountLocks`, `AuditLogs`, `Auth`, `Banners`, `Brands`, `Cart`, `Categories`, `CategoryBrands`, `Contact`, `CustomerAddresses`, `Dashboard`, `Inventory`, `Marquee`, `Notifications`, `Permissions`, `Products`, `Reviews`, `Roles`, `SearchSuggestions`, `UserActivities`, `Users`, `Wishlists`. |
+| Fallback removal | TODO after all request types are marked. Once no business request depends on raw `IRequest<T>`, update `TransactionBehavior` to skip or fail unmarked requests explicitly instead of treating them as commands. |
+| Architecture cleanup still open | `VnPayService` Web dependency and domain-event dispatch before commit remain P4-001/P4-002. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `Handle_RequestIsQuery_SkipsTransactionAndCallsNext` | `IQuery<TResponse>` does not call execution strategy or begin transaction. |
+| `Handle_CommandSucceeds_BeginsAndCommitsTransaction` | `ICommand<TResponse>` opens and commits transaction. |
+| `Handle_CommandThrows_RollsBackAndRethrows` | Exception rolls back and rethrows. |
+| `Handle_UnmarkedRequest_BeginsTransactionForBackwardCompatibility` | Raw `IRequest<TResponse>` still opens transaction during migration. |
+
 | Item checked | Finding |
 | --- | --- |
 | Orders | `OrdersController.GetById` and `GetOrderHistory` perform controller-level owner/admin checks in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:54` and `OrdersController.cs:76`; this should be moved/enforced in handlers too. |
@@ -559,8 +607,11 @@ Deferred items:
 | `dotnet test apps/backend/Ecommerce/tests/Ecommerce.Domain.Tests/Ecommerce.Domain.Tests.csproj` after Phase 3C | PASS | 57/57 domain tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --no-build --filter Phase3OwnershipTests` after Phase 3C | PASS | 6/6 ownership integration tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 3C | PASS | Domain 57/57, Application 200/200, WebAPI Integration 36/36, total 293/293. Integration tests took about 9m49s. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4A | PASS | 71 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the marker-interface transaction change. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~TransactionBehaviorTests --no-build` after Phase 4A | PASS | 5/5 transaction behavior tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4A | PASS | Domain 57/57, Application 201/201, WebAPI Integration 36/36, total 294/294. Integration tests took about 10m08s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 3D: design a signed guest order/RMA access strategy and add a dedicated return evidence upload flow with storage ownership tokens.
+Continue Phase 4B: migrate the remaining raw `IRequest<T>` types to `ICommand<TResponse>`/`IQuery<TResponse>`, then remove the unmarked-request transaction fallback once the request surface is fully classified.

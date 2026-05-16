@@ -1,10 +1,12 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Orders.Commands.UpdateOrder
 {
-    public class UpdateOrderCommand : IRequest<Result<Unit>>
+    public class UpdateOrderCommand : ICommand<Result<Unit>>
     {
         public Guid Id { get; set; }
 

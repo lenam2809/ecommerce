@@ -1,10 +1,12 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using MediatR;
 
+using Ecommerce.Application.Common.Interfaces;
+
 namespace Ecommerce.Application.Features.Reports.Queries.GetProductPerformance
 {
-    public class GetProductPerformanceQuery : IRequest<Result<List<ProductPerformanceDto>>>
+    public class GetProductPerformanceQuery : IQuery<Result<List<ProductPerformanceDto>>>
     {
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
