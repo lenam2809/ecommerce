@@ -18,17 +18,20 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         private readonly IEnhancedLogger _logger;
         private readonly IPublisher _publisher;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IOrderCodeGenerator _orderCodeGenerator;
 
         public CreateOrderCommandHandler(
             IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
             IPublisher publisher,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IOrderCodeGenerator orderCodeGenerator)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _publisher = publisher;
             _currentUserService = currentUserService;
+            _orderCodeGenerator = orderCodeGenerator;
         }
 
         public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -37,6 +40,8 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
             {
                 for (var attempt = 1; attempt <= 3; attempt++)
                 {
+                    var decrementedStockItems = new List<OrderStockItem>();
+
                     try
                     {
                         var orderContext = await BuildOrderContextAsync(request, cancellationToken);
@@ -93,7 +98,6 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             }
                         }
 
-                        var decrementedStockItems = new List<OrderStockItem>();
                         foreach (var stockItem in stockItems)
                         {
                             var stockDecremented = await TryDecrementStockAsync(stockItem, cancellationToken);
@@ -147,6 +151,17 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                         _unitOfWork.ClearTracking();
                         return Result<Guid>.BadRequest("Out of stock");
                     }
+                    catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex) && attempt < 3)
+                    {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        _unitOfWork.ClearTracking();
+                    }
+                    catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
+                    {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        _unitOfWork.ClearTracking();
+                        return Result<Guid>.Conflict("Mã đơn hàng đã tồn tại, vui lòng thử lại.");
+                    }
                 }
 
                 return Result<Guid>.BadRequest("Out of stock");
@@ -166,6 +181,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         {
             if (request.ApplicationUserId.HasValue)
             {
+                var orderCode = _orderCodeGenerator.Generate();
                 var customer = await _unitOfWork.Users.GetByIdAsync(request.ApplicationUserId.Value);
                 if (customer == null)
                 {
@@ -182,12 +198,14 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     request.ShippingAddress,
                     null,
                     request.DeliveryInstructions,
-                    request.ExpectedDeliveryDate);
+                    request.ExpectedDeliveryDate,
+                    orderCode);
 
                 return CreateOrderContext.WithOrder(order, customerNameForEvent);
             }
 
             var guestName = request.GuestName.Trim();
+            var guestOrderCode = _orderCodeGenerator.Generate();
             var guestOrder = Order.CreateGuestOrder(
                 request.Email,
                 guestName,
@@ -196,7 +214,8 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 null,
                 request.DeliveryInstructions,
                 request.ExpectedDeliveryDate,
-                string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim());
+                string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim(),
+                guestOrderCode);
 
             return CreateOrderContext.WithOrder(guestOrder, guestName);
         }
@@ -330,6 +349,16 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         private static string BuildVariantInfo(CreateOrderItemDto item)
         {
             return string.Join(" / ", new[] { item.Color, item.Size }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        }
+
+        private static bool IsUniqueCodeViolation(DbUpdateException exception)
+        {
+            var message = exception.InnerException?.Message ?? exception.Message;
+            return message.Contains("IX_Orders_Code", StringComparison.OrdinalIgnoreCase)
+                   || (message.Contains("Orders", StringComparison.OrdinalIgnoreCase)
+                       && message.Contains("Code", StringComparison.OrdinalIgnoreCase)
+                       && (message.Contains("unique", StringComparison.OrdinalIgnoreCase)
+                           || message.Contains("duplicate", StringComparison.OrdinalIgnoreCase)));
         }
 
         private sealed class CreateOrderContext

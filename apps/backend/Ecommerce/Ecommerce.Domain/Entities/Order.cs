@@ -72,12 +72,13 @@ namespace Ecommerce.Domain.Entities
             string shippingAddress,
             string? discountCode,
             string? deliveryInstructions,
-            DateTime? expectedDeliveryDate)
+            DateTime? expectedDeliveryDate,
+            string? code = null)
         {
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                Code = GenerateOrderCode(),
+                Code = NormalizeCode(code),
                 ApplicationUserId = userId,
                 Email = email,
                 Phone = phone,
@@ -100,12 +101,13 @@ namespace Ecommerce.Domain.Entities
             string? discountCode,
             string? deliveryInstructions,
             DateTime? expectedDeliveryDate,
-            string? guestId = null)
+            string? guestId = null,
+            string? code = null)
         {
             return new Order
             {
                 Id = Guid.NewGuid(),
-                Code = GenerateOrderCode(),
+                Code = NormalizeCode(code),
                 ApplicationUserId = null,
                 GuestEmail = guestEmail,
                 GuestName = guestName,
@@ -256,11 +258,11 @@ namespace Ecommerce.Domain.Entities
             TotalAmount = _orderItems.Sum(x => x.UnitPrice * x.Quantity);
         }
 
-        private static string GenerateOrderCode()
+        private static string NormalizeCode(string? code)
         {
-            var timestamp = DateTime.Now.ToString("yyMMddHHmm");
-            var random = new Random().Next(1000, 9999).ToString();
-            return $"ORD-{timestamp}-{random}";
+            return string.IsNullOrWhiteSpace(code)
+                ? $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..27].ToUpperInvariant()
+                : code.Trim().ToUpperInvariant();
         }
 
         private static bool IsValidStatusTransition(EOrderStatus currentStatus, EOrderStatus newStatus)

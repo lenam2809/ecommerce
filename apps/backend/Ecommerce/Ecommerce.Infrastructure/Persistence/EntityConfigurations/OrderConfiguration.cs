@@ -48,6 +48,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .OnDelete(DeleteBehavior.Cascade);
 
             // Index hóa
+            builder.HasIndex(o => o.Code).IsUnique();
             builder.HasIndex(o => new { o.ApplicationUserId, o.OrderDate });
             builder.HasIndex(o => new { o.GuestId, o.OrderDate });
         }

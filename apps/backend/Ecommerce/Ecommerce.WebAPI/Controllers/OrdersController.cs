@@ -6,6 +6,8 @@ using Ecommerce.Application.Features.Orders.Commands.UpdateOrder;
 using Ecommerce.Application.Features.Orders.Commands.UpdateOrderStatus;
 using Ecommerce.Application.Features.Orders.Queries.GetOrderById;
 using Ecommerce.Application.Features.Orders.Queries.GetOrderHistory;
+using Ecommerce.Application.Features.Orders.Queries.GetMyOrderHistoryStats;
+using Ecommerce.Application.Features.Orders.Queries.GetOrderHistoryOverview;
 using Ecommerce.Application.Features.Orders.Queries.GetOrders;
 using Ecommerce.Application.Features.Orders.Queries.GetOrdersByUser;
 using Ecommerce.Domain.Enums;
@@ -147,37 +149,12 @@ namespace Ecommerce.WebAPI.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyOrderHistoryStats()
         {
-            var userId = User.GetUserId();
-
-            // Lấy tất cả đơn hàng của user
-            var ordersQuery = new GetOrdersByUserQuery { UserId = userId };
-            var ordersResult = await _mediator.Send(ordersQuery);
-
-            if (!ordersResult.IsSuccess)
+            var result = await _mediator.Send(new GetMyOrderHistoryStatsQuery
             {
-                return ordersResult.ToActionResult();
-            }
+                UserId = User.GetUserId()
+            });
 
-            var orders = ordersResult.Value;
-            var stats = new
-            {
-                TotalOrders = orders.Count,
-                StatusBreakdown = orders.GroupBy(o => o.Status)
-                    .ToDictionary(g => g.Key, g => g.Count()),
-                MonthlyOrderCount = orders.GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
-                    .Select(g => new
-                    {
-                        Period = $"{g.Key.Year}-{g.Key.Month:D2}",
-                        Count = g.Count(),
-                        TotalAmount = g.Sum(o => o.TotalAmount)
-                    })
-                    .OrderBy(x => x.Period)
-                    .ToList(),
-                TotalSpent = orders.Sum(o => o.TotalAmount),
-                AverageOrderValue = orders.Any() ? orders.Average(o => o.TotalAmount) : 0
-            };
-
-            return Ok(Result<object>.Success(stats));
+            return result.ToActionResult();
         }
 
         /// <summary>
@@ -187,55 +164,13 @@ namespace Ecommerce.WebAPI.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetOrderHistoryOverview([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
         {
-            var query = new GetOrdersQuery
+            var result = await _mediator.Send(new GetOrderHistoryOverviewQuery
             {
-                PageNumber = 1,
-                PageSize = int.MaxValue
-            };
+                FromDate = fromDate,
+                ToDate = toDate
+            });
 
-            var result = await _mediator.Send(query);
-
-            if (!result.IsSuccess)
-            {
-                return result.ToActionResult();
-            }
-
-            var orders = result.Value.Items;
-
-            // Filter by date range if provided
-            if (fromDate.HasValue)
-            {
-                orders = (List<Application.Features.Orders.Dto.OrderDto>)orders.Where(o => o.OrderDate >= fromDate.Value);
-            }
-            if (toDate.HasValue)
-            {
-                orders = (List<Application.Features.Orders.Dto.OrderDto>)orders.Where(o => o.OrderDate <= toDate.Value);
-            }
-
-            var overview = new
-            {
-                Period = new { From = fromDate, To = toDate },
-                Summary = new
-                {
-                    TotalOrders = orders.Count(),
-                    TotalRevenue = orders.Sum(o => o.TotalAmount),
-                    AverageOrderValue = orders.Any() ? orders.Average(o => o.TotalAmount) : 0
-                },
-                StatusDistribution = orders.GroupBy(o => o.Status)
-                    .Select(g => new { Status = g.Key, Count = g.Count(), Percentage = (double)g.Count() / orders.Count() * 100 })
-                    .ToList(),
-                DailyTrends = orders.GroupBy(o => o.OrderDate.Date)
-                    .Select(g => new
-                    {
-                        Date = g.Key,
-                        OrderCount = g.Count(),
-                        Revenue = g.Sum(o => o.TotalAmount)
-                    })
-                    .OrderBy(x => x.Date)
-                    .ToList()
-            };
-
-            return Ok(Result<object>.Success(overview));
+            return result.ToActionResult();
         }
     }
 }

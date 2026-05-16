@@ -36,6 +36,8 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<IMergeCartService, MergeCartService>();
             services.AddScoped<IGuestCartService, RedisGuestCartService>();
             services.AddScoped<IShippingCalculator, ShippingCalculator>();
+            services.AddSingleton<IOrderCodeGenerator, OrderCodeGenerator>();
+            services.AddSingleton<IRmaCodeGenerator, RmaCodeGenerator>();
 
             return services;
         }
