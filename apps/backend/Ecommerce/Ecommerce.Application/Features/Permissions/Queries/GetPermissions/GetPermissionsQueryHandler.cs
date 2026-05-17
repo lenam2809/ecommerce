@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Permissions.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 
 namespace Ecommerce.Application.Features.Permissions.Queries.GetPermissions
 {
-    //[Authorize(Policy = "ViewPermissions")]
     public class GetPermissionsQueryHandler : IRequestHandler<GetPermissionsQuery, Result<PaginatedList<PermissionDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

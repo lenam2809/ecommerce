@@ -1,9 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,7 @@ using System.Linq.Expressions;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
 {
-    [Authorize(Policy = "ViewProducts")]
+    [Authorize(Policy = EPermissions.ViewProducts)]
     public class GetPagedProductsQueryHandler : IRequestHandler<GetPagedProductsQuery, Result<PaginatedList<ProductDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

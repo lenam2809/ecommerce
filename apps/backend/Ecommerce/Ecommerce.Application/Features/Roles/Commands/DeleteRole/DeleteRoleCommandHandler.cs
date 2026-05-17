@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Application.Features.Roles.Commands.DeleteRole
 {
-    //[Authorize(Policy = "DeleteRole")]
     public class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, Result<bool>>
     {
         private readonly RoleManager<Role> _roleManager;

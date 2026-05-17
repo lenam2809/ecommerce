@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.PromoCodes.Commands.CreatePromoCode
 {
-    [Authorize(Policy = "Staff:CreatePromoCode")]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.CreatePromoCode)]
     public class CreatePromoCodeCommandHandler : IRequestHandler<CreatePromoCodeCommand, Result<Guid>>
     {
         private readonly IUnitOfWork _unitOfWork;

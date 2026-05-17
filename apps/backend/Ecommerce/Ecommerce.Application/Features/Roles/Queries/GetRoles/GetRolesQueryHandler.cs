@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Roles.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Roles.Queries.GetRoles
 {
-    //[Authorize(Policy = "ViewRoles")]
     public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, Result<PaginatedList<RoleDto>>>
     {
         private readonly RoleManager<Role> _roleManager;

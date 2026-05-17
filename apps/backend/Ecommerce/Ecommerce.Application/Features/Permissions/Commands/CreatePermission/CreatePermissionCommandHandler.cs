@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Application.Features.Permissions.Commands.CreatePermission
 {
-    //[Authorize(Policy = "CreatePermission")]
     public class CreatePermissionCommandHandler : IRequestHandler<CreatePermissionCommand, Result<Guid>>
     {
         private readonly IUnitOfWork _unitOfWork;

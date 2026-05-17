@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -89,32 +89,32 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             if (!await _context.Permissions.AnyAsync())
             {
                 // User permissions
-                permissions.Add(new Permission { Name = "ViewUsers", Description = "Can view user list" });
-                permissions.Add(new Permission { Name = "CreateUser", Description = "Can create new users" });
-                permissions.Add(new Permission { Name = "EditUser", Description = "Can edit user details" });
-                permissions.Add(new Permission { Name = "DeleteUser", Description = "Can delete users" });
+                permissions.Add(new Permission { Name = EPermissions.ViewUsers, Description = "Can view user list" });
+                permissions.Add(new Permission { Name = EPermissions.CreateUser, Description = "Can create new users" });
+                permissions.Add(new Permission { Name = EPermissions.EditUser, Description = "Can edit user details" });
+                permissions.Add(new Permission { Name = EPermissions.DeleteUser, Description = "Can delete users" });
 
                 // Product permissions
-                permissions.Add(new Permission { Name = "ViewProducts", Description = "Can view product list" });
-                permissions.Add(new Permission { Name = "CreateProduct", Description = "Can create new products" });
-                permissions.Add(new Permission { Name = "EditProduct", Description = "Can edit product details" });
-                permissions.Add(new Permission { Name = "DeleteProduct", Description = "Can delete products" });
+                permissions.Add(new Permission { Name = EPermissions.ViewProducts, Description = "Can view product list" });
+                permissions.Add(new Permission { Name = EPermissions.CreateProduct, Description = "Can create new products" });
+                permissions.Add(new Permission { Name = EPermissions.EditProduct, Description = "Can edit product details" });
+                permissions.Add(new Permission { Name = EPermissions.DeleteProduct, Description = "Can delete products" });
 
                 // Category permissions
-                permissions.Add(new Permission { Name = "ViewCategories", Description = "Can view category list" });
-                permissions.Add(new Permission { Name = "CreateCategory", Description = "Can create new categories" });
-                permissions.Add(new Permission { Name = "EditCategory", Description = "Can edit category details" });
-                permissions.Add(new Permission { Name = "DeleteCategory", Description = "Can delete categories" });
+                permissions.Add(new Permission { Name = EPermissions.ViewCategories, Description = "Can view category list" });
+                permissions.Add(new Permission { Name = EPermissions.CreateCategory, Description = "Can create new categories" });
+                permissions.Add(new Permission { Name = EPermissions.EditCategory, Description = "Can edit category details" });
+                permissions.Add(new Permission { Name = EPermissions.DeleteCategory, Description = "Can delete categories" });
 
                 // Order permissions
-                permissions.Add(new Permission { Name = "ViewOrders", Description = "Can view order list" });
-                permissions.Add(new Permission { Name = "CreateOrder", Description = "Can create new orders" });
-                permissions.Add(new Permission { Name = "EditOrder", Description = "Can edit order details" });
-                permissions.Add(new Permission { Name = "DeleteOrder", Description = "Can delete orders" });
+                permissions.Add(new Permission { Name = EPermissions.ViewOrders, Description = "Can view order list" });
+                permissions.Add(new Permission { Name = EPermissions.CreateOrder, Description = "Can create new orders" });
+                permissions.Add(new Permission { Name = EPermissions.EditOrder, Description = "Can edit order details" });
+                permissions.Add(new Permission { Name = EPermissions.DeleteOrder, Description = "Can delete orders" });
 
                 // Admin permissions
                 permissions.Add(new Permission { Name = "ManageRoles", Description = "Can manage roles and permissions" });
-                permissions.Add(new Permission { Name = "ViewLogs", Description = "Can view system logs" });
+                permissions.Add(new Permission { Name = EPermissions.ViewLogs, Description = "Can view system logs" });
                 permissions.Add(new Permission { Name = "ManageSettings", Description = "Can manage system settings" });
 
                 await _context.Permissions.AddRangeAsync(permissions);
@@ -135,7 +135,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
         {
             _logger.LogInformation("Seeding roles");
 
-            var roles = new List<string> { "Admin", "Manager", "Staff", "Customer" };
+            var roles = new List<string> { EUserRoles.Admin, EUserRoles.Manager, EUserRoles.Staff, EUserRoles.Customer };
             var roleEntities = new List<Role>();
 
             foreach (var roleName in roles)
@@ -305,9 +305,9 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             _logger.LogInformation("Seeding role permissions");
 
             // Get role by name
-            var adminRole = roles.FirstOrDefault(r => r.Name == "Admin");
+            var adminRole = roles.FirstOrDefault(r => r.Name == EUserRoles.Admin);
             var managerRole = roles.FirstOrDefault(r => r.Name == "Manager");
-            var staffRole = roles.FirstOrDefault(r => r.Name == "Staff");
+            var staffRole = roles.FirstOrDefault(r => r.Name == EUserRoles.Staff);
             var customerRole = roles.FirstOrDefault(r => r.Name == "Customer");
 
             // Check if roles exist in the database
@@ -400,9 +400,9 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             var customerUser = users.FirstOrDefault(u => u.Email == "customer@example.com");
 
             // Get roles
-            var adminRole = roles.FirstOrDefault(r => r.Name == "Admin");
+            var adminRole = roles.FirstOrDefault(r => r.Name == EUserRoles.Admin);
             var managerRole = roles.FirstOrDefault(r => r.Name == "Manager");
-            var staffRole = roles.FirstOrDefault(r => r.Name == "Staff");
+            var staffRole = roles.FirstOrDefault(r => r.Name == EUserRoles.Staff);
             var customerRole = roles.FirstOrDefault(r => r.Name == "Customer");
 
             // Assign roles if they exist

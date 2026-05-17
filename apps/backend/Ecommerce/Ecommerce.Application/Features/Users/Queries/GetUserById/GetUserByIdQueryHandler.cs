@@ -1,6 +1,7 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Users.Dto;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.Users.Queries.GetUserById
 {
-    [Authorize(Policy = "ViewUsers")]
+    [Authorize(Policy = EPermissions.ViewUsers)]
     public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Result<UserDto>>
     {
         private readonly IUnitOfWork _unitOfWork;

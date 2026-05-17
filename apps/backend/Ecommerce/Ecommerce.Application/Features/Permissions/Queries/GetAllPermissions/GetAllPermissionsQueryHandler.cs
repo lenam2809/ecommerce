@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Permissions.Dto;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -7,7 +7,6 @@ using MediatR;
 
 namespace Ecommerce.Application.Features.Permissions.Queries.GetAllPermissions
 {
-    //[Authorize(Policy = "ViewPermissions")]
     public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<List<PermissionDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

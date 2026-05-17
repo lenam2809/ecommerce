@@ -1,38 +1,44 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
+using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionToUser
 {
-    //[Authorize(Policy = "AssignPermission")]
+    //[Authorize(Policy = EPermissions.AssignPermission)]
     public class AssignPermissionToUserCommandHandler : IRequestHandler<AssignPermissionToUserCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AssignPermissionToUserCommandHandler> _logger;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
+        private readonly IEnhancedLogger _auditLogger;
 
         public AssignPermissionToUserCommandHandler(
             IUnitOfWork unitOfWork,
-            ILogger<AssignPermissionToUserCommandHandler> logger)
+            ILogger<AssignPermissionToUserCommandHandler> logger,
+            ICacheInvalidationService cacheInvalidationService,
+            IEnhancedLogger auditLogger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _cacheInvalidationService = cacheInvalidationService;
+            _auditLogger = auditLogger;
         }
 
         public async Task<Result<bool>> Handle(AssignPermissionToUserCommand request, CancellationToken cancellationToken)
         {
-            // Kiểm tra người dùng tồn tại
             var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
             if (user == null)
             {
                 return Result<bool>.NotFound($"Không tìm thấy người dùng với ID: {request.UserId}");
             }
 
-            // Lấy danh sách quyền hiện tại của user
             var currentPermissions = await _unitOfWork.Users.GetPermissionsAsync(user);
             var currentPermissionIds = currentPermissions.Select(p => p.Id).ToList();
 
-            // Xác định quyền cần thêm và quyền cần xóa
             var permissionsToAdd = request.PermissionIds
                 .Where(id => !currentPermissionIds.Contains(id))
                 .ToList();
@@ -43,7 +49,6 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
 
             try
             {
-                // Thêm quyền mới
                 foreach (var permissionId in permissionsToAdd)
                 {
                     var permission = await _unitOfWork.Permissions.GetByIdAsync(permissionId);
@@ -54,7 +59,6 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
                     }
                 }
 
-                // Xóa quyền hiện tại
                 foreach (var permissionId in permissionsToRemove)
                 {
                     var permission = await _unitOfWork.Permissions.GetByIdAsync(permissionId);
@@ -66,6 +70,19 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
                 }
 
                 await _unitOfWork.CompleteAsync(cancellationToken);
+                await _cacheInvalidationService.InvalidateUserCache(user.Id);
+
+                await _auditLogger.LogAsync(
+                    ELogLevel.Information,
+                    "Updated direct permissions for user {TargetUserId}",
+                    "UserPermissionsChanged",
+                    ELogType.AccessControl,
+                    new Dictionary<string, object?>
+                    {
+                        { "TargetUserId", user.Id },
+                        { "AddedPermissionCount", permissionsToAdd.Count },
+                        { "RemovedPermissionCount", permissionsToRemove.Count }
+                    });
 
                 return Result<bool>.Success(true);
             }
@@ -77,4 +94,3 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
         }
     }
 }
-

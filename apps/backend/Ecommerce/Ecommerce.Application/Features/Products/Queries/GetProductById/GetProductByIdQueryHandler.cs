@@ -1,6 +1,7 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetProductById
 {
-    [Authorize(Policy = "ViewProducts")]
+    [Authorize(Policy = EPermissions.ViewProducts)]
     public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductDto>>
     {
         private readonly IUnitOfWork _unitOfWork;

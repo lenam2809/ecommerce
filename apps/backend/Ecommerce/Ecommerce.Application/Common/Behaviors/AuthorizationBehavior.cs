@@ -1,5 +1,6 @@
-﻿using Ecommerce.Application.Common.Exceptions;
+using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Policies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -77,7 +78,7 @@ namespace Ecommerce.Application.Common.Behaviors
                                 var roleName = parts[0];
                                 var permissionName = parts[1];
 
-                                if (user.IsInRole(roleName) && user.HasClaim(c => c.Type == "Permission" && c.Value == permissionName))
+                                if (user.IsInRole(roleName) && user.HasClaim(c => c.Type == AuthorizationClaimTypes.Permission && c.Value == permissionName))
                                 {
                                     authorized = true;
                                 }
@@ -85,7 +86,7 @@ namespace Ecommerce.Application.Common.Behaviors
                             else
                             {
                                 // Simple policy check
-                                if (user.HasClaim(c => c.Type == "Permission" && c.Value == policy))
+                                if (user.HasClaim(c => c.Type == AuthorizationClaimTypes.Permission && c.Value == policy))
                                 {
                                     authorized = true;
                                 }

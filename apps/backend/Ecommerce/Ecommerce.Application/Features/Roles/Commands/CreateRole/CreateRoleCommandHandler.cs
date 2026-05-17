@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Ecommerce.Application.Features.Roles.Commands.CreateRole
 {
-    //[Authorize(Policy = "CreateRole")]
     public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, Result<Guid>>
     {
         private readonly RoleManager<Role> _roleManager;

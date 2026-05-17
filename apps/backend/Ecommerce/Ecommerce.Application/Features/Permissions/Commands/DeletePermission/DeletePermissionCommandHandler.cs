@@ -1,11 +1,10 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Application.Features.Permissions.Commands.DeletePermission
 {
-    //[Authorize(Policy = "DeletePermission")]
     public class DeletePermissionCommandHandler : IRequestHandler<DeletePermissionCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;

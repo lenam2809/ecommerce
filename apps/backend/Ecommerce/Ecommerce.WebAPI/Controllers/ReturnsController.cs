@@ -68,7 +68,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Lấy tất cả yêu cầu đổi/trả (filter theo status)
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> GetAll([FromQuery] EReturnStatus? status)
         {
             var query = new GetReturnRequestsQuery { Status = status };
@@ -80,7 +80,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Lấy đổi/trả theo đơn hàng
         /// </summary>
         [HttpGet("order/{orderId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> GetByOrder(Guid orderId)
         {
             var query = new GetReturnRequestsQuery { OrderId = orderId };
@@ -92,7 +92,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Duyệt yêu cầu đổi/trả
         /// </summary>
         [HttpPut("{id}/approve")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveReturnCommand command)
         {
             command.ReturnRequestId = id;
@@ -105,7 +105,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Từ chối yêu cầu đổi/trả
         /// </summary>
         [HttpPut("{id}/reject")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectReturnCommand command)
         {
             command.ReturnRequestId = id;
@@ -118,7 +118,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Cập nhật trạng thái RMA (ItemReceived → QualityCheck → Processing → Completed)
         /// </summary>
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateReturnStatusCommand command)
         {
             command.ReturnRequestId = id;

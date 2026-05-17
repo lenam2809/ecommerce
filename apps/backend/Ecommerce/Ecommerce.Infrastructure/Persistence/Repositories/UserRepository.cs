@@ -1,3 +1,4 @@
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
@@ -89,7 +90,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             // Kiểm tra xem user có role Admin không
             var isAdmin = await _context.UserRoles
                 .AnyAsync(ur => ur.UserId == user.Id &&
-                       _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == "Admin"));
+                       _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == EUserRoles.Admin));
 
             if (isAdmin)
             {
@@ -283,7 +284,7 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             var permissions = await GetPermissionsAsync(user);
             foreach (var permission in permissions)
             {
-                await _userManager.AddClaimAsync(user, new Claim("permission", permission.Name));
+                await _userManager.AddClaimAsync(user, new Claim(AuthorizationClaimTypes.Permission, permission.Name));
             }
         }
 

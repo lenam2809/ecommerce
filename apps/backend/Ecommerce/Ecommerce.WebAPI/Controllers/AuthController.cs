@@ -7,6 +7,7 @@ using Ecommerce.Application.Features.Auth.Commands.RevokeToken;
 using Ecommerce.Application.Features.Auth.Commands.ForgotPassword;
 using Ecommerce.Application.Features.Auth.Commands.ResetPassword;
 using Ecommerce.Application.Features.Auth.Queries.GetProfile;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.WebAPI.Extensions;
@@ -319,7 +320,7 @@ namespace Ecommerce.WebAPI.Controllers
 
             var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
             var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).Distinct().ToArray();
-            var permissions = User.FindAll("Permission").Select(c => c.Value).Distinct().ToArray();
+            var permissions = User.FindAll(AuthorizationClaimTypes.Permission).Select(c => c.Value).Distinct().ToArray();
 
             return Ok(new
             {

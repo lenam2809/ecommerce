@@ -49,6 +49,7 @@ namespace Ecommerce.Infrastructure.Services
             try
             {
                 await _cacheService.RemoveAsync(CacheKeys.GetRolePermissions(role));
+                await _cacheService.RemoveByPrefixAsync(CachePrefixes.GetUserPermissions);
                 await InvalidateAllUsersCache(); // Vì thay đổi vai trò có thể ảnh hưởng đến kết quả GetUsers
                 await _logger.LogAsync(
                     ELogLevel.Debug,

@@ -17,6 +17,7 @@ using Ecommerce.Application.Features.Products.Queries.GetProducts;
 using Ecommerce.Application.Features.Products.Queries.GetProductsByBrand;
 using Ecommerce.Application.Features.Products.Queries.GetProductsByCategory;
 using Ecommerce.Application.Features.Products.Queries.GetSimilarProducts;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
@@ -143,7 +144,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "Products.Delete")]
+        [Authorize(Policy = AuthorizationPolicyNames.ProductDelete)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteProductCommand { Id = id });
@@ -197,7 +198,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("export-template")]
-        //[Authorize(Policy = "ManageProducts")]
+        //[Authorize(Policy = EPermissions.EditProduct)]
         public async Task<IActionResult> ExportTemplate([FromQuery] ExportProductsTemplateCommand command)
         {
             var result = await _mediator.Send(command);
@@ -211,7 +212,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost("bulk-delete")]
-        [Authorize(Policy = "Products.Delete")]
+        [Authorize(Policy = AuthorizationPolicyNames.ProductDelete)]
         public async Task<IActionResult> BulkDelete([FromBody] List<Guid> ids)
         {
             if (ids == null || ids.Count == 0)

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Users.Dto;
 using Ecommerce.Domain.Enums;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.Users.Queries.GetUsers
 {
-    [Authorize(Policy = "ViewUsers")]
+    [Authorize(Policy = EPermissions.ViewUsers)]
     public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, Result<List<UserDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

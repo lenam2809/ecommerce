@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Features.UserActivities.Queries.GetUserActivities;
+using Ecommerce.Application.Features.UserActivities.Queries.GetUserActivities;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -55,7 +56,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// <param name="query">Tham số truy vấn</param>
         /// <returns>Danh sách hoạt động của user</returns>
         [HttpGet("user/{userId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> GetActivitiesByUser(Guid userId, [FromQuery] GetUserActivitiesQuery query)
         {
             query.UserId = userId;

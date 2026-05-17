@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.UserActivities.Dto;
 using Ecommerce.Domain.Entities;
@@ -27,7 +28,7 @@ namespace Ecommerce.Application.Features.UserActivities.Queries.GetUserActivitie
             try
             {
                 var currentUserId = _currentUserService.UserId;
-                var isAdmin = await _currentUserService.IsInRoleAsync("Admin");
+                var isAdmin = await _currentUserService.IsInRoleAsync(EUserRoles.Admin);
 
                 // Xác định userId cần query
                 var targetUserId = request.UserId ?? currentUserId;

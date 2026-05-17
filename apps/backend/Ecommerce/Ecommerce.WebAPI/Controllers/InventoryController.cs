@@ -1,6 +1,7 @@
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Inventory.Commands.ImportInventoryBatch;
 using Ecommerce.Application.Features.Inventory.Queries.GetInventoryBySkuId;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,7 @@ namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = EUserRoles.Admin)]
     public class InventoryController : ControllerBase
     {
         private readonly IMediator _mediator;

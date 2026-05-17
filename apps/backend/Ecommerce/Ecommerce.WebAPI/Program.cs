@@ -98,12 +98,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.Path = "/admin";
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Products.Delete", policy =>
-        policy.RequireRole("Admin", "Manager"));
-});
-
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {

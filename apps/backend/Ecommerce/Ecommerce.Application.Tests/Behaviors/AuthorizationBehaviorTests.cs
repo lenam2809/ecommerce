@@ -3,6 +3,8 @@ using Ecommerce.Application.Common.Behaviors;
 using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Policies;
+using Ecommerce.Domain.Enums;
 using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -50,7 +52,7 @@ public class AuthorizationBehaviorTests
     public async Task Handle_RoleProtectedRequestWithMatchingRole_CallsNext()
     {
         // Arrange
-        var behavior = CreateBehavior<RoleProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: "Admin"));
+        var behavior = CreateBehavior<RoleProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: EUserRoles.Admin));
 
         // Act
         var result = await behavior.Handle(new RoleProtectedRequest(), () => Task.FromResult(Result<string>.Success("ok")), CancellationToken.None);
@@ -63,7 +65,7 @@ public class AuthorizationBehaviorTests
     public async Task Handle_RoleProtectedRequestWithoutMatchingRole_ThrowsForbiddenAccessException()
     {
         // Arrange
-        var behavior = CreateBehavior<RoleProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: "Customer"));
+        var behavior = CreateBehavior<RoleProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: EUserRoles.Customer));
 
         // Act
         var act = () => behavior.Handle(new RoleProtectedRequest(), () => Task.FromResult(Result<string>.Success("ok")), CancellationToken.None);
@@ -76,7 +78,7 @@ public class AuthorizationBehaviorTests
     public async Task Handle_PolicyProtectedRequestWithPermissionClaim_CallsNext()
     {
         // Arrange
-        var behavior = CreateBehavior<PolicyProtectedRequest>(Guid.NewGuid(), CreatePrincipal(permission: "Products.View"));
+        var behavior = CreateBehavior<PolicyProtectedRequest>(Guid.NewGuid(), CreatePrincipal(permission: EPermissions.ViewProducts));
 
         // Act
         var result = await behavior.Handle(new PolicyProtectedRequest(), () => Task.FromResult(Result<string>.Success("ok")), CancellationToken.None);
@@ -89,7 +91,7 @@ public class AuthorizationBehaviorTests
     public async Task Handle_CompositePolicyRequiresRoleAndPermission_CallsNextWhenBothMatch()
     {
         // Arrange
-        var behavior = CreateBehavior<CompositePolicyProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: "Staff", permission: "EditProduct"));
+        var behavior = CreateBehavior<CompositePolicyProtectedRequest>(Guid.NewGuid(), CreatePrincipal(role: EUserRoles.Staff, permission: EPermissions.EditProduct));
 
         // Act
         var result = await behavior.Handle(new CompositePolicyProtectedRequest(), () => Task.FromResult(Result<string>.Success("ok")), CancellationToken.None);
@@ -128,7 +130,7 @@ public class AuthorizationBehaviorTests
 
         if (permission != null)
         {
-            claims.Add(new Claim("Permission", permission));
+            claims.Add(new Claim(AuthorizationClaimTypes.Permission, permission));
         }
 
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
@@ -138,17 +140,17 @@ public class AuthorizationBehaviorTests
     {
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = EUserRoles.Admin)]
     public sealed class RoleProtectedRequest : IRequest<Result<string>>
     {
     }
 
-    [Authorize(Policy = "Products.View")]
+    [Authorize(Policy = EPermissions.ViewProducts)]
     public sealed class PolicyProtectedRequest : IRequest<Result<string>>
     {
     }
 
-    [Authorize(Policy = "Staff:EditProduct")]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.EditProduct)]
     public sealed class CompositePolicyProtectedRequest : IRequest<Result<string>>
     {
     }
