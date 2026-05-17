@@ -1,6 +1,5 @@
 using Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder;
-using Ecommerce.Application.Features.Payments.VnPay;
-using Ecommerce.Application.Features.Payments.VnPay.Dto;
+using Ecommerce.Application.Features.Payments.Commands.ProcessPaymentCallback;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,13 +12,11 @@ namespace Ecommerce.WebAPI.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IVnPayService _vnPayService;
         private readonly IConfiguration _configuration;
 
-        public PaymentsController(IMediator mediator, IVnPayService vnPayService, IConfiguration configuration)
+        public PaymentsController(IMediator mediator, IConfiguration configuration)
         {
             _mediator = mediator;
-            _vnPayService = vnPayService;
             _configuration = configuration;
         }
 
@@ -41,7 +38,7 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpGet("vnpay/return")]
         public async Task<IActionResult> PaymentCallback(CancellationToken cancellationToken)
         {
-            var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
+            var response = await ProcessPaymentCallbackAsync(cancellationToken);
 
             var feBaseUrl = _configuration["AppUrl:Frontend"] ?? _configuration["AppUrl"];
             if (string.IsNullOrWhiteSpace(feBaseUrl))
@@ -50,9 +47,9 @@ namespace Ecommerce.WebAPI.Controllers
             }
 
             var returnUrl = $"{feBaseUrl.TrimEnd('/')}/payment/vnpay-return" +
-                $"?vnp_ResponseCode={Uri.EscapeDataString(response.VnPayResponseCode)}" +
-                $"&vnp_TransactionNo={Uri.EscapeDataString(response.TransactionId)}" +
-                $"&vnp_TxnRef={Uri.EscapeDataString(response.OrderId)}" +
+                $"?vnp_ResponseCode={Uri.EscapeDataString(response.GatewayResponseCode)}" +
+                $"&vnp_TransactionNo={Uri.EscapeDataString(response.GatewayTransactionId)}" +
+                $"&vnp_TxnRef={Uri.EscapeDataString(response.TransactionRef)}" +
                 $"&success={response.Success.ToString().ToLowerInvariant()}";
 
             return Redirect(returnUrl);
@@ -61,18 +58,28 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpGet("vnpay/ipn")]
         public async Task<IActionResult> PaymentIpn(CancellationToken cancellationToken)
         {
-             var response = await _vnPayService.PaymentExecuteAsync(Request.Query, cancellationToken);
-             return Ok(ToVnPayIpnResult(response));
+            var response = await ProcessPaymentCallbackAsync(cancellationToken);
+            return Ok(ToVnPayIpnResult(response));
         }
 
-        private static object ToVnPayIpnResult(PaymentResponseModel response)
+        private async Task<ProcessPaymentCallbackResultDto> ProcessPaymentCallbackAsync(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new ProcessPaymentCallbackCommand
+            {
+                Parameters = Request.Query.ToDictionary(x => x.Key, x => x.Value.ToString())
+            }, cancellationToken);
+
+            return result.Value;
+        }
+
+        private static object ToVnPayIpnResult(ProcessPaymentCallbackResultDto response)
         {
             if (response.Success)
             {
                 return new { RspCode = "00", Message = "Confirm Success" };
             }
 
-            return response.VnPayResponseCode switch
+            return response.GatewayResponseCode switch
             {
                 "INVALID_SIGNATURE" => new { RspCode = "97", Message = "Invalid signature" },
                 "ORDER_NOT_FOUND" => new { RspCode = "01", Message = "Order not found" },
