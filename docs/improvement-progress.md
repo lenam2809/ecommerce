@@ -37,6 +37,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | IN_PROGRESS | `ApplicationDbContext.cs`, `OutboxMessage*`, `OutboxMessageProcessor.cs`, `OutboxBackgroundService.cs`, `OutboxMessageConfiguration.cs`, `AddOutboxMessages` migration | `OutboxPatternTests.cs` | Phase 4C converts `OrderCreatedEvent` to a scoped outbox flow. Non-converted events still dispatch in-process before save for compatibility and are pending migration. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
 | P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
+| P4-005 | Centralize authorization policy/permission constants and invalidate authorization caches after permission changes. | DONE | `AuthorizationPolicies.cs`, `AuthorizationBehavior.cs`, role/permission/account-lock handlers, auth/user repositories, WebAPI controllers | `AuthorizationMaintainabilityTests.cs`, authorization behavior tests | Phase 4D removes active `[Authorize(Policy = "...")]` literals, centralizes legacy policy names and permission claim type, invalidates user/role permission caches, and logs access-control changes. |
 | P5-001 | Re-enable frontend build type/lint gates. | TODO | `apps/frontend/ecommerce-client/next.config.ts`, `apps/frontend/ecommerce-dashboard/next.config.ts` | TBD | Client ignores eslint and TS build errors; dashboard ignores eslint. |
 | P5-002 | Add checkout/payment/promo observability and alerting. | TODO | TBD | TBD | Build on existing OpenTelemetry/Prometheus setup. |
 
@@ -633,6 +634,54 @@ Tests added/updated:
 | `SaveChanges_WhenTransactionRollsBack_DoesNotCommitOutboxMessage` | Rolling back the transaction leaves neither order nor outbox message committed. |
 | `OutboxProcessor_ProcessesPendingMessage_AndDoesNotReprocessProcessedMessage` | Processor publishes the event, marks the message processed, creates notification side effects once, and ignores the processed message on the next run. |
 
+### Phase 4D update
+
+Status: DONE for authorization maintainability cleanup in the scoped backend surface.
+
+Authorization constants:
+
+| Area | Result |
+| --- | --- |
+| Permission constants | Active WebAPI/Application `[Authorize(Policy = ...)]` usages now reference `EPermissions` where the policy is a DB-backed permission. |
+| Legacy policy names | Centralized `AdminOnly`, `Admin:ManageRoles`, `Products.Delete`, and staff composite policies in `AuthorizationPolicyNames`. `Products.Delete` remains as a compatibility policy name and is not renamed to avoid changing existing controller semantics. |
+| Permission claim type | Centralized as `AuthorizationClaimTypes.Permission`; token generation, profile claim reads, policy registration, and `AuthorizationBehavior` now use the same constant. |
+| Role constants | Replaced active `"Admin"`/`"Staff"` role checks in touched authorization paths with `EUserRoles`. |
+| Policy registration | `AuthorizationPolicies.ConfigurePolicies()` now owns the legacy product-delete policy registration; the extra `Program.cs` string registration was removed. |
+
+Cache invalidation and claims refresh:
+
+| Mutation | Invalidation behavior |
+| --- | --- |
+| Assign/revoke role to user | `AssignRoleToUserCommandHandler` invalidates the target user's authorization/user cache. |
+| Add/remove permissions from role | `AssignPermissionToRoleCommandHandler` refreshes user claims for that role and invalidates role authorization cache plus cached user permission entries. |
+| Direct user permission update | `AssignPermissionToUserCommandHandler` invalidates the target user's cache. |
+| Role permission cache service | `InvalidateRoleCache()` now removes `role_permissions_{role}` and the `user_permissions_` prefix, then invalidates user list cache. |
+
+Audit/logging:
+
+| Operation | Audit behavior |
+| --- | --- |
+| Role assignment | Logs `UserRolesChanged` as `ELogType.AccessControl`. |
+| Role permission update | Logs `RolePermissionsChanged` as `ELogType.AccessControl`. |
+| Direct user permission update | Logs `UserPermissionsChanged` as `ELogType.AccessControl`. |
+| Account lock/unlock | Logs `AccountLockChanged` as `ELogType.AccessControl` in addition to existing user activity logging. |
+
+Token/claims stale strategy:
+
+| Item | Status |
+| --- | --- |
+| New access token / refresh path | `RefreshTokenCommandHandler` already loads current roles and permissions from repositories before issuing a new access token, so refreshed tokens pick up permission changes. |
+| Existing access tokens | Still valid until access token expiry because authorization policies read JWT claims. No permission-version/security-stamp revocation was added in this pass. |
+| Deferred | Add permission-version/security-stamp validation if immediate revocation of already-issued access tokens is required. |
+
+String literal audit:
+
+| Pattern | Result |
+| --- | --- |
+| Active `[Authorize(Policy = "...")]` | No active production/Application matches remain outside test-only synthetic requests. |
+| `"AdminOnly"`, `"Products.Delete"`, staff composite policy names | Present only in `AuthorizationPolicyNames` constants. |
+| DB permission seed names | Replaced matching seed literals with `EPermissions` constants where constants already exist. Legacy seed names without matching constants were left unchanged to avoid inventing permissions in this pass. |
+
 | Item checked | Finding |
 | --- | --- |
 | Orders | `OrdersController.GetById` and `GetOrderHistory` perform controller-level owner/admin checks in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:54` and `OrdersController.cs:76`; this should be moved/enforced in handlers too. |
@@ -708,8 +757,11 @@ Tests added/updated:
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4C | PASS | 0 warnings, 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter OutboxPatternTests --no-build` after Phase 4C | PASS | 3/3 outbox integration tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4C | PASS | Domain 57/57, Application 201/201, WebAPI Integration 39/39, total 297/297. Integration tests took about 10m50s. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4D | PASS | 0 warnings, 0 errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~AuthorizationMaintainabilityTests --no-build` after Phase 4D | PASS | 2/2 authorization maintainability tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4D | PASS | Domain 57/57, Application 203/203, WebAPI Integration 39/39, total 299/299. Integration tests took about 10m54s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 4D: convert `OrderStatusChangedEvent`, payment success/failed, and return status/completed side effects to outbox-safe integration events with idempotent consumers and a provider-safe outbox claim/lease strategy.
+Continue Phase 4E: add permission-version/security-stamp validation for immediate access-token revocation after role/permission changes, or continue converting payment/order/return side effects to outbox-safe integration events.

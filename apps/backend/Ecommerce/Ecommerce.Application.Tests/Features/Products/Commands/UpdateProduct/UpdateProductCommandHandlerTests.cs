@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Commands.UpdateProduct;
+using Ecommerce.Application.Policies;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
@@ -187,7 +188,7 @@ public class UpdateProductCommandHandlerTests
             .Single();
 
         // Assert
-        attribute.Policy.Should().Be("Staff:EditProduct");
+        attribute.Policy.Should().Be(AuthorizationPolicyNames.Staff.EditProduct);
     }
 
     private static Product CreateExistingProduct()

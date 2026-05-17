@@ -3,6 +3,7 @@ using Ecommerce.Application.Features.AccountLocks.Commands.UnlockUser;
 using Ecommerce.Application.Features.AccountLocks.Queries.GetAccountLockById;
 using Ecommerce.Application.Features.AccountLocks.Queries.GetAccountLocks;
 using Ecommerce.Application.Features.AccountLocks.Queries.GetAccountLockStatus;
+using Ecommerce.Application.Policies;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Khóa tài khoản người dùng
         /// </summary>
         [HttpPost("lock")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> LockUser([FromBody] LockUserCommand command)
         {
             var result = await _mediator.Send(command);
@@ -36,7 +37,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Mở khóa tài khoản người dùng
         /// </summary>
         [HttpPost("unlock")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> UnlockUser([FromBody] UnlockUserCommand command)
         {
             var result = await _mediator.Send(command);
@@ -47,7 +48,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Get account lock record by ID
         /// </summary>
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _mediator.Send(new GetAccountLockByIdQuery(id));
@@ -58,7 +59,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy danh sách tài khoản bị khóa
         /// </summary>
         [HttpGet("paged")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> GetLockedAccounts([FromQuery] GetAccountLocksQuery query)
         {
             var result = await _mediator.Send(query);

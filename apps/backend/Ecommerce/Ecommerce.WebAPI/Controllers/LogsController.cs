@@ -1,7 +1,8 @@
-﻿using Ecommerce.Application.Features.AuditLogs.Queries.GetAuditLogById;
+using Ecommerce.Application.Features.AuditLogs.Queries.GetAuditLogById;
 using Ecommerce.Application.Features.AuditLogs.Queries.GetAuditLogs;
 using Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntries;
 using Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntryById;
+using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -76,7 +77,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// <param name="query">Tham số để lọc dữ liệu xuất</param>
         /// <returns>File Excel</returns>
         //[HttpGet("audit/export")]
-        //[Authorize(Roles = "Admin")] // Chỉ Admin mới được xuất
+        //[Authorize(Roles = EUserRoles.Admin)] // Chỉ Admin mới được xuất
         //public async Task<IActionResult> ExportAuditLogs([FromQuery] ExportAuditLogsQuery query)
         //{
         //    var result = await _mediator.Send(query);
@@ -93,7 +94,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// <param name="query">Tham số để lọc dữ liệu xuất</param>
         /// <returns>File Excel</returns>
         //[HttpGet("system/export")]
-        //[Authorize(Roles = "Admin")] // Chỉ Admin mới được xuất
+        //[Authorize(Roles = EUserRoles.Admin)] // Chỉ Admin mới được xuất
         //public async Task<IActionResult> ExportSystemLogs([FromQuery] ExportLogEntriesQuery query)
         //{
         //    var result = await _mediator.Send(query);

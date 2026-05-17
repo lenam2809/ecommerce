@@ -220,6 +220,7 @@ namespace Ecommerce.Application.Common.Constants
         // User-related
         public const string GetUserById = "user_";
         public const string GetUserRoles = "user_roles_";
+        public const string GetUserPermissions = "user_permissions_";
         public const string GetUsersForUser = "users_";
 
         // Role-related

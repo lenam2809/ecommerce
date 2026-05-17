@@ -1,5 +1,6 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Permissions.Dto;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.Permissions.Queries.GetPermissionsByRoleId
 {
-    [Authorize(Policy = "ViewPermissions")]
+    [Authorize(Policy = EPermissions.ViewPermissions)]
     public class GetPermissionsByRoleIdQueryHandler : IRequestHandler<GetPermissionsByRoleIdQuery, Result<List<PermissionDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

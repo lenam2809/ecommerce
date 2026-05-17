@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Helpers;
+using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Dashboard.Dto;
 using Ecommerce.Domain.Enums;
@@ -9,7 +9,6 @@ using MediatR;
 
 namespace Ecommerce.Application.Features.Dashboard.Queries.GetDashboardKpis
 {
-    //[Authorize(Policy = "Dashboard:View")]
     public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuery, Result<List<DashboardKpiDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

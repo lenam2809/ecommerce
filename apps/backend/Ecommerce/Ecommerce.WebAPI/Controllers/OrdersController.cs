@@ -10,6 +10,7 @@ using Ecommerce.Application.Features.Orders.Queries.GetMyOrderHistoryStats;
 using Ecommerce.Application.Features.Orders.Queries.GetOrderHistoryOverview;
 using Ecommerce.Application.Features.Orders.Queries.GetOrders;
 using Ecommerce.Application.Features.Orders.Queries.GetOrdersByUser;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
@@ -55,7 +56,7 @@ namespace Ecommerce.WebAPI.Controllers
             var result = await _mediator.Send(query);
 
             // Check if the order belongs to the current user or user has admin rights
-            if (result.IsSuccess && !User.IsInRole("Admin") && result.Value.ApplicationUserId != User.GetUserId())
+            if (result.IsSuccess && !User.IsInRole(EUserRoles.Admin) && result.Value.ApplicationUserId != User.GetUserId())
             {
                 return Forbid();
             }
@@ -77,7 +78,7 @@ namespace Ecommerce.WebAPI.Controllers
             }
 
             // Check if the order belongs to the current user or user has admin rights
-            if (!User.IsInRole("Admin") && orderResult.Value.ApplicationUserId != User.GetUserId())
+            if (!User.IsInRole(EUserRoles.Admin) && orderResult.Value.ApplicationUserId != User.GetUserId())
             {
                 return Forbid();
             }
@@ -118,7 +119,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPut("{id}/status")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
         {
             command.Id = id;
@@ -127,7 +128,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost("{id}/send-email")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> SendOrderEmail(Guid id)
         {
             var result = await _mediator.Send(new SendOrderEmailCommand(id));
@@ -161,7 +162,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin endpoint: Lấy thống kê tổng quan lịch sử đơn hàng
         /// </summary>
         [HttpGet("history-overview")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
         public async Task<IActionResult> GetOrderHistoryOverview([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
         {
             var result = await _mediator.Send(new GetOrderHistoryOverviewQuery

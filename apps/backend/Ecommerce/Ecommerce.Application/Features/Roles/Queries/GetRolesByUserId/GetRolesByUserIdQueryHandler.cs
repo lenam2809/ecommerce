@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Roles.Dto;
 using Ecommerce.Domain.Entities;
 using AutoMapper;
@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Roles.Queries.GetRolesByUserId
 {
-    //[Authorize(Policy = "ViewRoles")]
     public class GetRolesByUserIdQueryHandler : IRequestHandler<GetRolesByUserIdQuery, Result<List<RoleDto>>>
     {
         private readonly IMapper _mapper;

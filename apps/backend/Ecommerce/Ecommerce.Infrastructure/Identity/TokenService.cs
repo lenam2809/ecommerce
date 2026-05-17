@@ -1,5 +1,6 @@
 using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -44,7 +45,7 @@ namespace Ecommerce.Infrastructure.Identity
 
             foreach (var permission in permissions)
             {
-                claims.Add(new Claim("Permission", permission));
+                claims.Add(new Claim(AuthorizationClaimTypes.Permission, permission));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor

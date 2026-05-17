@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.PromoCodes.Commands.DeletePromoCode
 {
-    [Authorize(Policy = "Staff:DeletePromoCode")]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.DeletePromoCode)]
     public class DeletePromoCodeCommandHandler : IRequestHandler<DeletePromoCodeCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -3,6 +3,7 @@ using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Queries.GetProductById;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Events;
@@ -14,7 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
 {
-    [Authorize(Policy = "Staff:EditProduct")]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.EditProduct)]
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<Unit>>
     {
         private readonly IUnitOfWork _unitOfWork;

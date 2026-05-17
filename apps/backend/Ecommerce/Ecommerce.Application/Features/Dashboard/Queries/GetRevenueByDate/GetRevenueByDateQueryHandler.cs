@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Dashboard.Dto;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Dashboard.Queries.GetRevenueByDate
 {
-    //[Authorize(Policy = "Dashboard:View")]
     public class GetRevenueByDateQueryHandler : IRequestHandler<GetRevenueByDateQuery, Result<List<RevenueByDateDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

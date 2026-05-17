@@ -35,7 +35,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "ViewUsers")]
+        [Authorize(Policy = EPermissions.ViewUsers)]
         public async Task<IActionResult> GetAll([FromQuery] GetUsersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -57,7 +57,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "ViewUsers")]
+        [Authorize(Policy = EPermissions.ViewUsers)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _mediator.Send(new GetUserByIdQuery { Id = id });
@@ -83,7 +83,7 @@ namespace Ecommerce.WebAPI.Controllers
 
         [HttpPost]
         [Authorize(Roles = EUserRoles.Admin)]
-        [Authorize(Policy = "CreateUser")]
+        [Authorize(Policy = EPermissions.CreateUser)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreateUserCommand command)
         {
@@ -96,7 +96,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Policy = "EditUser")]
+        [Authorize(Policy = EPermissions.EditUser)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update(Guid id, [FromForm] UpdateUserCommand command)
         {

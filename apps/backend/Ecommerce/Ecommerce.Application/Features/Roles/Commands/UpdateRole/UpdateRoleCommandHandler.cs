@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Application.Features.Roles.Commands.UpdateRole
 {
-    //[Authorize(Policy = "EditRole")]
     public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, Result<bool>>
     {
         private readonly RoleManager<Role> _roleManager;

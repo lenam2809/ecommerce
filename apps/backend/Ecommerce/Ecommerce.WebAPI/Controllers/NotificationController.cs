@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Features.Notifications.Commands.DeleteNotification;
+using Ecommerce.Application.Features.Notifications.Commands.DeleteNotification;
 using Ecommerce.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using Ecommerce.Application.Features.Notifications.Commands.MarkNotificationAsRead;
 using Ecommerce.Application.Features.Notifications.Commands.SendMaintenanceNotification;
@@ -128,7 +128,7 @@ namespace Ecommerce.WebAPI.Controllers
             {
                 NotificationId = id,
                 UserId = userId,
-                IsAdmin = User.IsInRole("Admin")
+                IsAdmin = User.IsInRole(EUserRoles.Admin)
             };
 
             var result = await _mediator.Send(command, cancellationToken);
@@ -140,7 +140,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy thống kê thông báo (chỉ dành cho admin)
         /// </summary>
         [HttpGet("statistics")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> GetStatistics(
             [FromQuery] DateTime? fromDate = null,
             [FromQuery] DateTime? toDate = null,
@@ -187,7 +187,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Gửi thông báo khuyến mãi (chỉ dành cho admin)
         /// </summary>
         [HttpPost("send-promotion")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> SendPromotionNotification(
             [FromBody] SendPromotionNotificationCommand command,
             CancellationToken cancellationToken = default)
@@ -201,7 +201,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Gửi thông báo bảo trì hệ thống (chỉ dành cho admin)
         /// </summary>
         [HttpPost("send-maintenance")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> SendMaintenanceNotification(
             [FromBody] SendMaintenanceNotificationCommand command,
             CancellationToken cancellationToken = default)
@@ -215,7 +215,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Lấy thông báo hệ thống (dành cho admin)
         /// </summary>
         [HttpGet("system")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = EUserRoles.Admin)]
         public async Task<IActionResult> GetSystemNotifications(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,

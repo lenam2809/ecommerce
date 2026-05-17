@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.AuditLogs.Dto;
 using Ecommerce.Domain.Interfaces;
@@ -33,7 +34,7 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntryById
             {
                 var currentUserId = _currentUserService.UserId;
                 var currentUserRole = _currentUserService.UserRoles;
-                var isAdmin = currentUserRole.Contains("Admin");
+                var isAdmin = currentUserRole.Contains(EUserRoles.Admin);
 
 
                 var logEntry = await _unitOfWork.LogEntries.GetByIdWithIncludeAsync(request.Id,

@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.PromoCodes.Commands.UpdatePromoCode
 {
-    [Authorize(Policy = "Staff:EditPromoCode")]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.EditPromoCode)]
     public class UpdatePromoCodeCommandHandler : IRequestHandler<UpdatePromoCodeCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;

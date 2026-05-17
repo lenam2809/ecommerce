@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -6,18 +7,20 @@ using MediatR;
 
 namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionToRole
 {
-    //[Authorize(Policy = "AssignPermission")]
     public class AssignPermissionToRoleCommandHandler : IRequestHandler<AssignPermissionToRoleCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnhancedLogger _logger;
+        private readonly ICacheInvalidationService _cacheInvalidationService;
 
         public AssignPermissionToRoleCommandHandler(
             IUnitOfWork unitOfWork,
-            IEnhancedLogger logger)
+            IEnhancedLogger logger,
+            ICacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<Result<bool>> Handle(AssignPermissionToRoleCommand request, CancellationToken cancellationToken)
@@ -86,6 +89,20 @@ namespace Ecommerce.Application.Features.Permissions.Commands.AssignPermissionTo
 
                 // Cập nhật claims cho tất cả người dùng thuộc vai trò này
                 await _unitOfWork.Users.RefreshUserClaimsInRoleAsync(role.Name);
+                await _cacheInvalidationService.InvalidateRoleCache(role.Name ?? string.Empty);
+
+                await _logger.LogAsync(
+                    ELogLevel.Information,
+                    "Updated permissions for role {RoleName}",
+                    "RolePermissionsChanged",
+                    ELogType.AccessControl,
+                    new Dictionary<string, object?>
+                    {
+                        { "RoleId", role.Id },
+                        { "RoleName", role.Name ?? string.Empty },
+                        { "AddedPermissionCount", permissionsToAdd.Count },
+                        { "RemovedPermissionCount", permissionsToRemove.Count }
+                    });
 
                 return Result<bool>.Success(true);
             }

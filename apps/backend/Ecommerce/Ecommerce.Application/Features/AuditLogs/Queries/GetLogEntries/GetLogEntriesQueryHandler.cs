@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.AuditLogs.Dto;
 using Ecommerce.Domain.Entities;
@@ -39,7 +39,7 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntries
             try
             {
                 var currentUserId = _currentUserService.UserId;
-                var isAdmin = await _currentUserService.IsInRoleAsync("Admin");
+                var isAdmin = await _currentUserService.IsInRoleAsync(EUserRoles.Admin);
 
                 // Xây dựng biểu thức filter
                 Expression<Func<LogEntry, bool>> filter = logEntry =>
