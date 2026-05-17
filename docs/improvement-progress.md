@@ -34,7 +34,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P3-003 | Enforce review duplicate/verified-purchase rules and reduce review/content XSS risk. | DONE | `CreateReviewCommandHandler.cs`, `ReviewRepository.cs`, `ReviewConfiguration.cs`, review DTO/service/UI, review unique-index migration | `CreateReviewCommandHandlerTests.cs` | Authenticated users can create one review per product. Review uses current user, stores encoded plain text, and sets `IsVerified` only when a delivered/completed order contains the product. |
 | P3-004 | Enforce return/RMA duplicate, quantity, return window, and evidence path rules. | DONE | `CreateReturnRequestCommandHandler.cs`, `IReturnRequestRepository.cs`, `ReturnRequestRepository.cs` | `CreateReturnRequestCommandHandlerTests.cs`, `Phase3OwnershipTests.cs` | Open RMA is unique per order item, total non-rejected quantity cannot exceed purchased quantity, 7-day window uses delivered order history when available, and evidence no longer accepts arbitrary external URLs. |
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | DONE | `IPaymentGateway.cs`, payment gateway DTOs, `ProcessPaymentCallbackCommand*`, `VnPayPaymentGateway.cs`, `VnPaySettings.cs`, `PaymentsController.cs`, DI registrations | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 4B removes Application `IVnPayService`/`VnPayService`; Application now depends on neutral `IPaymentGateway`, while VNPay URL/signature/query mapping lives in Infrastructure. |
-| P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
+| P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | IN_PROGRESS | `ApplicationDbContext.cs`, `OutboxMessage*`, `OutboxMessageProcessor.cs`, `OutboxBackgroundService.cs`, `OutboxMessageConfiguration.cs`, `AddOutboxMessages` migration | `OutboxPatternTests.cs` | Phase 4C converts `OrderCreatedEvent` to a scoped outbox flow. Non-converted events still dispatch in-process before save for compatibility and are pending migration. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
 | P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
 | P5-001 | Re-enable frontend build type/lint gates. | TODO | `apps/frontend/ecommerce-client/next.config.ts`, `apps/frontend/ecommerce-dashboard/next.config.ts` | TBD | Client ignores eslint and TS build errors; dashboard ignores eslint. |
@@ -531,7 +531,7 @@ Pending request marker migration:
 | --- | --- |
 | Remaining `IRequest<T>` feature folders | TODO: `About`, `Account`, `AccountLocks`, `AuditLogs`, `Auth`, `Banners`, `Brands`, `Cart`, `Categories`, `CategoryBrands`, `Contact`, `CustomerAddresses`, `Dashboard`, `Inventory`, `Marquee`, `Notifications`, `Permissions`, `Products`, `Reviews`, `Roles`, `SearchSuggestions`, `UserActivities`, `Users`, `Wishlists`. |
 | Fallback removal | TODO after all request types are marked. Once no business request depends on raw `IRequest<T>`, update `TransactionBehavior` to skip or fail unmarked requests explicitly instead of treating them as commands. |
-| Architecture cleanup still open | Payment gateway Web dependency resolved in Phase 4B. Domain-event dispatch before commit remains P4-002. |
+| Architecture cleanup still open | Payment gateway Web dependency resolved in Phase 4B. Phase 4C starts P4-002 with scoped `OrderCreatedEvent` outbox; broader event migration remains pending. |
 
 Tests added/updated:
 
@@ -589,7 +589,49 @@ Remaining Phase 4 risks:
 | --- | --- |
 | Other Application Web concerns | Existing non-payment Application code still references ASP.NET Core abstractions, notably authorization/logging/marquee paths. This pass only removed the payment gateway leak. |
 | Callback state-machine granularity | DONE for idempotency and consistency from Phase 1B; future cleanup can split callback/IPN commands if different source-of-truth behavior is needed. |
-| Domain events before durable commit | Still P4-002. |
+| Domain events before durable commit | Partially addressed in Phase 4C for `OrderCreatedEvent`; other domain events still use the old in-process dispatch path until they are explicitly converted. |
+
+### Phase 4C update
+
+Status: DONE for a scoped outbox implementation around `OrderCreatedEvent`; broader outbox migration remains IN_PROGRESS under P4-002.
+
+Outbox scope and behavior:
+
+| Area | Implementation |
+| --- | --- |
+| Outbox table | Added `OutboxMessages` with `Id`, `Type`, `Payload`, `OccurredAtUtc`, `ProcessedAtUtc`, `RetryCount`, `Error`, and `Status`. Migration: `20260517012236_AddOutboxMessages`. |
+| SaveChanges behavior | `ApplicationDbContext.SaveChangesAsync()` collects domain events, writes selected outbox messages in the same EF transaction as aggregate changes, and skips pre-save in-process dispatch for outboxed events. |
+| Converted event | `OrderCreatedEvent` is serialized to outbox and later published by `OutboxMessageProcessor`, so order-created notifications/emails run after the order commit. |
+| Compatibility path | Events not recognized by `OutboxMessageFactory` still dispatch in-process before `base.SaveChangesAsync()` to preserve existing behavior, including stock/status side effects that currently depend on the same save cycle. |
+| Worker | `OutboxBackgroundService` polls via scoped `OutboxMessageProcessor`; `Outbox:Enabled` defaults to true, with `BatchSize`, `MaxRetryCount`, and `PollIntervalSeconds` options. |
+| Retry/status | Processor picks `Pending`/retryable `Failed` messages, marks `Processing`, publishes the event, then marks `Processed`; failures increment `RetryCount`, store truncated `Error`, and stop retrying after `MaxRetryCount`. |
+
+Events converted/pending:
+
+| Event/flow | Status | Notes |
+| --- | --- | --- |
+| `OrderCreatedEvent` | CONVERTED | Outboxed and processed after commit. Existing domain event handler remains the consumer. |
+| `OrderStatusChangedEvent` | PENDING | Still dispatches before save because stock restoration currently mutates tracked entities in the existing save cycle. Needs separate command-safe handler or outbox consumer before conversion. |
+| Return status/completed flows | PENDING | Return lifecycle has handlers, but no scoped conversion was done in this pass. |
+| Payment success/failed | PENDING | Payment callback currently updates transaction/payment/order state directly. Dedicated integration events should be introduced before outboxing payment side effects. |
+| Email/notification side effects | PARTIAL | Order-created email/notification side effects now run from the outbox processor. Other notification flows remain in-process. |
+
+Operational notes:
+
+| Item | Note |
+| --- | --- |
+| Migration | Apply `20260517012236_AddOutboxMessages` before enabling the worker in shared environments. |
+| Multi-instance processing | Current worker is intentionally simple and does not use provider-specific row locking/leases; add a claim/lease strategy before running many API instances against the same outbox table. |
+| Cleanup | Processed messages are retained. Add retention/archival policy later. |
+| Integration tests | The integration test factory disables the background worker with `Outbox:Enabled=false` and invokes `OutboxMessageProcessor` directly for deterministic tests. |
+
+Tests added/updated:
+
+| Test | Expected behavior |
+| --- | --- |
+| `SaveChanges_WhenOrderCreated_CommitsOutboxMessage` | Creating an order commits a pending `OrderCreatedEvent` outbox message with the aggregate changes. |
+| `SaveChanges_WhenTransactionRollsBack_DoesNotCommitOutboxMessage` | Rolling back the transaction leaves neither order nor outbox message committed. |
+| `OutboxProcessor_ProcessesPendingMessage_AndDoesNotReprocessProcessedMessage` | Processor publishes the event, marks the message processed, creates notification side effects once, and ignores the processed message on the next run. |
 
 | Item checked | Finding |
 | --- | --- |
@@ -663,8 +705,11 @@ Remaining Phase 4 risks:
 | `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~CreatePaymentForOrderCommandHandlerTests --no-build` after Phase 4B | PASS | 6/6 payment creation handler tests passed against `IPaymentGateway`. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests --no-build` after Phase 4B | PASS | 9/9 payment integration tests passed, covering URL creation, IPN/return idempotency, invalid signature, amount mismatch, and failed response code. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4B | PASS | Domain 57/57, Application 201/201, WebAPI Integration 36/36, total 294/294. Integration tests took about 9m59s. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4C | PASS | 0 warnings, 0 errors. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter OutboxPatternTests --no-build` after Phase 4C | PASS | 3/3 outbox integration tests passed. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4C | PASS | Domain 57/57, Application 201/201, WebAPI Integration 39/39, total 297/297. Integration tests took about 10m50s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 4C: move remaining Application Web concerns behind neutral abstractions, starting with marquee command `IHttpContextAccessor` usage and logging/authorization dependencies, then continue raw `IRequest<T>` marker migration.
+Continue Phase 4D: convert `OrderStatusChangedEvent`, payment success/failed, and return status/completed side effects to outbox-safe integration events with idempotent consumers and a provider-safe outbox claim/lease strategy.

@@ -4,6 +4,7 @@ using Ecommerce.Application.Services;
 using Ecommerce.Domain.Services;
 using Ecommerce.Infrastructure.Cache;
 using Ecommerce.Infrastructure.Identity;
+using Ecommerce.Infrastructure.Outbox;
 using Ecommerce.Infrastructure.Payments.VnPay;
 using Ecommerce.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,7 @@ namespace Ecommerce.Infrastructure.Extensions
             services.Configure<FileStorageConfig>(configuration.GetSection("FileStorage"));
             services.Configure<SupabaseStorageConfig>(configuration.GetSection("SupabaseStorage"));
             services.Configure<VnPaySettings>(configuration.GetSection("VnPay"));
+            services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -41,6 +43,15 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddSingleton<IOrderCodeGenerator, OrderCodeGenerator>();
             services.AddSingleton<IRmaCodeGenerator, RmaCodeGenerator>();
             services.AddScoped<IPaymentGateway, VnPayPaymentGateway>();
+            services.AddScoped<OutboxMessageProcessor>();
+
+            var outboxOptions = configuration
+                .GetSection(OutboxOptions.SectionName)
+                .Get<OutboxOptions>() ?? new OutboxOptions();
+            if (outboxOptions.Enabled)
+            {
+                services.AddHostedService<OutboxBackgroundService>();
+            }
 
             return services;
         }
