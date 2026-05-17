@@ -43,6 +43,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         SetEnvironmentVariable("CacheSettings__UseRedis", "false");
         SetEnvironmentVariable("Redis__ConnectionString", "localhost:6379");
         SetEnvironmentVariable("Observability__OtlpEndpoint", "http://localhost:4317");
+        SetEnvironmentVariable("Outbox__Enabled", "false");
         SetEnvironmentVariable("Email__Smtp__Host", string.Empty);
         SetEnvironmentVariable("AppUrl__Frontend", "https://frontend.test");
         SetEnvironmentVariable("VnPay__TmnCode", "TESTTMNCODE");
@@ -80,6 +81,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["CacheSettings:UseRedis"] = "false",
                 ["Redis:ConnectionString"] = "localhost:6379",
                 ["Observability:OtlpEndpoint"] = "http://localhost:4317",
+                ["Outbox:Enabled"] = "false",
                 ["Email:Smtp:Host"] = "",
                 ["AppUrl:Frontend"] = "https://frontend.test",
                 ["VnPay:TmnCode"] = "TESTTMNCODE",

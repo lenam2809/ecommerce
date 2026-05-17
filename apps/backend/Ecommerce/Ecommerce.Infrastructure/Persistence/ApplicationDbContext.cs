@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using System.Reflection;
 using System.Linq.Expressions;
 using Ecommerce.Domain.Interfaces.Base;
+using Ecommerce.Infrastructure.Outbox;
 
 namespace Ecommerce.Infrastructure.Persistence
 {
@@ -92,10 +93,13 @@ namespace Ecommerce.Infrastructure.Persistence
 
         // Password Reset
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            await DispatchDomainEvents();
+            var domainEvents = CollectDomainEvents();
+            AddOutboxMessages(domainEvents);
+            await DispatchInProcessDomainEvents(domainEvents, cancellationToken);
             NormalizeDateTimesToUtc();
             RefreshConcurrencyTokens();
             RefreshRowVersions();
@@ -149,7 +153,7 @@ namespace Ecommerce.Infrastructure.Persistence
             }
         }
 
-        private async Task DispatchDomainEvents()
+        private List<INotification> CollectDomainEvents()
         {
             var entities = ChangeTracker
                 .Entries<Ecommerce.Domain.Interfaces.Base.IHasDomainEvents>()
@@ -162,8 +166,38 @@ namespace Ecommerce.Infrastructure.Persistence
 
             entities.ToList().ForEach(e => e.ClearDomainEvents());
 
+            return domainEvents;
+        }
+
+        private void AddOutboxMessages(IEnumerable<INotification> domainEvents)
+        {
             foreach (var domainEvent in domainEvents)
-                await _publisher.Publish(domainEvent);
+            {
+                if (OutboxMessageFactory.TryCreate(domainEvent, out var outboxMessage))
+                {
+                    OutboxMessages.Add(outboxMessage);
+                }
+            }
+        }
+
+        private async Task DispatchInProcessDomainEvents(
+            IEnumerable<INotification> domainEvents,
+            CancellationToken cancellationToken)
+        {
+            if (_publisher == null)
+            {
+                return;
+            }
+
+            foreach (var domainEvent in domainEvents)
+            {
+                if (OutboxMessageFactory.TryCreate(domainEvent, out _))
+                {
+                    continue;
+                }
+
+                await _publisher.Publish(domainEvent, cancellationToken);
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
