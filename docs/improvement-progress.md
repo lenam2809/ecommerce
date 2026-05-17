@@ -25,7 +25,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P0-003 | Re-enable or explicitly configure HTTPS redirection/proxy behavior. | DONE | `Program.cs`, `DependencyInjection.cs`, `AddAuthenticationExtensions.cs` | `Phase0RuntimeHardeningTests.cs` | Phase 0B enables HTTPS redirection outside Development and requires JWT HTTPS metadata outside Development. |
 | P0-004 | Remove or protect test/dev controllers. | DONE | `DevelopmentOnlyAttribute.cs`, `TestStorageController.cs`, `WeatherForecastController.cs` | `Phase0AuthorizationTests.cs` | Test/dev controllers now return 404 outside Development. |
 | P1-001 | Replace client-supplied payment amount/order data with server-derived order payment initiation. | DONE | `PaymentsController.cs`, `CreatePaymentForOrderCommand*`, `IVnPayService.cs`, `VnPayService.cs`, appsettings production files | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 1A create-url now requires auth and derives amount/orderInfo/txnRef from backend order by `orderId`; client amount/orderInfo are ignored. Guest VNPay payment is intentionally blocked pending a clear guest ownership mechanism. |
-| P1-002 | Make VNPay callbacks/IPN idempotent and update orders/payments consistently. | DONE | `PaymentsController.cs`, `VnPayService.cs`, `PaymentTransaction.cs`, `PaymentCorrectnessTests.cs` | `PaymentCorrectnessTests.cs` | Phase 1B verifies signature before DB writes, uses `PaymentTransactions.TxnRef` as idempotency key, prevents duplicate `Payment`, and keeps invalid/mismatch/failed responses from marking orders paid. Callback logic remains in Application `VnPayService`; moving the gateway adapter remains P4-001. |
+| P1-002 | Make VNPay callbacks/IPN idempotent and update orders/payments consistently. | DONE | `PaymentsController.cs`, `VnPayService.cs`, `PaymentTransaction.cs`, `PaymentCorrectnessTests.cs` | `PaymentCorrectnessTests.cs` | Phase 1B verifies signature before DB writes, uses `PaymentTransactions.TxnRef` as idempotency key, prevents duplicate `Payment`, and keeps invalid/mismatch/failed responses from marking orders paid. VNPay adapter move was later resolved in Phase 4B. |
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | DONE | `PromoCodesController.cs`, `ApplyPromoCodeCommandHandler.cs`, `CreateOrderCommandHandler.cs`, `Order.cs`, `CartRepository.cs` | `ApplyPromoCodeCommandHandlerTests.cs`, `CreateOrderCommandHandlerTests.cs` | Phase 1C makes promo apply/preview read-only and increments `TimesUsed` once during valid order creation. No migration added; redemption table and explicit discount amount column are deferred. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | DONE | `CreateOrderCommandHandler.cs`, `CreateOrderItemDto.cs`, `Order.cs`, `IProductRepository.cs`, `IProductVariantSkuRepository.cs`, `ProductRepository.cs`, `ProductVariantSkuRepository.cs` | `CreateOrderCommandHandlerTests.cs`, `StockLifecycleTests.cs` | Phase 2A checkout now uses `Products.StockQuantity` only for non-variant products and requires/decrements `ProductVariantSkus.StockQuantity` for variant products. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
@@ -33,7 +33,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | DONE | Return request handlers, order detail/list/history handlers, `EUserRoles.cs`, review command/repository/configuration | `Phase3OwnershipTests.cs`, `CreateReviewCommandHandlerTests.cs` | Returns, order detail/history, and review creation now enforce current-user rules in Application. Guest-owned resources remain blocked pending signed guest ownership. |
 | P3-003 | Enforce review duplicate/verified-purchase rules and reduce review/content XSS risk. | DONE | `CreateReviewCommandHandler.cs`, `ReviewRepository.cs`, `ReviewConfiguration.cs`, review DTO/service/UI, review unique-index migration | `CreateReviewCommandHandlerTests.cs` | Authenticated users can create one review per product. Review uses current user, stores encoded plain text, and sets `IsVerified` only when a delivered/completed order contains the product. |
 | P3-004 | Enforce return/RMA duplicate, quantity, return window, and evidence path rules. | DONE | `CreateReturnRequestCommandHandler.cs`, `IReturnRequestRepository.cs`, `ReturnRequestRepository.cs` | `CreateReturnRequestCommandHandlerTests.cs`, `Phase3OwnershipTests.cs` | Open RMA is unique per order item, total non-rejected quantity cannot exceed purchased quantity, 7-day window uses delivered order history when available, and evidence no longer accepts arbitrary external URLs. |
-| P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | TODO | `Ecommerce.Application/Features/Payments/VnPay/*` | TBD | Application currently references `Microsoft.AspNetCore.Http`. |
+| P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | DONE | `IPaymentGateway.cs`, payment gateway DTOs, `ProcessPaymentCallbackCommand*`, `VnPayPaymentGateway.cs`, `VnPaySettings.cs`, `PaymentsController.cs`, DI registrations | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 4B removes Application `IVnPayService`/`VnPayService`; Application now depends on neutral `IPaymentGateway`, while VNPay URL/signature/query mapping lives in Infrastructure. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | TODO | `ApplicationDbContext.cs`, event infrastructure | TBD | `SaveChangesAsync()` dispatches before `base.SaveChangesAsync()`. |
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
 | P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
@@ -531,7 +531,7 @@ Pending request marker migration:
 | --- | --- |
 | Remaining `IRequest<T>` feature folders | TODO: `About`, `Account`, `AccountLocks`, `AuditLogs`, `Auth`, `Banners`, `Brands`, `Cart`, `Categories`, `CategoryBrands`, `Contact`, `CustomerAddresses`, `Dashboard`, `Inventory`, `Marquee`, `Notifications`, `Permissions`, `Products`, `Reviews`, `Roles`, `SearchSuggestions`, `UserActivities`, `Users`, `Wishlists`. |
 | Fallback removal | TODO after all request types are marked. Once no business request depends on raw `IRequest<T>`, update `TransactionBehavior` to skip or fail unmarked requests explicitly instead of treating them as commands. |
-| Architecture cleanup still open | `VnPayService` Web dependency and domain-event dispatch before commit remain P4-001/P4-002. |
+| Architecture cleanup still open | Payment gateway Web dependency resolved in Phase 4B. Domain-event dispatch before commit remains P4-002. |
 
 Tests added/updated:
 
@@ -541,6 +541,55 @@ Tests added/updated:
 | `Handle_CommandSucceeds_BeginsAndCommitsTransaction` | `ICommand<TResponse>` opens and commits transaction. |
 | `Handle_CommandThrows_RollsBackAndRethrows` | Exception rolls back and rethrows. |
 | `Handle_UnmarkedRequest_BeginsTransactionForBackwardCompatibility` | Raw `IRequest<TResponse>` still opens transaction during migration. |
+
+### Phase 4B update
+
+Status: DONE for moving the VNPay adapter behind a Clean Architecture payment gateway boundary.
+
+Layer dependency before/after:
+
+| Area | Before | After |
+| --- | --- | --- |
+| Application payment dependency | `CreatePaymentForOrderCommandHandler` depended on `IVnPayService` and VNPay DTOs under `Ecommerce.Application.Features.Payments.VnPay`. | Handler depends on `IPaymentGateway` and neutral `PaymentGatewayRequest`. |
+| Application Web dependency in payment | `IVnPayService` exposed `HttpContext` and `IQueryCollection`; `VnPayService` parsed ASP.NET Core query collections in Application. | Payment Application models use `IReadOnlyDictionary<string, string>` for callback/IPN parameters. No payment feature type references `HttpContext` or `IQueryCollection`. |
+| VNPay adapter location | `VnPayService`, `VnPaySettings`, signature validation, URL generation, and VNPay query mapping were in Application. | `VnPayPaymentGateway`, `VnPaySettings`, signature validation, URL generation, and VNPay query mapping are in `Ecommerce.Infrastructure/Payments/VnPay`. |
+| Callback/IPN business updates | VNPay service mixed gateway parsing with order/payment transaction state updates. | `ProcessPaymentCallbackCommandHandler` in Application owns idempotency, amount/order validation, transaction/payment/order updates; Infrastructure only parses/verifies gateway data. |
+| WebAPI controller | Controller injected `IVnPayService` and passed `Request.Query` directly. | Controller injects `IMediator`, converts query params to dictionary, and sends `ProcessPaymentCallbackCommand`. Response/redirect contract remains unchanged. |
+| DI | Application registered `IVnPayService -> VnPayService`; WebAPI configured `VnPaySettings`. | Infrastructure configures `VnPaySettings` and registers `IPaymentGateway -> VnPayPaymentGateway`. |
+
+Interfaces and models added:
+
+| Type | Location | Purpose |
+| --- | --- | --- |
+| `IPaymentGateway` | `apps/backend/Ecommerce/Ecommerce.Application/Common/Interfaces/IPaymentGateway.cs` | Application-facing abstraction for payment URL creation and callback parsing. |
+| `PaymentGatewayRequest` | `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/Dto/PaymentGatewayRequest.cs` | Neutral request for payment URL creation. |
+| `PaymentGatewayCallback` | `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/Dto/PaymentGatewayCallback.cs` | Neutral parsed callback/IPN result. |
+| `ProcessPaymentCallbackCommand` | `apps/backend/Ecommerce/Ecommerce.Application/Features/Payments/Commands/ProcessPaymentCallback/*` | Application command for callback/IPN state transition and idempotency. |
+
+Files touched:
+
+| File/group | Notes |
+| --- | --- |
+| `Ecommerce.Application/Features/Payments/VnPay/*` | Removed old Application VNPay service, settings, and DTOs. |
+| `Ecommerce.Infrastructure/Payments/VnPay/*` | Added VNPay adapter and settings in Infrastructure. |
+| `CreatePaymentForOrderCommandHandler.cs` | Uses `IPaymentGateway` and neutral request DTO. |
+| `PaymentsController.cs` | Uses MediatR for create URL, return, and IPN flows; no direct gateway service injection. |
+| `ServiceCollectionExtensions.cs`, `AddServicesExtensions.cs`, `Program.cs` | Moved payment gateway registration/configuration from Application/WebAPI to Infrastructure. |
+
+Tests:
+
+| Test | Result |
+| --- | --- |
+| `CreatePaymentForOrderCommandHandlerTests` | PASS 6/6 after switching mocks from `IVnPayService` to `IPaymentGateway`. |
+| `PaymentCorrectnessTests` | PASS 9/9; create-url, callback/IPN, invalid signature, amount mismatch, duplicate/idempotency behavior preserved. |
+
+Remaining Phase 4 risks:
+
+| Item | Status |
+| --- | --- |
+| Other Application Web concerns | Existing non-payment Application code still references ASP.NET Core abstractions, notably authorization/logging/marquee paths. This pass only removed the payment gateway leak. |
+| Callback state-machine granularity | DONE for idempotency and consistency from Phase 1B; future cleanup can split callback/IPN commands if different source-of-truth behavior is needed. |
+| Domain events before durable commit | Still P4-002. |
 
 | Item checked | Finding |
 | --- | --- |
@@ -556,7 +605,7 @@ Tests added/updated:
 | --- | --- |
 | Domain event dispatch | `ApplicationDbContext.SaveChangesAsync()` calls `DispatchDomainEvents()` before `base.SaveChangesAsync()` in `apps/backend/Ecommerce/Ecommerce.Infrastructure/Persistence/ApplicationDbContext.cs:96-102`, so events can publish before the DB write/transaction is durably committed. |
 | Transaction behavior | `TransactionBehavior` commits after `next()` in `apps/backend/Ecommerce/Ecommerce.Application/Common/Behaviors/TransactionBehavior.cs:42-50`; this does not prevent `SaveChangesAsync()` from publishing before commit. |
-| Web concerns in Application | Payment Application service contracts reference ASP.NET Core `HttpContext`/`IQueryCollection`. |
+| Web concerns in Application | Payment service contracts no longer reference ASP.NET Core `HttpContext`/`IQueryCollection` after Phase 4B. Other non-payment Application Web concerns remain, including authorization/logging/marquee paths. |
 
 ### Frontend quality gates
 
@@ -610,8 +659,12 @@ Tests added/updated:
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4A | PASS | 71 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the marker-interface transaction change. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~TransactionBehaviorTests --no-build` after Phase 4A | PASS | 5/5 transaction behavior tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4A | PASS | Domain 57/57, Application 201/201, WebAPI Integration 36/36, total 294/294. Integration tests took about 10m08s. |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4B | PASS | 69 warnings, 0 errors. Warnings are existing nullable/reference warnings outside the payment adapter move. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~CreatePaymentForOrderCommandHandlerTests --no-build` after Phase 4B | PASS | 6/6 payment creation handler tests passed against `IPaymentGateway`. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.WebAPI.IntegrationTests/Ecommerce.WebAPI.IntegrationTests.csproj --filter PaymentCorrectnessTests --no-build` after Phase 4B | PASS | 9/9 payment integration tests passed, covering URL creation, IPN/return idempotency, invalid signature, amount mismatch, and failed response code. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4B | PASS | Domain 57/57, Application 201/201, WebAPI Integration 36/36, total 294/294. Integration tests took about 9m59s. |
 | Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
 
 ## Next recommended prompt
 
-Continue Phase 4B: migrate the remaining raw `IRequest<T>` types to `ICommand<TResponse>`/`IQuery<TResponse>`, then remove the unmarked-request transaction fallback once the request surface is fully classified.
+Continue Phase 4C: move remaining Application Web concerns behind neutral abstractions, starting with marquee command `IHttpContextAccessor` usage and logging/authorization dependencies, then continue raw `IRequest<T>` marker migration.

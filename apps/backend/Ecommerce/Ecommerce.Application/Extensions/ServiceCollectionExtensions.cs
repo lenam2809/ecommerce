@@ -2,7 +2,6 @@
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Application.Common.Services;
-using Ecommerce.Application.Features.Payments.VnPay;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,9 +34,6 @@ namespace Ecommerce.Application.Extensions
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));       // 💾 Quản lý Transaction tự động
 
             });
-
-            // Register VNPay Service
-            services.AddScoped<IVnPayService, VnPayService>();
 
             return services;
         }

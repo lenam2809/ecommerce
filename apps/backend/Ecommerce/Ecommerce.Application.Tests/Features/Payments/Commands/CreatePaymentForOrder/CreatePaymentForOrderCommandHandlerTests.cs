@@ -2,8 +2,7 @@ using System.Linq.Expressions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder;
-using Ecommerce.Application.Features.Payments.VnPay;
-using Ecommerce.Application.Features.Payments.VnPay.Dto;
+using Ecommerce.Application.Features.Payments.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
@@ -20,7 +19,7 @@ public class CreatePaymentForOrderCommandHandlerTests
     private readonly Mock<IOrderRepository> _orderRepository = new();
     private readonly Mock<IRepository<Payment>> _paymentRepository = new();
     private readonly Mock<ICurrentUserService> _currentUserService = new();
-    private readonly Mock<IVnPayService> _vnPayService = new();
+    private readonly Mock<IPaymentGateway> _paymentGateway = new();
     private readonly CreatePaymentForOrderCommandHandler _handler;
 
     public CreatePaymentForOrderCommandHandlerTests()
@@ -34,7 +33,7 @@ public class CreatePaymentForOrderCommandHandlerTests
         _handler = new CreatePaymentForOrderCommandHandler(
             _unitOfWork.Object,
             _currentUserService.Object,
-            _vnPayService.Object);
+            _paymentGateway.Object);
     }
 
     [Fact]
@@ -43,15 +42,15 @@ public class CreatePaymentForOrderCommandHandlerTests
         // Arrange
         var userId = Guid.NewGuid();
         var order = CreateOrder(userId, unitPrice: 125000m, quantity: 2);
-        PaymentInformationModel? capturedPaymentInfo = null;
+        PaymentGatewayRequest? capturedPaymentRequest = null;
 
         _currentUserService.SetupGet(x => x.UserId).Returns(userId);
         _orderRepository
             .Setup(x => x.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(order);
-        _vnPayService
-            .Setup(x => x.CreatePaymentUrl(It.IsAny<PaymentInformationModel>(), "10.0.0.1"))
-            .Callback<PaymentInformationModel, string>((model, _) => capturedPaymentInfo = model)
+        _paymentGateway
+            .Setup(x => x.CreatePaymentUrl(It.IsAny<PaymentGatewayRequest>()))
+            .Callback<PaymentGatewayRequest>(request => capturedPaymentRequest = request)
             .Returns("https://vnpay.test/payment?vnp_Amount=25000000");
 
         // Act
@@ -68,10 +67,11 @@ public class CreatePaymentForOrderCommandHandlerTests
         result.Value.TransactionRef.Should().Be(order.Id.ToString("D"));
         result.Value.PaymentUrl.Should().Be("https://vnpay.test/payment?vnp_Amount=25000000");
 
-        capturedPaymentInfo.Should().NotBeNull();
-        capturedPaymentInfo!.OrderId.Should().Be(order.Id.ToString("D"));
-        capturedPaymentInfo.Amount.Should().Be(250000d);
-        capturedPaymentInfo.OrderDescription.Should().Contain(order.Code);
+        capturedPaymentRequest.Should().NotBeNull();
+        capturedPaymentRequest!.TransactionRef.Should().Be(order.Id.ToString("D"));
+        capturedPaymentRequest.Amount.Should().Be(250000m);
+        capturedPaymentRequest.ClientIpAddress.Should().Be("10.0.0.1");
+        capturedPaymentRequest.OrderDescription.Should().Contain(order.Code);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class CreatePaymentForOrderCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.Forbidden);
-        _vnPayService.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentInformationModel>(), It.IsAny<string>()), Times.Never);
+        _paymentGateway.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentGatewayRequest>()), Times.Never);
     }
 
     [Theory]
@@ -118,7 +118,7 @@ public class CreatePaymentForOrderCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
         result.Error.Should().Be("Đơn hàng hiện không ở trạng thái có thể thanh toán.");
-        _vnPayService.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentInformationModel>(), It.IsAny<string>()), Times.Never);
+        _paymentGateway.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentGatewayRequest>()), Times.Never);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class CreatePaymentForOrderCommandHandlerTests
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
         result.Error.Should().Be("Đơn hàng đã được thanh toán.");
-        _vnPayService.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentInformationModel>(), It.IsAny<string>()), Times.Never);
+        _paymentGateway.Verify(x => x.CreatePaymentUrl(It.IsAny<PaymentGatewayRequest>()), Times.Never);
     }
 
     private static Order CreateOrder(Guid userId, decimal unitPrice = 100000m, int quantity = 1)

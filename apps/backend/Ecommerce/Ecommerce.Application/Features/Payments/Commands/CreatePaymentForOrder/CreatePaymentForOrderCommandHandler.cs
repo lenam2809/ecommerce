@@ -1,7 +1,6 @@
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
-using Ecommerce.Application.Features.Payments.VnPay;
-using Ecommerce.Application.Features.Payments.VnPay.Dto;
+using Ecommerce.Application.Features.Payments.Dto;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
@@ -13,16 +12,16 @@ namespace Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IVnPayService _vnPayService;
+        private readonly IPaymentGateway _paymentGateway;
 
         public CreatePaymentForOrderCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
-            IVnPayService vnPayService)
+            IPaymentGateway paymentGateway)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
-            _vnPayService = vnPayService;
+            _paymentGateway = paymentGateway;
         }
 
         public async Task<Result<CreatePaymentForOrderResultDto>> Handle(CreatePaymentForOrderCommand request, CancellationToken cancellationToken)
@@ -72,16 +71,17 @@ namespace Ecommerce.Application.Features.Payments.Commands.CreatePaymentForOrder
             }
 
             var transactionRef = order.Id.ToString("D");
-            var paymentInfo = new PaymentInformationModel
+            var paymentRequest = new PaymentGatewayRequest
             {
-                OrderId = transactionRef,
-                Amount = Convert.ToDouble(order.TotalAmount),
-                Name = order.Email,
+                TransactionRef = transactionRef,
+                Amount = order.TotalAmount,
+                CustomerName = order.Email,
                 OrderDescription = $"Thanh toán đơn hàng {order.Code}",
-                OrderType = "other"
+                OrderType = "other",
+                ClientIpAddress = request.ClientIpAddress
             };
 
-            var paymentUrl = _vnPayService.CreatePaymentUrl(paymentInfo, request.ClientIpAddress);
+            var paymentUrl = _paymentGateway.CreatePaymentUrl(paymentRequest);
 
             return Result<CreatePaymentForOrderResultDto>.Success(new CreatePaymentForOrderResultDto
             {

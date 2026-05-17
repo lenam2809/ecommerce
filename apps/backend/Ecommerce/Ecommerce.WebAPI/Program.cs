@@ -1,7 +1,6 @@
 ﻿using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Observability;
 using Ecommerce.Application.Extensions;
-using Ecommerce.Application.Features.Payments.VnPay;
 using Ecommerce.Infrastructure;
 using Ecommerce.Infrastructure.Persistence;
 using Ecommerce.Infrastructure.Persistence.Seed;
@@ -90,9 +89,6 @@ builder.Services
             .AddMeter(EcommerceDiagnostics.MeterName)
             .AddPrometheusExporter();
     });
-
-// Configure VNPay Settings
-builder.Services.Configure<VnPaySettings>(builder.Configuration.GetSection("VnPay"));
 
 // Configure Auth Settings (for cookie-based auth)
 builder.Services.Configure<AuthConfig>(builder.Configuration.GetSection("AuthConfig"));

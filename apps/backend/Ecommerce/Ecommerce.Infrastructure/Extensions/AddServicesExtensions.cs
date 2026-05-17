@@ -4,6 +4,7 @@ using Ecommerce.Application.Services;
 using Ecommerce.Domain.Services;
 using Ecommerce.Infrastructure.Cache;
 using Ecommerce.Infrastructure.Identity;
+using Ecommerce.Infrastructure.Payments.VnPay;
 using Ecommerce.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace Ecommerce.Infrastructure.Extensions
             // Configure Options
             services.Configure<FileStorageConfig>(configuration.GetSection("FileStorage"));
             services.Configure<SupabaseStorageConfig>(configuration.GetSection("SupabaseStorage"));
+            services.Configure<VnPaySettings>(configuration.GetSection("VnPay"));
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -38,6 +40,7 @@ namespace Ecommerce.Infrastructure.Extensions
             services.AddScoped<IShippingCalculator, ShippingCalculator>();
             services.AddSingleton<IOrderCodeGenerator, OrderCodeGenerator>();
             services.AddSingleton<IRmaCodeGenerator, RmaCodeGenerator>();
+            services.AddScoped<IPaymentGateway, VnPayPaymentGateway>();
 
             return services;
         }
