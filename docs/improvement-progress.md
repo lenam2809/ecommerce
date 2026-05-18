@@ -13,7 +13,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | IN_PROGRESS |
 | Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | IN_PROGRESS |
 | Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | IN_PROGRESS |
-| Phase 5 | Frontend quality gate va observability | Re-enable frontend type/lint gates and add operational visibility around checkout/payment/security flows. | TODO |
+| Phase 5 | Frontend quality gate va observability | Re-enable frontend type/lint gates and add operational visibility around checkout/payment/security flows. | IN_PROGRESS |
 
 ## Checklist
 
@@ -38,7 +38,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
 | P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
 | P4-005 | Centralize authorization policy/permission constants and invalidate authorization caches after permission changes. | DONE | `AuthorizationPolicies.cs`, `AuthorizationBehavior.cs`, role/permission/account-lock handlers, auth/user repositories, WebAPI controllers | `AuthorizationMaintainabilityTests.cs`, authorization behavior tests | Phase 4D removes active `[Authorize(Policy = "...")]` literals, centralizes legacy policy names and permission claim type, invalidates user/role permission caches, and logs access-control changes. |
-| P5-001 | Re-enable frontend build type/lint gates. | TODO | `apps/frontend/ecommerce-client/next.config.ts`, `apps/frontend/ecommerce-dashboard/next.config.ts` | TBD | Client ignores eslint and TS build errors; dashboard ignores eslint. |
+| P5-001 | Re-enable frontend build type/lint gates. | IN_PROGRESS | `apps/frontend/ecommerce-client/package.json`, `apps/frontend/ecommerce-client/eslint.config.mjs`, `apps/frontend/ecommerce-dashboard/package.json`, `apps/frontend/ecommerce-dashboard/eslint.config.mjs`, `.github/workflows/frontend-quality.yml` | Frontend npm scripts run; typecheck/lint/build results recorded below. | Phase 5A adds explicit typecheck/lint/build scripts and CI gate. Next.js build ignores remain because client typecheck/lint and dashboard lint still fail on existing debt. |
 | P5-002 | Add checkout/payment/promo observability and alerting. | TODO | TBD | TBD | Build on existing OpenTelemetry/Prometheus setup. |
 
 ## Audit findings
@@ -702,8 +702,43 @@ String literal audit:
 
 | App | Finding |
 | --- | --- |
-| `apps/frontend/ecommerce-client` | `next.config.ts` sets `eslint.ignoreDuringBuilds = true` and `typescript.ignoreBuildErrors = true`; package scripts include `build` and `lint`. |
-| `apps/frontend/ecommerce-dashboard` | `next.config.ts` sets `eslint.ignoreDuringBuilds = true`; package scripts include `build` and `lint`. |
+| `apps/frontend/ecommerce-client` | `next.config.ts` sets `eslint.ignoreDuringBuilds = true` and `typescript.ignoreBuildErrors = true`; package scripts include `build`, `lint`, and `typecheck`. |
+| `apps/frontend/ecommerce-dashboard` | `next.config.ts` sets `eslint.ignoreDuringBuilds = true`; package scripts include `build`, `lint`, and `typecheck`. |
+
+### Phase 5A update
+
+Status: IN_PROGRESS for frontend quality gate scaffolding. CI/scripts are in place, but Next.js build ignores are intentionally retained until existing typecheck/lint debt is fixed.
+
+Scripts and CI:
+
+| Area | Result |
+| --- | --- |
+| Client scripts | `apps/frontend/ecommerce-client/package.json` now has `typecheck`, `lint`, and `build`. `lint` uses `eslint .` because `next lint` is not available in the current Next.js version. |
+| Dashboard scripts | `apps/frontend/ecommerce-dashboard/package.json` now has `typecheck`, `lint`, and `build`. `lint` uses `eslint .`. |
+| ESLint config | Both apps ignore `.next`, `node_modules`, `coverage`, `dist`, `out`, and generated `next-env.d.ts` so lint scans source code instead of generated build artifacts. |
+| CI | Added `.github/workflows/frontend-quality.yml` with a matrix for `ecommerce-client` and `ecommerce-dashboard`: `npm ci`, `npm run typecheck`, `npm run lint`, `npm run build`. |
+
+Current `next.config.ts` quality-gate state:
+
+| App | Current state | Reason retained |
+| --- | --- | --- |
+| `ecommerce-client` | Keeps `eslint.ignoreDuringBuilds = true` and `typescript.ignoreBuildErrors = true`. | `npm run typecheck` fails and `npm run lint` reports existing source errors. |
+| `ecommerce-dashboard` | Keeps `eslint.ignoreDuringBuilds = true`. | `npm run lint` reports existing source errors. Typecheck passes. |
+
+Top failing areas:
+
+| App | Typecheck | Lint |
+| --- | --- | --- |
+| `ecommerce-client` | Fails in `app/(routes)/checkout/page.tsx` because `orderId` can be undefined, in `lib/analytics.ts` because analytics event payload typing excludes item arrays, and in `lib/seo-utils.ts` because `og:product` is not assignable to Next.js `OpenGraph` metadata types. | 50 errors and 40 warnings after generated-file ignores. Main errors are `no-explicit-any`, conditional hooks in `components/product-listing.tsx`, and `tailwind.config.js` `require()` import. |
+| `ecommerce-dashboard` | Passes. | 148 errors and 63 warnings after generated-file ignores. Main errors are widespread `no-explicit-any`, `react-hooks/rules-of-hooks` in `hooks/use-account-lock.ts`, and service/list-config typing debt. |
+
+Deferred:
+
+| Item | Reason |
+| --- | --- |
+| Remove Next.js lint/type ignores | Blocked until the above typecheck/lint debt is fixed. |
+| Bulk UI/type cleanup | Out of scope for Phase 5A; this pass only establishes the gate and records failures. |
+| npm audit remediation | `npm ci` reports 3 vulnerabilities in each frontend app. No dependency changes were made in this task. |
 
 ## Build and test results
 
@@ -760,8 +795,15 @@ String literal audit:
 | `dotnet build apps/backend/Ecommerce/Ecommerce.sln` after Phase 4D | PASS | 0 warnings, 0 errors. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.Application.Tests/Ecommerce.Application.Tests.csproj --filter FullyQualifiedName~AuthorizationMaintainabilityTests --no-build` after Phase 4D | PASS | 2/2 authorization maintainability tests passed. |
 | `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` after Phase 4D | PASS | Domain 57/57, Application 203/203, WebAPI Integration 39/39, total 299/299. Integration tests took about 10m54s. |
-| Frontend scripts audit | DONE | Both frontend apps have `build` and `lint` scripts. No frontend build/lint was required or run for this task. |
+| `npm ci` in `apps/frontend/ecommerce-client` after Phase 5A | PASS | Installed/audited 446 packages. npm reported 3 vulnerabilities: 1 moderate, 2 high. |
+| `npm run typecheck` in `apps/frontend/ecommerce-client` after Phase 5A | FAIL | Fails on existing TypeScript issues in checkout payment model, analytics event payload typing, and SEO OpenGraph metadata typing. |
+| `npm run lint` in `apps/frontend/ecommerce-client` after Phase 5A | FAIL | After excluding generated artifacts, ESLint reports 50 errors and 40 warnings across existing source files. |
+| `npm run build` in `apps/frontend/ecommerce-client` after Phase 5A | PASS | Next build succeeds because existing config still skips type validation and linting. |
+| `npm ci` in `apps/frontend/ecommerce-dashboard` after Phase 5A | PASS | Installed/audited 526 packages. npm reported 3 vulnerabilities: 1 moderate, 2 high. |
+| `npm run typecheck` in `apps/frontend/ecommerce-dashboard` after Phase 5A | PASS | `tsc --noEmit` completed successfully. |
+| `npm run lint` in `apps/frontend/ecommerce-dashboard` after Phase 5A | FAIL | After excluding generated artifacts, ESLint reports 148 errors and 63 warnings across existing source files. |
+| `npm run build` in `apps/frontend/ecommerce-dashboard` after Phase 5A | PASS | Next build succeeds; existing config still skips linting. Type validation ran and passed. |
 
 ## Next recommended prompt
 
-Continue Phase 4E: add permission-version/security-stamp validation for immediate access-token revocation after role/permission changes, or continue converting payment/order/return side effects to outbox-safe integration events.
+Continue Phase 5B: fix frontend quality-gate debt without changing UI behavior, starting with client typecheck failures in checkout payment, analytics event payload types, and SEO metadata, then reduce `no-explicit-any`/hook-rule lint errors so Next.js lint/type ignores can be removed.
