@@ -8,8 +8,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 
 | Phase | Name | Goal | Status |
 | --- | --- | --- | --- |
-| Phase 0 | Critical security hardening | Lock down public mutations/admin endpoints, production Swagger/test endpoints, HTTPS, and obvious dev surfaces. | IN_PROGRESS |
-| Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | IN_PROGRESS |
+| Phase 0 | Critical security hardening | Lock down public mutations/admin endpoints, production Swagger/test endpoints, HTTPS, and obvious dev surfaces. | DONE |
+| Phase 1 | Payment, promo, checkout correctness | Close payment confirmation flow, align promo usage timing, and make checkout side effects explicit. | DONE |
 | Phase 2 | Stock va order lifecycle | Unify Product stock, SKU stock, inventory items, and order/return stock transitions. | IN_PROGRESS |
 | Phase 3 | Ownership, privacy, review/return rules | Enforce ownership in user-scoped APIs and move privacy/rule checks into Application handlers. | IN_PROGRESS |
 | Phase 4 | Architecture cleanup va outbox | Move web concerns out of Application, keep reporting/query logic out of controllers, and dispatch domain events after durable commit/outbox. | IN_PROGRESS |
@@ -29,13 +29,14 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P1-003 | Move promo usage increment from apply/preview to redeem/order confirmation. | DONE | `PromoCodesController.cs`, `ApplyPromoCodeCommandHandler.cs`, `CreateOrderCommandHandler.cs`, `Order.cs`, `CartRepository.cs` | `ApplyPromoCodeCommandHandlerTests.cs`, `CreateOrderCommandHandlerTests.cs` | Phase 1C makes promo apply/preview read-only and increments `TimesUsed` once during valid order creation. No migration added; redemption table and explicit discount amount column are deferred. |
 | P2-001 | Define stock source of truth for non-variant Product stock, ProductVariantSku stock, and InventoryItem serials. | DONE | `CreateOrderCommandHandler.cs`, `CreateOrderItemDto.cs`, `Order.cs`, `IProductRepository.cs`, `IProductVariantSkuRepository.cs`, `ProductRepository.cs`, `ProductVariantSkuRepository.cs` | `CreateOrderCommandHandlerTests.cs`, `StockLifecycleTests.cs` | Phase 2A checkout now uses `Products.StockQuantity` only for non-variant products and requires/decrements `ProductVariantSkus.StockQuantity` for variant products. |
 | P2-002 | Align order cancel/delete/return stock restore with SKU and inventory item state. | TODO | Order/return handlers | TBD | Existing restore paths focus on Product stock. |
-| P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | IN_PROGRESS | `AddressesController.cs`, `WishlistController.cs`, `SearchSuggestionsController.cs`, customer address handlers, search history commands | `Phase3OwnershipTests.cs` | Address and wishlist customer surfaces now require auth and handlers use `ICurrentUserService`. Search history no longer accepts `userId` from query/body for clear and ignores body `UserId` on save, but real persistence is BLOCKED because no search-history entity/repository exists. |
+| P2-003 | Add safer order/RMA code generation and move order-history stats/overview out of controller. | DONE | `IOrderCodeGenerator.cs`, `IRmaCodeGenerator.cs`, `OrderCodeGenerator.cs`, `RmaCodeGenerator.cs`, `CreateOrderCommandHandler.cs`, `CreateReturnRequestCommandHandler.cs`, `OrderConfiguration.cs`, `OrdersController.cs`, `GetMyOrderHistoryStats*`, `GetOrderHistoryOverview*` | `CreateOrderCommandHandlerTests.cs` | Order/RMA codes use generator abstractions with retry on uniqueness conflicts. Order history stats/overview now dispatch Application queries and no longer use `PageSize = int.MaxValue`. |
+| P3-001 | Add `[Authorize]` to address/search-history/wishlist controllers and enforce current-user ownership in handlers. | BLOCKED | `AddressesController.cs`, `WishlistController.cs`, `SearchSuggestionsController.cs`, customer address handlers, search history commands | `Phase3OwnershipTests.cs` | Address and wishlist customer surfaces now require auth and handlers use `ICurrentUserService`. Search history no longer accepts `userId` from query/body for clear and ignores body `UserId` on save, but real persistence is BLOCKED because no search-history entity/repository exists. |
 | P3-002 | Audit return/order/review ownership and lifecycle rules in Application handlers. | DONE | Return request handlers, order detail/list/history handlers, `EUserRoles.cs`, review command/repository/configuration | `Phase3OwnershipTests.cs`, `CreateReviewCommandHandlerTests.cs` | Returns, order detail/history, and review creation now enforce current-user rules in Application. Guest-owned resources remain blocked pending signed guest ownership. |
 | P3-003 | Enforce review duplicate/verified-purchase rules and reduce review/content XSS risk. | DONE | `CreateReviewCommandHandler.cs`, `ReviewRepository.cs`, `ReviewConfiguration.cs`, review DTO/service/UI, review unique-index migration | `CreateReviewCommandHandlerTests.cs` | Authenticated users can create one review per product. Review uses current user, stores encoded plain text, and sets `IsVerified` only when a delivered/completed order contains the product. |
 | P3-004 | Enforce return/RMA duplicate, quantity, return window, and evidence path rules. | DONE | `CreateReturnRequestCommandHandler.cs`, `IReturnRequestRepository.cs`, `ReturnRequestRepository.cs` | `CreateReturnRequestCommandHandlerTests.cs`, `Phase3OwnershipTests.cs` | Open RMA is unique per order item, total non-rejected quantity cannot exceed purchased quantity, 7-day window uses delivered order history when available, and evidence no longer accepts arbitrary external URLs. |
 | P4-001 | Move `VnPayService` out of Application or remove `HttpContext`/`IQueryCollection` dependency from Application contract. | DONE | `IPaymentGateway.cs`, payment gateway DTOs, `ProcessPaymentCallbackCommand*`, `VnPayPaymentGateway.cs`, `VnPaySettings.cs`, `PaymentsController.cs`, DI registrations | `CreatePaymentForOrderCommandHandlerTests.cs`, `PaymentCorrectnessTests.cs` | Phase 4B removes Application `IVnPayService`/`VnPayService`; Application now depends on neutral `IPaymentGateway`, while VNPay URL/signature/query mapping lives in Infrastructure. |
 | P4-002 | Replace pre-save domain event dispatch with after-commit dispatch/outbox. | IN_PROGRESS | `ApplicationDbContext.cs`, `OutboxMessage*`, `OutboxMessageProcessor.cs`, `OutboxBackgroundService.cs`, `OutboxMessageConfiguration.cs`, `AddOutboxMessages` migration | `OutboxPatternTests.cs` | Phase 4C converts `OrderCreatedEvent` to a scoped outbox flow. Non-converted events still dispatch in-process before save for compatibility and are pending migration. |
-| P4-003 | Move ad hoc stats/report logic out of `OrdersController`. | TODO | `OrdersController.cs`, report queries | TBD | Controller builds stats and uses `int.MaxValue`. |
+| P4-003 | Move ad hoc order-history stats/report logic out of `OrdersController`. | DONE | `OrdersController.cs`, `GetMyOrderHistoryStatsQuery*`, `GetOrderHistoryOverviewQuery*` | Covered by order query/build tests; final grep for `int.MaxValue` | `OrdersController` now delegates stats/overview to MediatR queries. Broader report-query performance cleanup remains backlog, but the original `PageSize = int.MaxValue` controller pattern is gone. |
 | P4-004 | Replace name-based `TransactionBehavior` query detection with MediatR marker interfaces. | DONE | `ICommand.cs`, `IQuery.cs`, `TransactionBehavior.cs`, Payment/Promo/Order/Report/Return request types | `TransactionBehaviorTests.cs` | Phase 4A adds `ICommand<TResponse>`/`IQuery<TResponse>`, skips transactions for marked queries, and keeps unmarked requests on the previous command-like transaction fallback until fully migrated. |
 | P4-005 | Centralize authorization policy/permission constants and invalidate authorization caches after permission changes. | DONE | `AuthorizationPolicies.cs`, `AuthorizationBehavior.cs`, role/permission/account-lock handlers, auth/user repositories, WebAPI controllers | `AuthorizationMaintainabilityTests.cs`, authorization behavior tests | Phase 4D removes active `[Authorize(Policy = "...")]` literals, centralizes legacy policy names and permission claim type, invalidates user/role permission caches, and logs access-control changes. |
 | P5-001 | Re-enable frontend build type/lint gates. | IN_PROGRESS | `apps/frontend/ecommerce-client/package.json`, `apps/frontend/ecommerce-client/eslint.config.mjs`, `apps/frontend/ecommerce-dashboard/package.json`, `apps/frontend/ecommerce-dashboard/eslint.config.mjs`, `.github/workflows/frontend-quality.yml` | Frontend npm scripts run; typecheck/lint/build results recorded below. | Phase 5A adds explicit typecheck/lint/build scripts and CI gate. Next.js build ignores remain because client typecheck/lint and dashboard lint still fail on existing debt. |
@@ -43,6 +44,8 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P5-003 | Audit frontend raw HTML rendering and replace runtime console logging. | DONE | Client sanitizer/logger files, client raw HTML render points, dashboard logger/runtime console call sites | Frontend typecheck/lint/build results recorded below. | Phase 5B sanitizes CMS marquee HTML, escapes JSON-LD script payloads, keeps internal chart style untouched, and routes runtime logs through redacting logger wrappers. |
 
 ## Audit findings
+
+Note: the initial audit subsections below preserve the pre-remediation findings that justified each phase. The phase update sections and `Final verification` section record the current post-change state and supersede the historical findings where they differ.
 
 ### Phase 0A update
 
@@ -287,10 +290,10 @@ Migration notes:
 
 | Item checked | Finding |
 | --- | --- |
-| `OrdersController.GetMyOrderHistoryStats` | Controller computes grouped stats directly in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:148`. |
-| `OrdersController.GetOrderHistoryOverview` | Controller uses `PageSize = int.MaxValue` in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/OrdersController.cs:193` and computes report overview in the controller. |
-| `ReportsController` | Existing reports generally dispatch MediatR queries, but the controller has no `[Authorize]`/report policy at class or action level in `apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers/ReportsController.cs`. |
-| Stock source of truth | `CreateOrderCommandHandler` checks/decrements `Product.StockQuantity` with SQL in `apps/backend/Ecommerce/Ecommerce.Application/Features/Orders/Commands/CreateOrder/CreateOrderCommandHandler.cs:57-77`; `ProductVariantSku.StockQuantity` and `InventoryItem` exist separately, and inventory import updates SKU stock in `ImportInventoryBatchCommandHandler.cs:59`. |
+| `OrdersController.GetMyOrderHistoryStats` | Resolved after Phase 2B. Controller now sends `GetMyOrderHistoryStatsQuery`; grouped stats live in `Ecommerce.Application/Features/Orders/Queries/GetMyOrderHistoryStats`. |
+| `OrdersController.GetOrderHistoryOverview` | Resolved after Phase 2B. Controller now sends `GetOrderHistoryOverviewQuery`; final grep found no order-history `PageSize = int.MaxValue` pattern. |
+| `ReportsController` | Resolved in Phase 0A. Controller-level `[Authorize(Policy = EPermissions.ViewReports)]` protects report/dashboard endpoints. |
+| Stock source of truth | Resolved for checkout in Phase 2A. `CreateOrderCommandHandler` uses Product stock only for non-variant products and requires/decrements `ProductVariantSku.StockQuantity` for variant products. Reservation/release and restore flows remain separate backlog. |
 
 ### Phase 2A update
 
@@ -777,6 +780,108 @@ Testing notes:
 | Item | Result |
 | --- | --- |
 | Frontend sanitizer unit test | Not added because neither frontend app has an existing test runner/script. Verified via build and grep instead. |
+
+## Final verification
+
+Verification date: 2026-05-18.
+
+Backend commands:
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `dotnet build apps/backend/Ecommerce/Ecommerce.sln` | PASS | Final run completed with 68 warnings and 0 errors. Warnings are existing nullable/reference warnings in Application/Infrastructure/WebAPI paths. |
+| `dotnet test apps/backend/Ecommerce/Ecommerce.sln --no-build` | PASS | Final run passed Domain 57/57, Application 203/203, WebAPI Integration 39/39, total 299/299. Integration tests took about 10m59s. |
+
+Frontend commands:
+
+| App | Command | Result | Notes |
+| --- | --- | --- | --- |
+| `apps/frontend/ecommerce-client` | `npm run typecheck` | FAIL | Existing debt: checkout payment call allows `orderId` undefined; analytics `EventData` typing rejects `items` arrays; SEO metadata uses unsupported `og:product` OpenGraph type. |
+| `apps/frontend/ecommerce-client` | `npm run lint` | FAIL | 50 errors and 40 warnings. Main areas: `no-explicit-any`, conditional hooks in `components/product-listing.tsx`, and `tailwind.config.js` CommonJS import rule. |
+| `apps/frontend/ecommerce-client` | `npm run build` | PASS | Build succeeds because `next.config.ts` still ignores type/lint errors. |
+| `apps/frontend/ecommerce-dashboard` | `npm run typecheck` | PASS | `tsc --noEmit` completed successfully. |
+| `apps/frontend/ecommerce-dashboard` | `npm run lint` | FAIL | 144 errors and 63 warnings. Main areas: `no-explicit-any`, `react-hooks/rules-of-hooks` in `hooks/use-account-lock.ts`, and service/list-config typing debt. |
+| `apps/frontend/ecommerce-dashboard` | `npm run build` | PASS | Build succeeds; type validation passes during build and lint is still ignored by Next.js config. |
+
+Manual audit commands:
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Mutation endpoints | `rg -n -C 3 "\[Http(Post\|Put\|Patch\|Delete)" apps/backend/Ecommerce/Ecommerce.WebAPI/Controllers` | High-risk Phase 0 surfaces are protected. Remaining public mutations are intentional/non-admin surfaces such as auth, anonymous cart, public promo preview/apply, and gateway callbacks; customer surfaces such as addresses/wishlist/search history are class/action authorized. |
+| Raw HTML | `rg -n "dangerouslySetInnerHTML" apps/frontend/ecommerce-client apps/frontend/ecommerce-dashboard --glob '!**/node_modules/**' --glob '!**/.next/**'` | Remaining sites are safe JSON-LD serialization, sanitized CMS marquee content, and internal dashboard chart CSS. |
+| Console logging | `rg -n "console\.(log\|error\|warn)" apps/frontend/ecommerce-client apps/frontend/ecommerce-dashboard --glob '!**/node_modules/**' --glob '!**/.next/**'` | Remaining matches are centralized logger wrappers only; no direct `console.log` runtime call sites were found. |
+| `int.MaxValue` | `rg -n "int\.MaxValue" apps/backend/Ecommerce` | Remaining matches are `[Range(0, int.MaxValue)]` validation attributes on `Product` and `ProductVariantSku`; no order-history/report `PageSize = int.MaxValue` flow was found. |
+| `DateTime.Now` | `rg -n "DateTime\.Now" apps/backend/Ecommerce` | Many existing matches remain across Domain/Application/Infrastructure, including entity defaults, report query defaults, auth/account-lock services, seed data, and `CodeGenerator`. UTC/time-provider migration remains backlog. |
+| `new Random()` | `rg -n "new Random\(" apps/backend/Ecommerce` | One seed-data-only match remains in `ApplicationDbContextSeed.cs`. |
+| Payment localhost | `rg -n "localhost\|127\.0\.0\.1" apps/backend/Ecommerce -g '*.cs' -g '*.json' \| rg -i "payment\|vnpay\|return\|frontend\|url\|appurl"` | No client-controlled payment localhost flow remains, but config defaults still include localhost: `VnPay.ReturnUrl` and `AppUrl.Frontend` in `appsettings.json`, production example placeholders, and fallback defaults. Production deployment must override them. |
+| Policy string literals | `rg -n '\[Authorize\(Policy = "' apps/backend/Ecommerce -g '*.cs'` | No active `[Authorize(Policy = "...")]` literals found. |
+| Legacy policy constants | `rg -n '"AdminOnly"\|"ViewUsers"\|"Products\.Delete"\|"Products.Delete"' apps/backend/Ecommerce -g '*.cs'` | Matches are centralized in `AuthorizationPolicies.cs`/`EPermissions.cs`; no scattered active controller literals found. |
+
+## Remaining backlog
+
+Critical:
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Production config override for public URLs | TODO | `appsettings.json` still contains localhost defaults for `VnPay.ReturnUrl` and `AppUrl.Frontend`; production secrets/config must set real HTTPS URLs before release. |
+| Guest ownership strategy | BLOCKED | Guest payment/order/return access remains intentionally blocked until there is a signed guest ownership token or equivalent verification mechanism. |
+| Frontend client payment contract type failure | TODO | `apps/frontend/ecommerce-client/app/(routes)/checkout/page.tsx` still sends `orderId: string \| undefined`; this should be aligned with the Phase 1 backend `orderId`-only payment contract. |
+
+High:
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Stock reservation/release | TODO | Phase 2A decrements stock at order creation, but abandoned/pending/failed payment release and reservation expiry are not implemented. |
+| Order cancel/delete/return stock restore | TODO | P2-002 remains open; restore paths must use the same Product/SKU source selected at checkout. |
+| Broader report-query performance cleanup | TODO | P4-003 order-history controller cleanup is complete, but report handlers still contain broad in-memory grouping/projection patterns that should be audited separately. |
+| Outbox coverage | IN_PROGRESS | Only `OrderCreatedEvent` is converted. Payment success/failure, order status, return status, and notification/email side effects still need outbox migration. |
+| Existing access token permission staleness | TODO | Permission cache invalidation is implemented, but already-issued JWTs remain valid until expiry because no permission-version/security-stamp validation was added. |
+
+Medium/Low:
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| Frontend lint/type debt | IN_PROGRESS | Quality-gate CI exists, but client typecheck/client lint/dashboard lint still fail. Next.js ignore flags remain until those failures are fixed. |
+| `DateTime.Now` migration | TODO | Many non-UTC time usages remain. Introduce an `IDateTimeProvider`/UTC convention in a separate pass. |
+| Search history persistence | BLOCKED | API no longer trusts client `userId`, but real persistence needs a search-history entity/repository/handler. |
+| RMA evidence ownership | TODO | External URLs are rejected, but stronger uploaded-file ownership validation needs storage metadata or upload-session tracking. |
+| Promo redemption audit table | TODO | `TimesUsed` now increments on order creation, but `PromoCodeRedemption` and explicit discount snapshot columns remain deferred. |
+| Frontend npm audit | TODO | `npm ci` reported 3 vulnerabilities in each frontend app during Phase 5A; no dependency remediation was done. |
+
+## Deployment notes
+
+Migrations to apply:
+
+| Migration | Purpose | Rollback note |
+| --- | --- | --- |
+| `AddPaymentTransactionUniqueTxnRef` | Adds/updates payment transaction idempotency support. | Check for duplicate `TxnRef` values before applying; rollback requires dropping the unique index/constraint and may re-open duplicate callback risk. |
+| `AddReviewVerifiedPurchaseAndUniqueUserProduct` | Adds verified-purchase review support and uniqueness for one review per user/product. | Pre-check duplicate reviews per user/product before applying; rollback removes the uniqueness guard. |
+| `AddOutboxMessages` | Creates outbox storage for scoped post-commit integration events. | Rollback disables persisted outbox processing; stop the outbox worker first and decide how to handle unprocessed messages. |
+
+Configuration required:
+
+| Key/area | Required action |
+| --- | --- |
+| `AppUrl:Frontend` | Set to the real HTTPS storefront URL in production. Do not rely on the localhost default. |
+| `VnPay:ReturnUrl` | Set to the real frontend/backend return URL expected by the deployed VNPay flow. |
+| `JwtBearerOptions.RequireHttpsMetadata` | Runtime now requires HTTPS metadata outside Development. Production identity metadata must be HTTPS. |
+| Cookie auth/CSRF | Keep production `ForceSecure=true`, `EnableCsrfProtection=true`, and `IncludeTokensInResponse=false`. |
+| Outbox worker | Ensure the app host runs background services and monitors outbox retry/error logs. |
+
+Feature flags:
+
+| Area | Notes |
+| --- | --- |
+| No explicit feature flags added | Changes are controlled by environment/configuration, policy/permission data, and migrations. |
+
+Rollback plan:
+
+| Area | Rollback action |
+| --- | --- |
+| Runtime hardening | Reverting the deployment restores previous Swagger/HTTPS/auth metadata behavior, but this should only be used for emergency rollback. |
+| Payment/promo/stock correctness | Revert code and matching migrations together; otherwise API contracts, unique constraints, and test expectations will diverge. |
+| Outbox | Stop background processing before rollback; inspect pending `OutboxMessages` so side effects are not silently lost or replayed unexpectedly. |
+| Frontend quality gate/logging | Revert frontend commits or disable the CI workflow if it blocks unrelated urgent releases; Next.js build ignores are still retained until lint/type debt is fixed. |
 
 ## Build and test results
 
