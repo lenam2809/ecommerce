@@ -12,7 +12,7 @@ COPY Ecommerce.Infrastructure/Ecommerce.Infrastructure.csproj ./Ecommerce.Infras
 COPY Ecommerce.WebAPI/Ecommerce.WebAPI.csproj ./Ecommerce.WebAPI/
 
 # Restore dependencies
-RUN dotnet restore
+RUN dotnet restore Ecommerce.WebAPI/Ecommerce.WebAPI.csproj
 
 # Copy full source code
 COPY . .

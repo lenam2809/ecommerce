@@ -242,16 +242,6 @@ services:
     restart: unless-stopped
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
-      - "--config.expand-env"
-    environment:
-      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-https://hooks.slack.com/services/replace/me}
-      - ALERT_EMAIL_FROM=${ALERT_EMAIL_FROM:-alerts@example.com}
-      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-ops@example.com}
-      - SMTP_SMARTHOST=${SMTP_SMARTHOST:-smtp.example.com:587}
-      - SMTP_USERNAME=${SMTP_USERNAME:-alerts@example.com}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-replace-me}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-000000000:replace-me}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-0}
     ports:
       - "${ALERTMANAGER_PORT:-9093}:9093"
     volumes:
