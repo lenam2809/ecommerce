@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from "react"
 import axios from "axios"
 
@@ -43,7 +44,7 @@ export function useLocation() {
         const response = await axios.get("https://provinces.open-api.vn/api/p/")
         setProvinces(response.data)
       } catch (error) {
-        console.error("Failed to fetch provinces:", error)
+        logger.error("Failed to fetch provinces:", error)
       } finally {
         setIsLoading((prev) => ({ ...prev, provinces: false }))
       }
@@ -62,7 +63,7 @@ export function useLocation() {
       const response = await axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
       setDistricts(response.data.districts)
     } catch (error) {
-      console.error("Failed to fetch districts:", error)
+      logger.error("Failed to fetch districts:", error)
       setDistricts([])
     } finally {
       setIsLoading((prev) => ({ ...prev, districts: false }))
@@ -79,7 +80,7 @@ export function useLocation() {
       const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
       setWards(response.data.wards)
     } catch (error) {
-      console.error("Failed to fetch wards:", error)
+      logger.error("Failed to fetch wards:", error)
       setWards([])
     } finally {
       setIsLoading((prev) => ({ ...prev, wards: false }))

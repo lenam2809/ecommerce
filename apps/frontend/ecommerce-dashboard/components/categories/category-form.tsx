@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +42,7 @@ export function CategoryForm() {
         try {
             createCategory(values);
         } catch (error) {
-            console.error('Error submitting category:', error);
+            logger.error('Error submitting category:', error);
         } finally {
             setIsSubmitting(false);
         }

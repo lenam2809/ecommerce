@@ -1,6 +1,7 @@
 // app/(routes)/compare/page.tsx
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
@@ -62,7 +63,7 @@ function CompareContent() {
                     setProducts(filteredProducts)
                 }
             } catch (error) {
-                console.error("Error fetching products:", error)
+                logger.error("Error fetching products:", error)
             } finally {
                 setLoading(false)
             }

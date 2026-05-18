@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useCallback, useEffect, useState } from "react"
 import { useProductReviews } from "@/hooks/use-products"
 import { useAuth } from "@/hooks/use-auth"
@@ -197,12 +198,12 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
   const handleSortChange = (value: string) => {
     // Implement sorting logic here
-    console.log("Sort by:", value)
+    logger.debug("Sort by:", value)
   }
 
   const handleLoginRequest = () => {
     // Implement login logic here
-    console.log("Login requested")
+    logger.debug("Login requested")
   }
 
   if (isLoading) {

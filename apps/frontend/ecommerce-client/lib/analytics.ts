@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 /**
  * Analytics utility for tracking user behavior and events
  * Supports multiple analytics providers (GA4, custom events, etc.)
@@ -67,7 +68,7 @@ class Analytics {
   init() {
     if (!this.isEnabled) {
       if (this.debugMode) {
-        console.log("[Analytics] Analytics is disabled")
+        logger.debug("[Analytics] Analytics is disabled")
       }
       return
     }
@@ -75,7 +76,7 @@ class Analytics {
     // Initialize Google Analytics if gtag is available
     if (typeof window !== "undefined" && (window as any).gtag) {
       if (this.debugMode) {
-        console.log("[Analytics] Google Analytics initialized")
+        logger.debug("[Analytics] Google Analytics initialized")
       }
     }
   }
@@ -355,7 +356,7 @@ class Analytics {
    */
   private sendEvent(eventName: string, data?: EventData) {
     if (this.debugMode) {
-      console.log(`[Analytics] Event: ${eventName}`, data)
+      logger.debug(`[Analytics] Event: ${eventName}`, data)
     }
 
     // Send to Google Analytics if available
@@ -363,7 +364,7 @@ class Analytics {
       try {
         (window as any).gtag("event", eventName, data)
       } catch (error) {
-        console.error("[Analytics] Error sending to GA4:", error)
+        logger.error("[Analytics] Error sending to GA4:", error)
       }
     }
 
@@ -394,7 +395,7 @@ class Analytics {
           },
         })
       } catch (error) {
-        console.error("[Analytics] Error setting user properties:", error)
+        logger.error("[Analytics] Error setting user properties:", error)
       }
     }
   }

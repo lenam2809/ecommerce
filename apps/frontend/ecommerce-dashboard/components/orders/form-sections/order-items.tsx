@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { useFieldArray } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { FormSection } from "@/components/ui/form-section"
@@ -44,7 +45,7 @@ export function OrderItemsSection({ form, isDetail = false }: OrderItemsSectionP
           },
         }))
       } catch (error) {
-        console.error("Error fetching product data:", error)
+        logger.error("Error fetching product data:", error)
       } finally {
         setLoadingProducts((prev) => ({ ...prev, [productId]: false }))
       }

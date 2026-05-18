@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
@@ -144,7 +145,7 @@ export default function CheckoutPage() {
               return
             }
           } catch (paymentError) {
-            console.error("VNPay URL creation failed", paymentError)
+            logger.error("VNPay URL creation failed", paymentError)
             toast.error("Lỗi tạo link thanh toán VNPay")
             if (user) {
               router.push(`/account/orders/${result.data}`)
@@ -170,7 +171,7 @@ export default function CheckoutPage() {
         toast.error(process.env.NODE_ENV === "development" ? devMsg : prodMsg)
       }
     } catch (error) {
-      console.error("Order creation error:", error)
+      logger.error("Order creation error:", error)
       toast.error("Có lỗi xảy ra khi đặt hàng")
     }
   }

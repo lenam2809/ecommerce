@@ -1,6 +1,7 @@
 // components/promo-code/promo-code-edit-form.tsx
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,7 +66,7 @@ export function PromoCodeEditForm({ promoCode, isDetail = false }: PromoCodeEdit
         try {
             updatePromoCode(values);
         } catch (error) {
-            console.error('Error updating promo code:', error);
+            logger.error('Error updating promo code:', error);
         } finally {
             setIsSubmitting(false);
         }

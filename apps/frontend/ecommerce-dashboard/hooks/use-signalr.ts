@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { HubConnectionState } from '@microsoft/signalr';
 import SignalRConnectionManager from '@/notifications/signalr-connection-manager';
@@ -50,7 +51,7 @@ export function useSignalR<T = any>({
 
             // Nếu chưa vượt quá số lần thử kết nối, thử lại
             if (connectionAttempts < maxInitialRetries) {
-                console.log(`SignalR connection attempt ${connectionAttempts + 1} failed, retrying in ${retryDelay}ms...`);
+                logger.debug(`SignalR connection attempt ${connectionAttempts + 1} failed, retrying in ${retryDelay}ms...`);
                 if (connectTimeoutRef.current) {
                     clearTimeout(connectTimeoutRef.current);
                 }
@@ -104,11 +105,11 @@ export function useSignalR<T = any>({
             if (e.key === 'auth_token') {
                 if (e.newValue) {
                     // Có token mới -> kết nối lại
-                    console.log('Auth token changed, reconnecting to SignalR...');
+                    logger.debug('Auth token changed, reconnecting to SignalR...');
                     connect();
                 } else {
                     // Token bị xóa -> ngắt kết nối
-                    console.log('Auth token removed, disconnecting from SignalR...');
+                    logger.debug('Auth token removed, disconnecting from SignalR...');
                     disconnect();
                 }
             }

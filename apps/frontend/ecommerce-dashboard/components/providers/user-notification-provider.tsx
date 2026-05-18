@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { useSignalR } from '@/hooks/use-signalr';
 import { useQueryClient } from '@tanstack/react-query';
@@ -55,7 +56,7 @@ export const UserNotificationProvider: FC<UserNotificationProviderProps> = ({ ch
 
         // Hiển thị toast khi kết nối bị mất
         if (connectionState === HubConnectionState.Disconnected && isInitialized) {
-            console.warn('SignalR connection disconnected. Notifications may be delayed.');
+            logger.warn('SignalR connection disconnected. Notifications may be delayed.');
 
             // Có thể thêm toast thông báo kết nối bị mất nếu cần
             /*
@@ -70,7 +71,7 @@ export const UserNotificationProvider: FC<UserNotificationProviderProps> = ({ ch
 
         // Hiển thị toast khi kết nối thành công sau khi bị mất
         if (connectionState === HubConnectionState.Connected && isInitialized) {
-            console.log('SignalR connection established. Notifications working normally.');
+            logger.debug('SignalR connection established. Notifications working normally.');
 
             // Có thể thêm toast thông báo kết nối thành công nếu cần
             toast({

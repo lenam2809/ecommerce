@@ -1,4 +1,6 @@
 "use client"
+
+import { logger } from '@/lib/logger'
 import { Button } from "@/components/ui/button"
 import { Settings, Eye, EyeOff } from "lucide-react"
 import {
@@ -22,8 +24,8 @@ interface TableOptionsProps {
 export function TableOptions({ showRowNumbers, onToggleRowNumbers, columns, visibleColumns, onToggleColumn }: TableOptionsProps) {
 
     const selectableColumns = columns.filter((column) => column.enableHiding !== false && column.label !== undefined && column.label !== null);
-    console.log('columns', columns);
-    console.log('selectableColumns', selectableColumns);
+    logger.debug('columns', columns);
+    logger.debug('selectableColumns', selectableColumns);
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

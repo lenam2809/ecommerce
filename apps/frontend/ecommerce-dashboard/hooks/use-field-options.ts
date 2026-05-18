@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/axios"
 import { OptionType } from "@/components/ui/select/single-select"
@@ -19,7 +20,7 @@ export function useFieldOptions(
                 const items = res.data.data?.items || res.data.data || []
 
                 if (!Array.isArray(items)) {
-                    console.error("API response is not an array:", items)
+                    logger.error("API response is not an array:", items)
                     return []
                 }
 
@@ -29,7 +30,7 @@ export function useFieldOptions(
                     label: item[labelField] || "Không xác định",
                 }))
             } catch (error) {
-                console.error("Error fetching options:", error)
+                logger.error("Error fetching options:", error)
                 return []
             }
         },

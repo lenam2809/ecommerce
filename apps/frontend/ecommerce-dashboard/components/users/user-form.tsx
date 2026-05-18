@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +46,7 @@ export function UserForm() {
             createUser(values);
             // Navigation xử lý trong onSuccess của hook
         } catch (error) {
-            console.error('Error creating user:', error);
+            logger.error('Error creating user:', error);
             toast({
                 title: "Thêm mới người dùng",
                 description: `Có lỗi xảy ra trong quá trình tạo người dùng ${values.firstName} ${values.lastName}`,

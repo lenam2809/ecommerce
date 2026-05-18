@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 // src/components/products/product-form.tsx
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -54,7 +55,7 @@ export function ProductForm() {
       createProduct(values)
       // Điều hướng được xử lý trong onSuccess của hook
     } catch (error) {
-      console.error("Error submitting form:", error)
+      logger.error("Error submitting form:", error)
       setIsSubmitting(false)
     }
   }

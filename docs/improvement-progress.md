@@ -40,6 +40,7 @@ This document tracks incremental technical improvements for ShopViet E-Commerce 
 | P4-005 | Centralize authorization policy/permission constants and invalidate authorization caches after permission changes. | DONE | `AuthorizationPolicies.cs`, `AuthorizationBehavior.cs`, role/permission/account-lock handlers, auth/user repositories, WebAPI controllers | `AuthorizationMaintainabilityTests.cs`, authorization behavior tests | Phase 4D removes active `[Authorize(Policy = "...")]` literals, centralizes legacy policy names and permission claim type, invalidates user/role permission caches, and logs access-control changes. |
 | P5-001 | Re-enable frontend build type/lint gates. | IN_PROGRESS | `apps/frontend/ecommerce-client/package.json`, `apps/frontend/ecommerce-client/eslint.config.mjs`, `apps/frontend/ecommerce-dashboard/package.json`, `apps/frontend/ecommerce-dashboard/eslint.config.mjs`, `.github/workflows/frontend-quality.yml` | Frontend npm scripts run; typecheck/lint/build results recorded below. | Phase 5A adds explicit typecheck/lint/build scripts and CI gate. Next.js build ignores remain because client typecheck/lint and dashboard lint still fail on existing debt. |
 | P5-002 | Add checkout/payment/promo observability and alerting. | TODO | TBD | TBD | Build on existing OpenTelemetry/Prometheus setup. |
+| P5-003 | Audit frontend raw HTML rendering and replace runtime console logging. | DONE | Client sanitizer/logger files, client raw HTML render points, dashboard logger/runtime console call sites | Frontend typecheck/lint/build results recorded below. | Phase 5B sanitizes CMS marquee HTML, escapes JSON-LD script payloads, keeps internal chart style untouched, and routes runtime logs through redacting logger wrappers. |
 
 ## Audit findings
 
@@ -740,6 +741,43 @@ Deferred:
 | Bulk UI/type cleanup | Out of scope for Phase 5A; this pass only establishes the gate and records failures. |
 | npm audit remediation | `npm ci` reports 3 vulnerabilities in each frontend app. No dependency changes were made in this task. |
 
+### Phase 5B update
+
+Status: DONE for scoped frontend safety/logging cleanup. Broader lint/type debt remains tracked under Phase 5A.
+
+Raw HTML audit:
+
+| Site | Classification | Action |
+| --- | --- | --- |
+| `apps/frontend/ecommerce-client/app/layout.tsx` | JSON-LD internal structured data. | Kept `dangerouslySetInnerHTML`, but now uses `toSafeJsonLd()` to escape `<` in the script context without sanitizing JSON-LD. |
+| `apps/frontend/ecommerce-client/app/(routes)/product/[slug]/page.tsx` | Product JSON-LD generated from app data/product fields. | Kept JSON-LD behavior and switched to `toSafeJsonLd()` for script-context safety. |
+| `apps/frontend/ecommerce-client/components/MarqueeBarClient.tsx` | Admin CMS marquee content. | Added `sanitizeHtmlContent()` allowlist sanitizer and render sanitized HTML only. |
+| `apps/frontend/ecommerce-dashboard/components/ui/chart.tsx` | Internal chart style injection generated from chart config. | Left unchanged; sanitizing this would break CSS variable generation and it is not CMS/user content. |
+| Product detail/about/contact pages/components | Storefront content audit. | No other `dangerouslySetInnerHTML` sites found by grep. Product description currently renders as text, not raw HTML. |
+
+Sanitizer and logging:
+
+| Area | Result |
+| --- | --- |
+| Sanitizer helper | Added `apps/frontend/ecommerce-client/lib/sanitize-html-content.ts` with `sanitizeHtmlContent()` and `toSafeJsonLd()`. HTML allowlist is intentionally small: basic text formatting, lists, links, and safe link schemes. |
+| Sanitizer dependency | Added `sanitize-html` and `@types/sanitize-html` to the client app. |
+| Client logging | Runtime `console.log/error/warn` calls were replaced with `logger.debug/error/warn` in client source. Remaining direct console calls are centralized in `lib/logger.ts`. |
+| Dashboard logging | Runtime `console.log/error/warn` calls were replaced with `logger.debug/error/warn` in dashboard source. Remaining direct console calls are centralized in `lib/logger.ts`. |
+| Redaction | Client and dashboard loggers now redact keys matching token/cookie/authorization/password/secret/email/phone/address/payment/VNPay/transaction patterns and convert `Error` objects to name/message metadata. |
+
+Post-change grep:
+
+| Check | Result |
+| --- | --- |
+| `dangerouslySetInnerHTML` | Remaining sites are JSON-LD with safe serialization, sanitized marquee CMS HTML, and internal dashboard chart CSS. |
+| `console.log/error/warn` | Remaining matches are only the centralized logger wrappers. |
+
+Testing notes:
+
+| Item | Result |
+| --- | --- |
+| Frontend sanitizer unit test | Not added because neither frontend app has an existing test runner/script. Verified via build and grep instead. |
+
 ## Build and test results
 
 | Command | Result | Notes |
@@ -803,7 +841,14 @@ Deferred:
 | `npm run typecheck` in `apps/frontend/ecommerce-dashboard` after Phase 5A | PASS | `tsc --noEmit` completed successfully. |
 | `npm run lint` in `apps/frontend/ecommerce-dashboard` after Phase 5A | FAIL | After excluding generated artifacts, ESLint reports 148 errors and 63 warnings across existing source files. |
 | `npm run build` in `apps/frontend/ecommerce-dashboard` after Phase 5A | PASS | Next build succeeds; existing config still skips linting. Type validation ran and passed. |
+| `npm run build` in `apps/frontend/ecommerce-client` after Phase 5B | PASS | Next build succeeds after sanitizer/logger changes; existing config still skips type validation and linting. |
+| `npm run build` in `apps/frontend/ecommerce-dashboard` after Phase 5B | PASS | Next build succeeds after logger changes; existing config still skips linting and type validation passes during build. |
+| `npm run typecheck` in `apps/frontend/ecommerce-client` after Phase 5B | FAIL | Same known client debt remains: checkout `orderId`, analytics event payload typing, and SEO OpenGraph metadata typing. |
+| `npm run typecheck` in `apps/frontend/ecommerce-dashboard` after Phase 5B | PASS | `tsc --noEmit` completed successfully after logger changes. |
+| `npm run lint` in `apps/frontend/ecommerce-client` after Phase 5B | FAIL | Existing lint debt remains: 50 errors and 40 warnings. |
+| `npm run lint` in `apps/frontend/ecommerce-dashboard` after Phase 5B | FAIL | Existing lint debt remains, reduced to 144 errors and 63 warnings after logger `any` cleanup. |
+| Frontend grep after Phase 5B | PASS | Direct `console.log/error/warn` remains only in centralized logger wrappers; raw HTML sites are classified as safe JSON-LD, sanitized CMS marquee HTML, or internal chart CSS. |
 
 ## Next recommended prompt
 
-Continue Phase 5B: fix frontend quality-gate debt without changing UI behavior, starting with client typecheck failures in checkout payment, analytics event payload types, and SEO metadata, then reduce `no-explicit-any`/hook-rule lint errors so Next.js lint/type ignores can be removed.
+Continue Phase 5C: fix frontend quality-gate debt without changing UI behavior, starting with client typecheck failures in checkout payment, analytics event payload types, and SEO metadata, then reduce `no-explicit-any`/hook-rule lint errors so Next.js lint/type ignores can be removed.

@@ -1,6 +1,7 @@
 // components/marquee/marquee-edit-form.tsx
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,7 +55,7 @@ export function MarqueeEditForm({ marquee, isDetail = false }: MarqueeEditFormPr
         try {
             updateMarquee(values);
         } catch (error) {
-            console.error('Error submitting marquee:', error);
+            logger.error('Error submitting marquee:', error);
         } finally {
             setIsSubmitting(false);
         }

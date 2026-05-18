@@ -1,4 +1,6 @@
 "use client"
+
+import { logger } from '@/lib/logger'
 import { format, isValid } from "date-fns"
 import { CalendarIcon, X } from "lucide-react"
 import * as React from "react"
@@ -87,7 +89,7 @@ export function DatePicker<
                 setInputValue(value && isValid(value) ? format(value, dateFormat) : "")
             }
         } catch (error) {
-            console.error("Invalid date format:", error)
+            logger.error("Invalid date format:", error)
             // Reset to previous valid value or clear if invalid
             const value = form.getValues(name)
             setInputValue(value && isValid(value) ? format(value, dateFormat) : "")

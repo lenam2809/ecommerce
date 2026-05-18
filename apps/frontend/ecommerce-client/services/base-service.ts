@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 // 2. Tạo BaseService trong thư mục services/base.service.ts
 import api from '@/lib/api';
 import { Result } from '@/types';
@@ -51,7 +52,7 @@ export class BaseService {
     async getById<T>(id: string): Promise<Result<T>> {
         try {
             const response: AxiosResponse<Result<T>> = await api.get(`${this.endpoint}/${id}`);
-            console.log("res:", response);
+            logger.debug("res:", response);
             return response.data;
         } catch (error) {
             handleApiError({

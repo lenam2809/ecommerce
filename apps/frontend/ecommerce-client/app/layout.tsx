@@ -8,6 +8,7 @@ import { GlobalLoading } from "@/components/ui/global-loading"
 import { GuestIdInitializer } from "@/components/guest-id-initializer"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { generateOrganizationSchema } from "@/lib/seo-utils"
+import { toSafeJsonLd } from "@/lib/sanitize-html-content"
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
@@ -66,7 +67,7 @@ export default function RootLayout({
         {/* Organization structured data — helps Google identify the business entity */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+          dangerouslySetInnerHTML={{ __html: toSafeJsonLd(orgSchema) }}
         />
       </head>
       <body className={`${inter.variable} font-sans bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground`}>

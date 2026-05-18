@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -93,7 +94,7 @@ export function CreateNotificationDialog({ open, onOpenChange }: CreateNotificat
             form.reset()
             onOpenChange(false)
         } catch (error) {
-            console.error("Không thể gửi thông báo:", error)
+            logger.error("Không thể gửi thông báo:", error)
         } finally {
             setIsSubmitting(false)
         }

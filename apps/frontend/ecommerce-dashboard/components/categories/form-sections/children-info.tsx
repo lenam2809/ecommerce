@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { FormSection } from '@/components/ui/form-section';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,7 +12,7 @@ export function ChildrenInfoSection({ form }: ChildrenInfoSectionProps) {
     // Get the children from the form's watch values
     const children = form.watch('children') || [];
 
-    console.log('Children:', children);
+    logger.debug('Children:', children);
     if (!children || children.length === 0) {
         return null;
     }

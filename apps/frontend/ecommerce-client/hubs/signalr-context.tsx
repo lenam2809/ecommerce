@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { useAuth } from '@/hooks/use-auth'
@@ -90,26 +91,26 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         const startConnection = async () => {
             try {
                 await newConnection.start()
-                console.log('SignalR ReviewHub Connected')
+                logger.debug('SignalR ReviewHub Connected')
                 setIsConnected(true)
             } catch (err) {
-                console.error('SignalR ReviewHub Connection Error: ', err)
+                logger.error('SignalR ReviewHub Connection Error: ', err)
                 setIsConnected(false)
             }
         }
 
         newConnection.onclose((error) => {
-            console.log('SignalR ReviewHub Connection Closed', error)
+            logger.debug('SignalR ReviewHub Connection Closed', error)
             setIsConnected(false)
         })
 
         newConnection.onreconnecting((error) => {
-            console.log('SignalR ReviewHub Reconnecting', error)
+            logger.debug('SignalR ReviewHub Reconnecting', error)
             setIsConnected(false)
         })
 
         newConnection.onreconnected((connectionId) => {
-            console.log('SignalR ReviewHub Reconnected', connectionId)
+            logger.debug('SignalR ReviewHub Reconnected', connectionId)
             setIsConnected(true)
         })
 
@@ -150,16 +151,16 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         const startNotifConnection = async () => {
             try {
                 await newNotifConnection.start()
-                console.log('SignalR NotificationHub Connected')
+                logger.debug('SignalR NotificationHub Connected')
                 setIsNotificationConnected(true)
             } catch (err) {
-                console.error('SignalR NotificationHub Connection Error: ', err)
+                logger.error('SignalR NotificationHub Connection Error: ', err)
                 setIsNotificationConnected(false)
             }
         }
 
         newNotifConnection.onclose((error) => {
-            console.log('SignalR NotificationHub Connection Closed', error)
+            logger.debug('SignalR NotificationHub Connection Closed', error)
             setIsNotificationConnected(false)
         })
 
@@ -177,9 +178,9 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         if (connection && isConnected) {
             try {
                 await connection.invoke('JoinProductGroup', productId)
-                console.log(`Joined product group: ${productId}`)
+                logger.debug(`Joined product group: ${productId}`)
             } catch (err) {
-                console.error('Error joining product group:', err)
+                logger.error('Error joining product group:', err)
             }
         }
     }
@@ -188,9 +189,9 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         if (connection && isConnected) {
             try {
                 await connection.invoke('LeaveProductGroup', productId)
-                console.log(`Left product group: ${productId}`)
+                logger.debug(`Left product group: ${productId}`)
             } catch (err) {
-                console.error('Error leaving product group:', err)
+                logger.error('Error leaving product group:', err)
             }
         }
     }
@@ -200,7 +201,7 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
             try {
                 await connection.invoke('SendTypingIndicator', productId, isTyping)
             } catch (err) {
-                console.error('Error sending typing indicator:', err)
+                logger.error('Error sending typing indicator:', err)
             }
         }
     }

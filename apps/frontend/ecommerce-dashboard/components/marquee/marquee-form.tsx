@@ -1,6 +1,7 @@
 // components/marquee/marquee-form.tsx
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +36,7 @@ export function MarqueeForm() {
         try {
             createMarquee(values);
         } catch (error) {
-            console.error('Error submitting marquee:', error);
+            logger.error('Error submitting marquee:', error);
         } finally {
             setIsSubmitting(false);
         }

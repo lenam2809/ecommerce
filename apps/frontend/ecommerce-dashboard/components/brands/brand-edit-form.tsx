@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +53,7 @@ export function EditBrandForm({ brand, isDetail = false }: BrandFormProps) {
                 categoryIds: brand.categoryIds || []
             };
 
-            console.log('Setting form values:', defaultValues);
+            logger.debug('Setting form values:', defaultValues);
             form.reset(defaultValues);
         }
     }, [brand, form]);
@@ -63,7 +64,7 @@ export function EditBrandForm({ brand, isDetail = false }: BrandFormProps) {
         try {
             updateBrand(values as UpdateBrandDto);
         } catch (error) {
-            console.error('Error submitting brand:', error);
+            logger.error('Error submitting brand:', error);
         } finally {
             setIsSubmitting(false);
         }

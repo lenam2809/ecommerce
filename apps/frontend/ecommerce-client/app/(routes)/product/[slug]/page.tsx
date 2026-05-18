@@ -16,6 +16,7 @@ import { useProductBySlug, useSimilarProducts } from "@/hooks/use-products"
 import { useCart } from "@/hooks/use-cart"
 import { generateProductSchema } from "@/lib/seo-utils"
 import { analytics } from "@/lib/analytics"
+import { toSafeJsonLd } from "@/lib/sanitize-html-content"
 
 import { ProductBreadcrumb } from "@/components/products/product-breadcrumb"
 import { ProductHeader } from "@/components/products/product-header"
@@ -107,7 +108,7 @@ export default function ProductDetailPage() {
                     <script
                         type="application/ld+json"
                         dangerouslySetInnerHTML={{
-                            __html: JSON.stringify(generateProductSchema({
+                            __html: toSafeJsonLd(generateProductSchema({
                                 name: product.name,
                                 description: product.description || "",
                                 price: product.salePrice || product.price,

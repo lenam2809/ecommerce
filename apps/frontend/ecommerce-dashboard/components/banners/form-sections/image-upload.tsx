@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { useState, useCallback, useEffect } from 'react';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormSection } from '@/components/ui/form-section';
@@ -19,8 +20,8 @@ export function ImageUploadSection({ form, isEditing = false, isDetail = false }
         if (isEditing || isDetail) {
             const image = form.getValues('imageUrl');
             const name = form.getValues('name');
-            console.log("image: ", image)
-            console.log("name: ", name)
+            logger.debug("image: ", image)
+            logger.debug("name: ", name)
             // Nếu image là URL (string), sử dụng trực tiếp
             if (typeof image === 'string') {
                 setImagePreview(image);

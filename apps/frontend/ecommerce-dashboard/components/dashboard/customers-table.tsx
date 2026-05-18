@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import * as React from "react"
 import {
   type ColumnDef,
@@ -253,7 +254,7 @@ export function CustomersTable() {
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
-                console.log('column: ', column)
+                logger.debug('column: ', column)
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}

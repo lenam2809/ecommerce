@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { useState, useCallback, useEffect } from 'react';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormSection } from '@/components/ui/form-section';
@@ -19,7 +20,7 @@ export function AvatarUploadSection({ form, isEditing = false, isDetail = false 
         if (isEditing || isDetail) {
             const avatar = form.getValues('avatar');
 
-            console.log("avatar: ", avatar)
+            logger.debug("avatar: ", avatar)
             // Nếu avatar là URL (string), sử dụng trực tiếp
             if (typeof avatar === 'string') {
                 setAvatarPreview(avatar);

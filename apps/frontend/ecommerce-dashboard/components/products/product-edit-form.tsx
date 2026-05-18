@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -87,7 +88,7 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
       updateProduct(values)
       // Điều hướng được xử lý trong onSuccess của hook
     } catch (error) {
-      console.error(`Lỗi khi cập nhật sản phẩm ${values.code}: `, error)
+      logger.error(`Lỗi khi cập nhật sản phẩm ${values.code}: `, error)
     } finally {
       setIsSubmitting(false)
     }

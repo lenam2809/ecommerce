@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,7 +50,7 @@ export function OrderForm() {
       createOrder(values);
       // Điều hướng được xử lý trong onSuccess của hook
     } catch (error) {
-      console.error("Error submitting order form:", error);
+      logger.error("Error submitting order form:", error);
       setIsSubmitting(false);
     }
   };
