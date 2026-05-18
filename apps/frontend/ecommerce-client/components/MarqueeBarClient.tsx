@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MarqueeMessage } from '@/types/marquee'
+import { sanitizeHtmlContent } from '@/lib/sanitize-html-content'
 
 interface Props {
     messages: MarqueeMessage[]
@@ -91,7 +92,7 @@ export default function MarqueeBarClient({ messages }: Props) {
                     textOverflow: 'ellipsis',
                 }}
                 onClick={() => current.linkUrl && router.push(current.linkUrl)}
-                dangerouslySetInnerHTML={{ __html: current.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtmlContent(current.content) }}
             />
         </div>
     )

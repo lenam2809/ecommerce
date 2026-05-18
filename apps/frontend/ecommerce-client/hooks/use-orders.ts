@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import orderService from "@/services/order-service";
 import { CreateOrderRequest, OrderFilters, UpdateOrderRequest, OrderStatus } from "@/types/order";
@@ -49,7 +50,7 @@ export function useCreateOrder() {
             queryClient.invalidateQueries({ queryKey: ["my-orders"] });
         },
         onError: (error) => {
-            console.error("Error creating order:", error);
+            logger.error("Error creating order:", error);
         },
     });
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useEffect, Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { analytics } from "@/lib/analytics"
@@ -20,7 +21,7 @@ function AnalyticsTracker() {
 
     // Log in development
     if (process.env.NODE_ENV === "development") {
-      console.log("[Analytics] Page view tracked:", url)
+      logger.debug("[Analytics] Page view tracked:", url)
     }
   }, [pathname, searchParams])
 

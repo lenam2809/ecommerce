@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +37,7 @@ export function BannerForm() {
         try {
             createBanner(values);
         } catch (error) {
-            console.error('Error submitting banner:', error);
+            logger.error('Error submitting banner:', error);
         } finally {
             setIsSubmitting(false);
         }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,7 +45,7 @@ export function UserEditForm({ user, isDetail = false }: UserEditFormProps) {
     // Load dữ liệu người dùng hiện tại vào form
     useEffect(() => {
         if (user) {
-            console.log('Initial user data:', user);
+            logger.debug('Initial user data:', user);
 
             // Chuyển đổi dữ liệu từ API vào form values
             const defaultValues: FormUpdateUserSchema = {
@@ -59,7 +60,7 @@ export function UserEditForm({ user, isDetail = false }: UserEditFormProps) {
                 avatar: user.avatar as string, // Assuming avatarUrl is a string
             };
 
-            console.log('Setting form values:', defaultValues);
+            logger.debug('Setting form values:', defaultValues);
             form.reset(defaultValues);
         }
     }, [user, form]);
@@ -71,7 +72,7 @@ export function UserEditForm({ user, isDetail = false }: UserEditFormProps) {
             updateUser(values);
             // Navigation xử lý trong onSuccess của hook
         } catch (error) {
-            console.error('Error updating user:', error);
+            logger.error('Error updating user:', error);
         }
         finally {
             setIsSubmitting(false);

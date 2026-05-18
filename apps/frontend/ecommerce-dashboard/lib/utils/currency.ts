@@ -65,8 +65,3 @@ export const formatCompactNumber = (number: number) => {
         compactDisplay: "short",
     }).format(number)
 }
-
-// Ví dụ sử dụng:
-// console.log(formatDateDDMMYYYY(new Date())); // 23/04/2023 (tùy ngày hiện tại)
-// console.log(formatDateDDMMYYYY('2023-04-23')); // 23/04/2023
-// console.log(formatDateDDMMYYYY(1682208000000)); // 23/04/2023 (tùy timestamp)

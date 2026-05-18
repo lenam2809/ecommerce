@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import authService from '@/services/auth-service';
 import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState, HttpTransportType } from '@microsoft/signalr';
 
@@ -33,7 +34,7 @@ class SignalRConnectionManager {
 
         // Kiểm tra xem đã kết nối chưa
         if (this.connection && this.connection.state === HubConnectionState.Connected) {
-            console.log('SignalR connection already established');
+            logger.debug('SignalR connection already established');
             return Promise.resolve();
         }
 
@@ -45,7 +46,7 @@ class SignalRConnectionManager {
         try {
             await this.connectionPromise;
         } catch (error) {
-            console.error('Error in startConnection:', error);
+            logger.error('Error in startConnection:', error);
         } finally {
             this.isConnecting = false;
             this.connectionPromise = null;
@@ -85,7 +86,7 @@ class SignalRConnectionManager {
             const baseUrl = '/api';
             const fullHubUrl = this.buildUrl(baseUrl, hubUrl);
 
-            console.log(`Connecting to SignalR hub at: ${fullHubUrl}`);
+            logger.debug(`Connecting to SignalR hub at: ${fullHubUrl}`);
 
             // Xây dựng kết nối SignalR
             const connectionBuilder = new HubConnectionBuilder()
@@ -132,19 +133,19 @@ class SignalRConnectionManager {
 
             // Thiết lập các sự kiện xử lý vòng đời kết nối
             this.connection.onreconnecting((error) => {
-                console.warn('SignalR connection lost, attempting to reconnect...', error);
+                logger.warn('SignalR connection lost, attempting to reconnect...', error);
                 this.reconnectAttempts++;
                 this.notifyStateChange(HubConnectionState.Reconnecting);
             });
 
             this.connection.onreconnected((connectionId) => {
-                console.log('SignalR connection reestablished', connectionId);
+                logger.debug('SignalR connection reestablished', connectionId);
                 this.reconnectAttempts = 0;
                 this.notifyStateChange(HubConnectionState.Connected);
             });
 
             this.connection.onclose((error) => {
-                console.error('SignalR connection closed', error);
+                logger.error('SignalR connection closed', error);
                 this.notifyStateChange(HubConnectionState.Disconnected);
 
                 if (this.reconnectAttempts < this.maxReconnectAttempts) {
@@ -154,7 +155,7 @@ class SignalRConnectionManager {
 
             // Bộ thu thông báo cho tất cả các loại thông báo
             this.connection.on('ReceiveNotification', (notificationType, data) => {
-                console.log(`Received notification: ${notificationType}`, data);
+                logger.debug(`Received notification: ${notificationType}`, data);
 
                 // Gọi tất cả các hàm xử lý đã đăng ký cho loại thông báo này
                 const handlers = this.listeners.get(notificationType) || [];
@@ -162,24 +163,24 @@ class SignalRConnectionManager {
                     try {
                         handler(data);
                     } catch (err) {
-                        console.error(`Error in notification handler for ${notificationType}:`, err);
+                        logger.error(`Error in notification handler for ${notificationType}:`, err);
                     }
                 });
             });
 
             // Bắt đầu kết nối
             await this.connection.start();
-            console.log('SignalR connection established successfully');
+            logger.debug('SignalR connection established successfully');
             this.reconnectAttempts = 0;
             this.notifyStateChange(HubConnectionState.Connected);
 
         } catch (error) {
-            console.error('Error establishing SignalR connection:', error);
+            logger.error('Error establishing SignalR connection:', error);
             this.notifyStateChange(HubConnectionState.Disconnected);
 
             // Nếu đây là lần đầu kết nối thất bại, thử lại sau một khoảng thời gian
             if (this.reconnectAttempts === 0) {
-                console.log('First connection attempt failed, will retry after a delay');
+                logger.debug('First connection attempt failed, will retry after a delay');
                 setTimeout(() => {
                     if (this.lastHubUrl) {
                         this.startConnection(this.lastHubUrl);
@@ -215,13 +216,13 @@ class SignalRConnectionManager {
             this.reconnectInterval * Math.pow(2, this.reconnectAttempts) + jitter
         );
 
-        console.log(`Attempting to reconnect in ${delay / 1000} seconds...`);
+        logger.debug(`Attempting to reconnect in ${delay / 1000} seconds...`);
 
         setTimeout(async () => {
             try {
                 await this.startConnection(this.lastHubUrl!);
             } catch (error) {
-                console.error('Reconnect failed:', error);
+                logger.error('Reconnect failed:', error);
             }
         }, delay);
     }
@@ -230,10 +231,10 @@ class SignalRConnectionManager {
         if (this.connection && this.connection.state !== HubConnectionState.Disconnected) {
             try {
                 await this.connection.stop();
-                console.log('SignalR connection stopped');
+                logger.debug('SignalR connection stopped');
                 this.notifyStateChange(HubConnectionState.Disconnected);
             } catch (error) {
-                console.error('Error stopping SignalR connection:', error);
+                logger.error('Error stopping SignalR connection:', error);
             }
         }
     }
@@ -275,7 +276,7 @@ class SignalRConnectionManager {
             try {
                 callback(state);
             } catch (err) {
-                console.error('Error in connection state change callback:', err);
+                logger.error('Error in connection state change callback:', err);
             }
         });
     }

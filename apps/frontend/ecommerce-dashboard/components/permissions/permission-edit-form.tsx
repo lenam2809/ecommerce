@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +34,7 @@ export function EditPermissionForm({ permission, isDetail = false }: EditPermiss
     // Load dữ liệu quyền hiện tại vào form
     useEffect(() => {
         if (permission) {
-            console.log('Initial permission data:', permission);
+            logger.debug('Initial permission data:', permission);
 
             // Chuyển đổi dữ liệu từ API vào form values
             const defaultValues = {
@@ -43,7 +44,7 @@ export function EditPermissionForm({ permission, isDetail = false }: EditPermiss
                 category: permission.category || '', // Nếu có trường category
             };
 
-            console.log('Setting form values:', defaultValues);
+            logger.debug('Setting form values:', defaultValues);
             form.reset(defaultValues);
         }
     }, [permission, form]);

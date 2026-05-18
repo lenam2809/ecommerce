@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useEffect } from "react"
 import Link from "next/link"
 import { AlertTriangle, Home, RefreshCcw } from "lucide-react"
@@ -13,7 +14,7 @@ export default function AuthError({
     reset: () => void
 }) {
     useEffect(() => {
-        console.error("[Auth Error]", error)
+        logger.error("[Auth Error]", error)
     }, [error])
 
     return (

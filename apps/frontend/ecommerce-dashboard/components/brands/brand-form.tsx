@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +37,7 @@ export function BrandForm() {
         try {
             createBrand(values);
         } catch (error) {
-            console.error('Error submitting brand:', error);
+            logger.error('Error submitting brand:', error);
         } finally {
             setIsSubmitting(false);
         }

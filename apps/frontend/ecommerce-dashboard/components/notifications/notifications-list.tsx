@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useState } from "react"
 import { useGetSystemNotifications, useGetUserNotifications, useDeleteNotification } from "@/hooks/use-notifications"
 import { Button } from "@/components/ui/button"
@@ -78,7 +79,7 @@ export function NotificationsList({ type }: NotificationsListProps) {
         try {
             await deleteNotification.mutateAsync(id)
         } catch (error) {
-            console.error("Không thể xóa thông báo:", error)
+            logger.error("Không thể xóa thông báo:", error)
         }
     }
 

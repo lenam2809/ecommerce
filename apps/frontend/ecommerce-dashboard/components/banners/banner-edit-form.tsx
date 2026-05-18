@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,7 +41,7 @@ export function EditBannerForm({ banner, isDetail = false }: BannerFormProps) {
     // Load dữ liệu banner hiện tại vào form
     useEffect(() => {
         if (banner) {
-            console.log('Initial banner data:', banner);
+            logger.debug('Initial banner data:', banner);
 
             // Chuyển đổi dữ liệu từ API vào form values
             const defaultValues = {
@@ -53,7 +54,7 @@ export function EditBannerForm({ banner, isDetail = false }: BannerFormProps) {
                 isActive: banner.isActive,
             };
 
-            console.log('Setting form values:', defaultValues);
+            logger.debug('Setting form values:', defaultValues);
             form.reset(defaultValues);
         }
     }, [banner, form]);
@@ -64,7 +65,7 @@ export function EditBannerForm({ banner, isDetail = false }: BannerFormProps) {
         try {
             updateBanner(values as UpdateBannerDto);
         } catch (error) {
-            console.error('Error submitting banner:', error);
+            logger.error('Error submitting banner:', error);
         } finally {
             setIsSubmitting(false);
         }

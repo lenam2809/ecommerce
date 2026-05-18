@@ -1,6 +1,7 @@
 // components/promo-code/promo-code-form.tsx
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +42,7 @@ export function PromoCodeForm() {
         try {
             createPromoCode(values);
         } catch (error) {
-            console.error('Error submitting promo code:', error);
+            logger.error('Error submitting promo code:', error);
         } finally {
             setIsSubmitting(false);
         }

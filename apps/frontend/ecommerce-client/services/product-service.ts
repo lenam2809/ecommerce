@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import { Product, ProductFilters, ProductsResponse, ReviewsResponse } from '@/types/product';
 import { BaseService } from './base-service';
 import { Result } from "@/types";
@@ -8,7 +9,7 @@ class ProductService extends BaseService {
   }
 
   async getProducts(filters: ProductFilters = {}): Promise<Result<ProductsResponse>> {
-    console.log("Fetching products with filters:", filters);
+    logger.debug("Fetching products with filters:", filters);
     return await this.get<ProductsResponse>('/products/paged', filters);
   }
 

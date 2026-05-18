@@ -1,5 +1,6 @@
 "use client"
 
+import { logger } from '@/lib/logger'
 import { useState } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -108,7 +109,7 @@ export function AboutForm({ initialData, onCancel, isEditing = false }: AboutFor
             }
             onCancel()
         } catch (error) {
-            console.error("Error submitting form:", error)
+            logger.error("Error submitting form:", error)
         } finally {
             setIsSubmitting(false)
         }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,7 +47,7 @@ export function EditCategoryForm({ category, isDetail = false }: CategoryFormPro
     // Load dữ liệu sản phẩm hiện tại vào form
     useEffect(() => {
         if (category) {
-            console.log('Initial product data:', category);
+            logger.debug('Initial product data:', category);
 
             // Chuyển đổi dữ liệu từ API vào form values
             const defaultValues = {
@@ -62,7 +63,7 @@ export function EditCategoryForm({ category, isDetail = false }: CategoryFormPro
                 brandIds: category.brandIds || [],
             };
 
-            console.log('Setting form values:', defaultValues);
+            logger.debug('Setting form values:', defaultValues);
             form.reset(defaultValues);
         }
     }, [category, form]);
@@ -70,11 +71,11 @@ export function EditCategoryForm({ category, isDetail = false }: CategoryFormPro
     const handleSubmit = async (values: UpdateCategoryDto) => {
 
         setIsSubmitting(true);
-        console.log('Setting form values:', values);
+        logger.debug('Setting form values:', values);
         try {
             updateCategory(values as UpdateCategoryDto);
         } catch (error) {
-            console.error('Error submitting category:', error);
+            logger.error('Error submitting category:', error);
         } finally {
             setIsSubmitting(false);
         }

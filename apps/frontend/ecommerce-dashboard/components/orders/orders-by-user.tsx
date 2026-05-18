@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger'
 import React, { useEffect } from 'react';
 import {
     Dialog,
@@ -58,13 +59,13 @@ export const OrdersByUserDialog: React.FC<OrdersByUserDialogProps> = ({
     const ordersData = ordersResult?.data || [];
 
     const handleOpenChange = (open: boolean) => {
-        console.log("Orders dialog open state:", open);
+        logger.debug("Orders dialog open state:", open);
         if (!open) {
             // Đặt lại pointer-events và thêm timeout để đảm bảo
             document.body.style.pointerEvents = "auto";
             setTimeout(() => {
                 document.body.style.pointerEvents = "auto";
-                console.log("Forced pointer-events reset:", document.body.style.pointerEvents);
+                logger.debug("Forced pointer-events reset:", document.body.style.pointerEvents);
             }, 100);
             if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur();
@@ -77,12 +78,12 @@ export const OrdersByUserDialog: React.FC<OrdersByUserDialogProps> = ({
         if (open) {
             // Đảm bảo pointer-events là auto khi dialog mở
             document.body.style.pointerEvents = "auto";
-            console.log("Orders dialog opened, pointer-events:", document.body.style.pointerEvents);
+            logger.debug("Orders dialog opened, pointer-events:", document.body.style.pointerEvents);
         }
         return () => {
             // Cleanup khi unmount
             document.body.style.pointerEvents = "auto";
-            console.log("Cleaning up OrdersByUserDialog, pointer-events:", document.body.style.pointerEvents);
+            logger.debug("Cleaning up OrdersByUserDialog, pointer-events:", document.body.style.pointerEvents);
         };
     }, [open]);
 
