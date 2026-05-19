@@ -4,7 +4,7 @@ import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CheckCircle, ArrowLeft } from "lucide-react"
+import { CheckCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -47,7 +47,7 @@ export function ForgotPasswordForm() {
                 title: "Email đã được gửi",
                 description: "Vui lòng kiểm tra hộp thư đến của bạn.",
             })
-        } catch (error) {
+        } catch {
             toast({
                 title: "Lỗi",
                 description: "Không thể gửi email. Vui lòng thử lại sau.",

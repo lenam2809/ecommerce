@@ -11,7 +11,7 @@ import { useDeletePermission } from "@/hooks/use-permissions"
 
 const PermissionActions = ({ permission }: { permission: Permission }) => {
     const router = useRouter()
-    const { mutate: deletePermission, isPending } = useDeletePermission();
+    const { mutate: deletePermission } = useDeletePermission();
 
     return (
         <DropdownMenu>

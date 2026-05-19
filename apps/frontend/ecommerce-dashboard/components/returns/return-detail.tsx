@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import {
     IconCheck, IconX, IconArrowRight,
-    IconPhoto, IconVideo,
+    IconVideo,
 } from "@tabler/icons-react"
 
 interface ReturnDetailProps {

@@ -63,7 +63,7 @@ export const useCreateBrand = () => {
             queryClient.invalidateQueries({ queryKey: brandKeys.all });
             router.push('/brands');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createBrand' },
@@ -80,7 +80,7 @@ export const useUpdateBrand = () => {
 
     return useMutation({
         mutationFn: (brandData: UpdateBrandDto) => brandService.updateBrand(brandData.id, brandData),
-        onSuccess: (data, variables) => {
+        onSuccess: (_, variables) => {
             toast({
                 title: "Cập nhật thương hiệu",
                 description: 'Cập nhật thương hiệu thành công!',
@@ -90,7 +90,7 @@ export const useUpdateBrand = () => {
             queryClient.invalidateQueries({ queryKey: brandKeys.all });
             router.push('/brands');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateBrand' },
@@ -106,7 +106,7 @@ export const useDeleteBrand = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => brandService.deleteBrand(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa thương hiệu",
                 description: 'Xóa thương hiệu thành công!',
@@ -117,7 +117,7 @@ export const useDeleteBrand = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteBrand' },

@@ -73,7 +73,7 @@ function getConfigBreadcrumbs(pathname: string): BreadcrumbItem[] {
         const remainingSegments = pathname.substring(currentPath.length).split("/").filter(Boolean)
         let buildPath = currentPath
 
-        remainingSegments.forEach((segment, index) => {
+        remainingSegments.forEach((segment) => {
             buildPath += `/${segment}`
             const isLast = buildPath === pathname
 

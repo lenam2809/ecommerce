@@ -92,7 +92,7 @@ export const useDeleteNotification = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: notificationKeys.all });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteNotification' },
@@ -131,7 +131,7 @@ export const useSendPromotionNotification = () => {
             });
             queryClient.invalidateQueries({ queryKey: notificationKeys.system });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'sendPromotionNotification' },
@@ -155,7 +155,7 @@ export const useSendMaintenanceNotification = () => {
             });
             queryClient.invalidateQueries({ queryKey: notificationKeys.system });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'sendMaintenanceNotification' },

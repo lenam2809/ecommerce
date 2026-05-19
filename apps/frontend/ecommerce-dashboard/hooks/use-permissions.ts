@@ -79,7 +79,7 @@ export const useCreatePermission = () => {
             queryClient.invalidateQueries({ queryKey: permissionKeys.lists() });
             router.push('/permissions');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createPermission' },
@@ -97,7 +97,7 @@ export const useUpdatePermission = () => {
     return useMutation({
         mutationFn: (permissionData: UpdatePermissionDto) =>
             permissionService.updatePermission(permissionData.id, permissionData),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Cập nhật quyền",
                 description: 'Cập nhật quyền thành công!',
@@ -106,7 +106,7 @@ export const useUpdatePermission = () => {
             queryClient.invalidateQueries({ queryKey: permissionKeys.all });
             router.push('/permissions');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updatePermission' },
@@ -122,7 +122,7 @@ export const useDeletePermission = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => permissionService.deletePermission(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa quyền",
                 description: 'Xóa quyền thành công!',
@@ -133,7 +133,7 @@ export const useDeletePermission = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deletePermission' },
@@ -158,7 +158,7 @@ export const useAssignPermissionsToUser = () => {
             // Invalidate queries
             queryClient.invalidateQueries({ queryKey: permissionKeys.userPermissions(variables.userId) });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'assignPermissionsToUser' },
@@ -183,7 +183,7 @@ export const useAssignPermissionsToRole = () => {
             // Invalidate queries
             queryClient.invalidateQueries({ queryKey: permissionKeys.rolePermissions(variables.roleId) });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'assignPermissionsToRole' },

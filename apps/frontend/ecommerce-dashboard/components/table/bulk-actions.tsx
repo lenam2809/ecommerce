@@ -18,7 +18,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Trash2, Download, MoreHorizontal, Check, X, Archive, Tag } from "lucide-react"
+import { Trash2, Download, MoreHorizontal, X, Archive, Tag } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 

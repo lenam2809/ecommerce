@@ -48,7 +48,7 @@ export const useCreateBanner = () => {
             queryClient.invalidateQueries({ queryKey: bannerKeys.all });
             router.push('/configs/banners');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createBanner' },
@@ -65,7 +65,7 @@ export const useUpdateBanner = () => {
 
     return useMutation({
         mutationFn: (bannerData: UpdateBannerDto) => bannerService.updateBanner(bannerData.id, bannerData),
-        onSuccess: (data, variables) => {
+        onSuccess: (_, variables) => {
             toast({
                 title: "Cập nhật banner",
                 description: 'Cập nhật banner thành công!',
@@ -75,7 +75,7 @@ export const useUpdateBanner = () => {
             queryClient.invalidateQueries({ queryKey: bannerKeys.all });
             router.push('/configs/banners');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateBanner' },
@@ -91,7 +91,7 @@ export const useDeleteBanner = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => bannerService.deleteBanner(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa banner",
                 description: 'Xóa banner thành công!',
@@ -102,7 +102,7 @@ export const useDeleteBanner = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteBanner' },

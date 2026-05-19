@@ -55,7 +55,7 @@ export const useUpdateOrderStatus = () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
     },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         handleApiError({
           error,
           context: { operation: 'updateOrderStatus' },
@@ -80,7 +80,7 @@ export const useCreateOrder = () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
       router.push('/orders');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleApiError({
         error,
         context: { operation: 'createOrder' },
@@ -108,7 +108,7 @@ export const useUpdateOrder = () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
       router.push('/orders');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleApiError({
         error,
         context: { operation: 'updateOrder' },
@@ -134,7 +134,7 @@ export const useDeleteOrder = (onSuccessCallback?: () => void) => {
         onSuccessCallback();
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleApiError({
         error,
         context: { operation: 'deleteOrder' },

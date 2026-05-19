@@ -83,7 +83,7 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       router.push('/products');
     },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         handleApiError({
           error,
           context: { operation: 'createProduct' },
@@ -100,7 +100,7 @@ export const useUpdateProduct = () => {
 
   return useMutation({
     mutationFn: (productData: UpdateProductDto) => productService.updateProduct(productData),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       toast({
         title: "Cập nhật sản phẩm",
         description: 'Cập nhật sản phẩm thành công!',
@@ -110,7 +110,7 @@ export const useUpdateProduct = () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       router.push('/products');
     },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         handleApiError({
           error,
           context: { operation: 'updateProduct' },
@@ -126,7 +126,7 @@ export const useDeleteProduct = (onSuccessCallback?: () => void) => {
 
   return useMutation({
     mutationFn: (id: string) => productService.deleteProduct(id),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       toast({
         title: "Xóa sản phẩm",
         description: 'Xóa sản phẩm thành công!',
@@ -137,7 +137,7 @@ export const useDeleteProduct = (onSuccessCallback?: () => void) => {
         onSuccessCallback();
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       handleApiError({
         error,
         context: { operation: 'deleteProduct' },

@@ -61,6 +61,7 @@ export function DateTimePicker<
     const [open, setOpen] = React.useState(false)
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(form.getValues(name))
     const [activeTab, setActiveTab] = React.useState<string>("date")
+    const fieldValue = form.watch(name)
 
     // Function to disable dates based on props
     const isDateDisabled = React.useCallback(
@@ -86,7 +87,7 @@ export function DateTimePicker<
         } else {
             setSelectedDate(undefined)
         }
-    }, [form.getValues(name), dateFormat, timeFormat, form, name])
+    }, [fieldValue, form, name])
 
     // Handle date selection
     const handleDateSelect = (date: Date | undefined) => {

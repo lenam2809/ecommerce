@@ -24,7 +24,7 @@ interface ConfigGeneratorOptions<T extends DataItem> {
         min?: number
         max?: number
         step?: number
-        render?: (value: any) => React.ReactNode,
+        render?: (value: unknown) => React.ReactNode,
         enableHiding?: boolean; // Thêm enableHiding để kiểm soát ẩn/hiện cột
     }[]
     defaultSort?: {

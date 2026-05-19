@@ -150,3 +150,83 @@ Pham vi: chi sua `apps/frontend/ecommerce-client`; khong sua dashboard va khong 
 | `cd apps/frontend/ecommerce-client && npm run lint` | Failed | Baseline truoc sua: `90 problems (50 errors, 40 warnings)` |
 | `cd apps/frontend/ecommerce-client && npm run lint` | Failed | Sau sua: `49 problems (47 errors, 2 warnings)` |
 | `cd apps/frontend/ecommerce-client && npm run typecheck` | Failed | Van fail o baseline type errors: checkout payment `orderId` co the undefined, `lib/analytics.ts` EventData khong chap nhan `items` array, `lib/seo-utils.ts` OpenGraph `og:product` khong hop type Next Metadata |
+
+## Prompt 3 - Fix ecommerce-dashboard lint/type
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-19
+
+Pham vi: chi sua `apps/frontend/ecommerce-dashboard`; khong refactor kien truc, khong thay doi business logic va khong doi UI ngoai cac sua lint/type bat buoc.
+
+### File da sua
+
+- `apps/frontend/ecommerce-dashboard/app/(dashboard)/account-locks/[id]/page.tsx`
+- `apps/frontend/ecommerce-dashboard/app/(dashboard)/returns/[returnId]/page.tsx`
+- `apps/frontend/ecommerce-dashboard/components/auth/forgot-password-form.tsx`
+- `apps/frontend/ecommerce-dashboard/components/date-picker.tsx`
+- `apps/frontend/ecommerce-dashboard/components/date-range-picker.tsx`
+- `apps/frontend/ecommerce-dashboard/components/date-time-picker.tsx`
+- `apps/frontend/ecommerce-dashboard/components/inventory/inventory-table.tsx`
+- `apps/frontend/ecommerce-dashboard/components/orders/form-sections/order-items.tsx`
+- `apps/frontend/ecommerce-dashboard/components/returns/return-detail.tsx`
+- `apps/frontend/ecommerce-dashboard/components/table/bulk-actions.tsx`
+- `apps/frontend/ecommerce-dashboard/config/account-lock-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/banner-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/brand-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/category-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/config-generator.tsx`
+- `apps/frontend/ecommerce-dashboard/config/permission-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/promo-code-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/user-activity-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/config/user-list-config.tsx`
+- `apps/frontend/ecommerce-dashboard/hooks/use-about.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-account-lock.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-account.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-banners.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-brands.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-breadcrumbs.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-categories.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-contact.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-marquees.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-notifications.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-orders.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-permissions.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-product-import.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-products.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-promo-codes.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-report.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-reviews.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-roles.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-signalr.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-toast.ts`
+- `apps/frontend/ecommerce-dashboard/hooks/use-users.ts`
+- `apps/frontend/ecommerce-dashboard/services/base-service.ts`
+- `apps/frontend/ecommerce-dashboard/services/contact-service.ts`
+- `apps/frontend/ecommerce-dashboard/services/notification-service.ts`
+- `apps/frontend/ecommerce-dashboard/services/report-service.ts`
+
+### Loi da het
+
+- Da xoa nhieu unused imports/variables ro rang trong components, config, hooks va services.
+- Da sua ten hook `useccountLockById` thanh `useAccountLockById` de het loi `react-hooks/rules-of-hooks`.
+- Da bo cac `isPending` khong dung trong nhieu config action.
+- Da sua mot so dependency warning an toan trong returns detail page, date picker components, order items va SignalR hook.
+- Da chuyen cac `onError: (error: any)` ro rang sang `unknown` trong nhieu hooks ma khong doi contract xu ly loi.
+- `npm run typecheck` hien pass.
+- Lint giam tu baseline `207 problems (144 errors, 63 warnings)` xuong `85 problems (82 errors, 3 warnings)`.
+
+### Loi con lai
+
+- `npm run lint` van fail vi 82 loi `@typescript-eslint/no-explicit-any`, chu yeu trong `hooks/*`, `services/*`, `lib/api-error.ts`, `lib/export-utils.ts`, `notifications/signalr-connection-manager.ts`, va cac file `types/*`.
+- Con 3 warning `@next/next/no-img-element` trong `components/products/product-reviews.tsx`, `components/returns/return-detail.tsx`, va `config/banner-list-config.tsx`.
+- Cac loi `any` con lai can mot dot typing rieng theo API/domain model; khong nen thay hang loat bang `unknown` neu chua soat contract du lieu.
+
+### Command da chay
+
+| Command | Ket qua | Ghi chu |
+| --- | --- | --- |
+| `cd apps/frontend/ecommerce-dashboard && npm run lint` | Failed | Baseline truoc sua: `207 problems (144 errors, 63 warnings)` |
+| `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | Baseline typecheck pass |
+| `cd apps/frontend/ecommerce-dashboard && npm run lint` | Failed | Sau sua: `85 problems (82 errors, 3 warnings)` |
+| `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | Sau sua: `tsc --noEmit` hoan thanh thanh cong |

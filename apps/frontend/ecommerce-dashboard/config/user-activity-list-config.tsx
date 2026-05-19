@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowUpDown, Eye, MoreHorizontal, MapPin, Monitor, Globe } from "lucide-react"
+import { ArrowUpDown, Eye, MoreHorizontal, MapPin, Monitor } from "lucide-react"
 import type { ListConfig } from "@/types/list-config"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"

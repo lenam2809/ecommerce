@@ -1,6 +1,5 @@
 import { BaseService } from './base-service';
 import {
-    NotificationDto,
     PaginatedNotifications,
     NotificationStatisticsDto,
     SendPromotionNotificationCommand,

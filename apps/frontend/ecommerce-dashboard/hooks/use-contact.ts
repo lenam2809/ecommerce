@@ -39,7 +39,7 @@ export const useCreateContact = () => {
     return useMutation({
         mutationFn: (contactData: Omit<ContactDto, 'id'>) =>
             contactService.createContact(contactData),
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast({
                 title: "Tạo mới Contact",
                 description: "Tạo mới Contact thành công!",
@@ -47,7 +47,7 @@ export const useCreateContact = () => {
             queryClient.invalidateQueries({ queryKey: contactKeys.all });
             router.push('/contact');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createContact' },
@@ -72,7 +72,7 @@ export const useUpdateContact = () => {
             queryClient.invalidateQueries({ queryKey: contactKeys.detail(variables.id) });
             queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateContact' },
@@ -98,7 +98,7 @@ export const useUpdateContactStatus = () => {
             queryClient.invalidateQueries({ queryKey: contactKeys.detail(variables.id) });
             queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateContactStatus' },
@@ -114,7 +114,7 @@ export const useDeleteContact = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => contactService.deleteContact(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa Contact",
                 description: "Xóa Contact thành công!",
@@ -122,7 +122,7 @@ export const useDeleteContact = (onSuccessCallback?: () => void) => {
             queryClient.invalidateQueries({ queryKey: contactKeys.lists() });
             if (onSuccessCallback) onSuccessCallback();
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteContact' },

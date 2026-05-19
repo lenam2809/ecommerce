@@ -4,9 +4,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { reportService } from '@/services/report-service';
 import {
-    RevenueByMonthData,
-    RevenueComparisonData,
-    RevenueByCategoryData,
     RevenueByMonthFilters,
     RevenueComparisonFilters,
     RevenueByCategoryFilters,

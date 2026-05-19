@@ -1,7 +1,6 @@
 "use client"
 
 import { InventoryItem, getInventoryStatusName, getInventoryStatusColor } from "@/types/inventory"
-import { Badge } from "@/components/ui/badge"
 import {
     Table,
     TableBody,

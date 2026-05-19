@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 
 const BannerActions = ({ banner }: { banner: Banner }) => {
     const router = useRouter()
-    const { mutate: deleteBanner, isPending } = useDeleteBanner();
+    const { mutate: deleteBanner } = useDeleteBanner();
 
     return (
         <DropdownMenu>

@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/utils/currency"
 
 const PromoCodeActions = ({ promoCode }: { promoCode: PromoCode }) => {
     const router = useRouter()
-    const { mutate: deletePromoCode, isPending } = useDeletePromoCode();
+    const { mutate: deletePromoCode } = useDeletePromoCode();
 
     return (
         <DropdownMenu>

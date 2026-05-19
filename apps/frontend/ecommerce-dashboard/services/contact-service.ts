@@ -1,6 +1,6 @@
 import { Result } from '@/types';
 import { BaseService } from './base-service';
-import { ContactDto, ContactInfoDto, SocialLinkDto, FaqItemDto } from '@/types/contact';
+import { ContactDto } from '@/types/contact';
 import api from '@/lib/axios';
 
 export class ContactService extends BaseService {

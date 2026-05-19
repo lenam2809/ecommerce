@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 
 const CategoryActions = ({ category }: { category: Category }) => {
     const router = useRouter()
-    const { mutate: deleteCategory, isPending } = useDeleteCategory();
+    const { mutate: deleteCategory } = useDeleteCategory();
 
     return (
         <DropdownMenu>

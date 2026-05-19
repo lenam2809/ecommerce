@@ -38,7 +38,7 @@ export const useCreateAboutSection = () => {
 
     return useMutation({
         mutationFn: (aboutData: AboutDto) => aboutService.createAboutSection(aboutData),
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast({
                 title: "Tạo mới About Section",
                 description: "Tạo mới About Section thành công!",
@@ -46,7 +46,7 @@ export const useCreateAboutSection = () => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.all });
             router.push('/about');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createAboutSection' },
@@ -71,7 +71,7 @@ export const useUpdateAboutSection = () => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.detail(variables.id) });
             queryClient.invalidateQueries({ queryKey: aboutKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateAboutSection' },
@@ -97,7 +97,7 @@ export const useUpdateAboutStatus = () => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.detail(variables.id) });
             queryClient.invalidateQueries({ queryKey: aboutKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateAboutStatus' },
@@ -113,7 +113,7 @@ export const useDeleteAboutSection = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => aboutService.deleteAboutSection(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa About Section",
                 description: "Xóa About Section thành công!",
@@ -121,7 +121,7 @@ export const useDeleteAboutSection = (onSuccessCallback?: () => void) => {
             queryClient.invalidateQueries({ queryKey: aboutKeys.lists() });
             if (onSuccessCallback) onSuccessCallback();
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteAboutSection' },

@@ -29,6 +29,7 @@ export function OrderItemsSection({ form, isDetail = false }: OrderItemsSectionP
   const [loadingProducts, setLoadingProducts] = useState<Record<string, boolean>>({})
 
   const productIds = watchedOrderItems?.map((item) => item?.productId || "") || []
+  const productIdsKey = productIds.join(",")
 
   useEffect(() => {
     const fetchProductData = async (productId: string) => {
@@ -51,12 +52,12 @@ export function OrderItemsSection({ form, isDetail = false }: OrderItemsSectionP
       }
     }
 
-    productIds.forEach((productId) => {
+    productIdsKey.split(",").forEach((productId) => {
       if (productId) {
         fetchProductData(productId)
       }
     })
-  }, [productIds.join(","), productDataMap])
+  }, [productIdsKey, productDataMap])
 
   const handleAddItem = () => {
     append({
