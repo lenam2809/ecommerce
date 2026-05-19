@@ -150,15 +150,17 @@ function ProductListingContent({
         }))
     }, [searchParams, categorySlug, brandSlug, category?.id, brand?.id])
 
+    const trimmedSearchTerm = debouncedSearchTerm.trim()
+
     // Chuẩn bị filters cho API call
     const apiFilters: ProductFiltersType = {
         ...filters,
-        searchTerm: debouncedSearchTerm,
+        searchTerm: trimmedSearchTerm || undefined,
         pageNumber: currentPage,
         pageSize: 12,
     }
 
-    const useElasticSearch = debouncedSearchTerm.trim().length > 0
+    const useElasticSearch = trimmedSearchTerm.length > 0
     const catalogQuery = useProducts(apiFilters, !useElasticSearch)
     const searchQuery = useSearchProducts(apiFilters, useElasticSearch)
     const activeQuery = useElasticSearch ? searchQuery : catalogQuery

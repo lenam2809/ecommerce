@@ -11,7 +11,7 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string SearchTerm { get; set; } = string.Empty;
+        public string? SearchTerm { get; set; }
         public string CategoryIds { get; set; } = string.Empty;
         public string BrandIds { get; set; } = string.Empty;
         public int? Rating { get; set; }

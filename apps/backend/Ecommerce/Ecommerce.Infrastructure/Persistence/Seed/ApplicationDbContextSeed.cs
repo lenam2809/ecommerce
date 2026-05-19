@@ -1,4 +1,4 @@
-using Ecommerce.Domain.Entities;
+﻿using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -189,12 +189,12 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(adminUser, "Admin@123456");
                 if (result.Succeeded)
                 {
-                _logger.LogInformation("Created seeded user for role {RoleName}", "Admin");
+                    _logger.LogInformation("Created seeded user for role {RoleName}", "Admin");
                     users.Add(adminUser);
                 }
                 else
                 {
-                _logger.LogError("Failed to create seeded admin user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                    _logger.LogError("Failed to create seeded admin user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
             else
@@ -228,7 +228,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(managerUser, "Manager@123456");
                 if (result.Succeeded)
                 {
-                _logger.LogInformation("Created seeded user for role {RoleName}", "Manager");
+                    _logger.LogInformation("Created seeded user for role {RoleName}", "Manager");
                     users.Add(managerUser);
                 }
             }
@@ -258,7 +258,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(staffUser, "Staff@123456");
                 if (result.Succeeded)
                 {
-                _logger.LogInformation("Created seeded user for role {RoleName}", "Staff");
+                    _logger.LogInformation("Created seeded user for role {RoleName}", "Staff");
                     users.Add(staffUser);
                 }
             }
@@ -288,7 +288,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 var result = await _userManager.CreateAsync(customerUser, "Customer@123");
                 if (result.Succeeded)
                 {
-                _logger.LogInformation("Created seeded user for role {RoleName}", "Customer");
+                    _logger.LogInformation("Created seeded user for role {RoleName}", "Customer");
                     users.Add(customerUser);
                 }
             }
@@ -380,7 +380,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     await _context.RolePermissions.AddRangeAsync(rolePermissions);
                     await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Seeded {RolePermissionCount} role permissions", rolePermissions.Count);
+                    _logger.LogInformation("Seeded {RolePermissionCount} role permissions", rolePermissions.Count);
                 }
                 else
                 {
@@ -411,7 +411,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(adminUser, adminRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(adminUser, adminRole.Name!);
-                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", adminRole.Name, "Admin");
+                    _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", adminRole.Name, "Admin");
                 }
             }
 
@@ -420,7 +420,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(managerUser, managerRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(managerUser, managerRole.Name!);
-                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", managerRole.Name, "Manager");
+                    _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", managerRole.Name, "Manager");
                 }
             }
 
@@ -429,7 +429,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(staffUser, staffRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(staffUser, staffRole.Name!);
-                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", staffRole.Name, "Staff");
+                    _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", staffRole.Name, "Staff");
                 }
             }
 
@@ -438,7 +438,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 if (!await _userManager.IsInRoleAsync(customerUser, customerRole.Name!))
                 {
                     await _userManager.AddToRoleAsync(customerUser, customerRole.Name!);
-                _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", customerRole.Name, "Customer");
+                    _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", customerRole.Name, "Customer");
                 }
             }
         }
