@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import Footer from "@/components/footer";
 import { Header } from "@/components/header/index";
-import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/components/provider/cart-provider";
 import { WishlistProvider } from "@/components/provider/wishlist-provider";
 

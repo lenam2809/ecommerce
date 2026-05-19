@@ -38,7 +38,7 @@ export function ShippingInformation({ form }: ShippingInformationProps) {
                 fetchDistricts(province.code)
             }
         }
-    }, [city, provinces.length]) // Depend on length to trigger when data arrives
+    }, [city, provinces, fetchDistricts]) // Depend on length to trigger when data arrives
 
     useEffect(() => {
         if (district && districts.length > 0) {
@@ -47,7 +47,7 @@ export function ShippingInformation({ form }: ShippingInformationProps) {
                 fetchWards(d.code)
             }
         }
-    }, [district, districts.length])
+    }, [district, districts, fetchWards])
 
     return (
         <div className="bg-card text-card-foreground rounded-lg border border-border/20 overflow-hidden">

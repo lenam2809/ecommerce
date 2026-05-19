@@ -45,7 +45,7 @@ export function useLikeReview() {
 
     return useMutation({
         mutationFn: (reviewId: string) => reviewService.likeReview(reviewId),
-        onSuccess: (result, reviewId) => {
+        onSuccess: (result) => {
             // Invalidate all review queries to update like counts
             queryClient.invalidateQueries({
                 queryKey: ["reviews"]
@@ -71,7 +71,7 @@ export function useReviewReplies(reviewId: string) {
     });
 }
 
-export function useCreateReviewReply(productId: string | undefined, content: string) {
+export function useCreateReviewReply() {
     const queryClient = useQueryClient();
 
     return useMutation({

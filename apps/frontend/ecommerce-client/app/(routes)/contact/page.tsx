@@ -24,7 +24,7 @@ export default function ContactPage() {
         message: "",
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [error] = useState<string | null>(null)
 
     const { data: contactInfo, isLoading: isLoading } = useContact();
 

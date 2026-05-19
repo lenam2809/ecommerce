@@ -23,10 +23,6 @@ export function OrderTotals({ subtotal, shippingCost, total }: OrderTotalsProps)
     const isFreeShipping = shippingCost === 0
     const qualifiesForFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
 
-    const shippingDescription = isFreeShipping 
-        ? "Miễn phí vận chuyển"
-        : `Phí vận chuyển: ${formatPrice(shippingCost)}`
-
     const shippingTooltip = qualifiesForFreeShipping && isFreeShipping
         ? "Bạn đã đủ điều kiện miễn phí vận chuyển! 🎉"
         : qualifiesForFreeShipping

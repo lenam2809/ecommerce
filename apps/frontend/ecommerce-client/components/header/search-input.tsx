@@ -1,10 +1,9 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Search, X, Clock, RotateCcw } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useSearchSuggestions } from "@/hooks/use-search-suggestions"
-import SearchSuggestions from "../search-suggestions"
 import { useRouter } from "next/navigation"
 
 const SEARCH_HISTORY_KEY = "ecommerce_search_history"
@@ -17,7 +16,7 @@ export function SearchInput() {
     const [debouncedQuery, setDebouncedQuery] = useState("")
     const [searchHistory, setSearchHistory] = useState<string[]>([])
     const [selectedIndex, setSelectedIndex] = useState(-1)
-    const [retryCount, setRetryCount] = useState(0)
+    const [, setRetryCount] = useState(0)
     const searchInputRef = useRef<HTMLInputElement>(null)
     const suggestionsRef = useRef<HTMLDivElement>(null)
 
@@ -66,6 +65,27 @@ export function SearchInput() {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
+    const submitSearch = useCallback((text: string) => {
+        const query = text.trim()
+        if (!query) return
+
+        const params = new URLSearchParams()
+        params.set("q", query)
+        router.push(`/products?${params.toString()}`)
+    }, [router])
+
+    const handleSelectSuggestion = useCallback((text: string) => {
+        // Add to history
+        const updated = [text, ...searchHistory.filter((h) => h !== text)].slice(0, MAX_HISTORY_ITEMS)
+        setSearchHistory(updated)
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated))
+
+        setSearchQuery(text)
+        setShowSuggestions(false)
+        setDebouncedQuery(text)
+        submitSearch(text)
+    }, [searchHistory, submitSearch])
+
     // Handle keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -92,28 +112,7 @@ export function SearchInput() {
 
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [showSuggestions, selectedIndex, searchHistory, apiSuggestions])
-
-    const submitSearch = (text: string) => {
-        const query = text.trim()
-        if (!query) return
-
-        const params = new URLSearchParams()
-        params.set("q", query)
-        router.push(`/products?${params.toString()}`)
-    }
-
-    const handleSelectSuggestion = (text: string) => {
-        // Add to history
-        const updated = [text, ...searchHistory.filter((h) => h !== text)].slice(0, MAX_HISTORY_ITEMS)
-        setSearchHistory(updated)
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated))
-
-        setSearchQuery(text)
-        setShowSuggestions(false)
-        setDebouncedQuery(text)
-        submitSearch(text)
-    }
+    }, [showSuggestions, selectedIndex, searchHistory, apiSuggestions, handleSelectSuggestion])
 
     const handleClearSearch = () => {
         setSearchQuery("")

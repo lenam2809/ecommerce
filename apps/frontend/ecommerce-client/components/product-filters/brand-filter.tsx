@@ -21,7 +21,6 @@ export function BrandFilter({
     selectedBrands,
     onBrandChange,
     isBrandDisabled,
-    showCategoryContext
 }: BrandFilterProps) {
     return (
         <div className="space-y-2">

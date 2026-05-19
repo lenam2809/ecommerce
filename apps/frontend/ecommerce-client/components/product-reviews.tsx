@@ -1,7 +1,7 @@
 "use client"
 
 import { logger } from '@/lib/logger'
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useProductReviews } from "@/hooks/use-products"
 import { useAuth } from "@/hooks/use-auth"
 import { useSignalR } from "@/hubs/signalr-context"
@@ -15,7 +15,7 @@ import { ReviewsFilter } from "./reviews/reviews-filter"
 import { ReviewsLoadingSkeleton } from "./reviews/reviews-loading-skeleton"
 import { ReviewsError } from "./reviews/reviews-error"
 import { Button } from "@/components/ui/button"
-import { useCreateReview, useCreateReviewReply } from "@/hooks/use-reviews"
+import { useCreateReview } from "@/hooks/use-reviews"
 import { CreateReviewRequest } from "@/services/review-service"
 
 interface ProductReviewsProps {
@@ -33,7 +33,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const {
     joinProductGroup,
     leaveProductGroup,
-    sendTypingIndicator,
     onNewReview,
     onRatingUpdated,
     onReviewLikeUpdated,
@@ -46,9 +45,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     isConnected
   } = useSignalR()
 
-  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([])
-  const [isTyping, setIsTyping] = useState(false)
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [, setTypingUsers] = useState<TypingUser[]>([])
 
   const queryClient = useQueryClient()
   const { data, isLoading, error, refetch } = useProductReviews(productId || "")
@@ -138,7 +135,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       offUserTyping(handleUserTyping)
     }
   }, [isConnected, productId, onNewReview, onRatingUpdated, onReviewLikeUpdated, onUserTyping,
-      offNewReview, offRatingUpdated, offReviewLikeUpdated, offUserTyping, queryClient])
+      offNewReview, offRatingUpdated, offReviewLikeUpdated, offUserTyping, queryClient, user?.id])
 
 
   const likeReviewMutation = useMutation({
@@ -157,26 +154,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       return response.json()
     }
   })
-
-  const handleTyping = useCallback(() => {
-    if (!isTyping && productId) {
-      setIsTyping(true)
-      sendTypingIndicator(productId, true)
-    }
-
-    if (typingTimeout) {
-      clearTimeout(typingTimeout)
-    }
-
-    const timeout = setTimeout(() => {
-      setIsTyping(false)
-      if (productId) {
-        sendTypingIndicator(productId, false)
-      }
-    }, 1000)
-
-    setTypingTimeout(timeout)
-  }, [isTyping, productId, sendTypingIndicator, typingTimeout])
 
   const createReviewMutation = useCreateReview();
 

@@ -50,7 +50,7 @@ export function useDeleteSearchHistory() {
 
     return useMutation({
         mutationFn: (id: string) => searchSuggestionsService.deleteSearchHistory(id),
-        onSuccess: (_, id) => {
+        onSuccess: () => {
             // Update any cached query data that might contain this suggestion
             queryClient.invalidateQueries({
                 queryKey: ["searchSuggestions"]

@@ -1,4 +1,4 @@
-import { CreateOrderRequest, Order, OrderFilters, OrdersResponse, UpdateOrderRequest, UpdateOrderStatusRequest, OrderStatus } from '@/types/order';
+import { CreateOrderRequest, Order, OrderFilters, OrdersResponse, UpdateOrderRequest, OrderStatus } from '@/types/order';
 import { BaseService } from './base-service';
 import { Result } from '@/types';
 

@@ -10,11 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { formatPrice } from "@/lib/contants"
 import { Product } from "@/types/product"
 
-interface ProductComparisonProps {
-    products: Product[]
-}
-
-export default function ProductComparison({ products }: ProductComparisonProps) {
+export default function ProductComparison() {
     const [comparedProducts, setComparedProducts] = useState<Product[]>([])
     const router = useRouter()
 
@@ -32,19 +28,6 @@ export default function ProductComparison({ products }: ProductComparisonProps) 
     }, [comparedProducts])
 
     // Add product to comparison
-    const addToComparison = (product: Product) => {
-        if (comparedProducts.length >= 4) {
-            alert("Bạn chỉ có thể so sánh tối đa 4 sản phẩm")
-            return
-        }
-
-        if (comparedProducts.some((p) => p.id === product.id)) {
-            return
-        }
-
-        setComparedProducts([...comparedProducts, product])
-    }
-
     // Remove product from comparison
     const removeFromComparison = (productId: string) => {
         setComparedProducts(comparedProducts.filter((p) => p.id !== productId))

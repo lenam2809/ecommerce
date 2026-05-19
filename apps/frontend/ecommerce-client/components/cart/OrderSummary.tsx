@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/lib/contants";
-import { cn } from "@/lib/utils";
 
 type OrderSummaryProps = {
     subtotal: number;

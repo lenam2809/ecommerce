@@ -86,15 +86,14 @@ export default function ProductListing(props: ProductListingProps) {
 function ProductListingContent({
     categorySlug,
     brandSlug,
-    pageTitle = "Tất cả sản phẩm",
     backLink,
 }: ProductListingProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
     // Fetch category and brand data if provided
-    const { data: category } = categorySlug ? useCategoryBySlug(categorySlug) : { data: null }
-    const { data: brand } = brandSlug ? useBrandBySlug(brandSlug) : { data: null }
+    const { data: category } = useCategoryBySlug(categorySlug ?? "")
+    const { data: brand } = useBrandBySlug(brandSlug ?? "")
 
     // State với giá trị mặc định từ URL
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -179,7 +178,7 @@ function ProductListingContent({
             }))
             setCurrentPage(1)
         },
-        [categorySlug, brandSlug],
+        [categorySlug, brandSlug, category?.id, brand?.id],
     )
 
     const handleSortChange = useCallback(

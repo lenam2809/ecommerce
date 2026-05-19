@@ -12,7 +12,7 @@ export function ImageWithFallback({
 }: ImageProps) {
     const [error, setError] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
-    const [retryCount, setRetryCount] = useState(0)
+    const [, setRetryCount] = useState(0)
 
     const handleRetry = () => {
         setError(false)
