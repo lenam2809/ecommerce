@@ -2,8 +2,7 @@ import { BaseService } from './base-service';
 import {
     CustomerAddress,
     CreateAddressDto,
-    UpdateAddressDto,
-    AddressesResponse
+    UpdateAddressDto
 } from '@/types/address';
 import { Result } from "@/types";
 

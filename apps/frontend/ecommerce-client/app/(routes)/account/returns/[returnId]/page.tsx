@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import returnService from "@/services/return-service"
 import { ReturnRequest, getReturnStatusName, getReturnStatusColor } from "@/types/return-request"
-import { ArrowLeft, Clock, Package, MessageSquare, Image as ImageIcon, CheckCircle2, XCircle } from "lucide-react"
+import { ArrowLeft, Clock, Package, MessageSquare, Image as ImageIcon, CheckCircle2 } from "lucide-react"
 
 export default function ReturnDetailPage() {
     const params = useParams()

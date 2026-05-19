@@ -178,7 +178,6 @@ api.interceptors.response.use(
       handleAuthFailure(originalRequest)
 
       // For guests on soft endpoints, return empty data instead of rejecting
-      const guestId = typeof window !== "undefined" ? localStorage.getItem("guest_id") : null
       const requestUrl = originalRequest.url || ""
       const softEndpoints = ["wishlist", "me/profile", "products", "cart", "categories", "banner"]
       const isSoftEndpoint = softEndpoints.some(ep => requestUrl.includes(ep))

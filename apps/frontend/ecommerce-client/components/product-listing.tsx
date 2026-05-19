@@ -86,15 +86,14 @@ export default function ProductListing(props: ProductListingProps) {
 function ProductListingContent({
     categorySlug,
     brandSlug,
-    pageTitle = "Tất cả sản phẩm",
     backLink,
 }: ProductListingProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
     // Fetch category and brand data if provided
-    const { data: category } = categorySlug ? useCategoryBySlug(categorySlug) : { data: null }
-    const { data: brand } = brandSlug ? useBrandBySlug(brandSlug) : { data: null }
+    const { data: category } = useCategoryBySlug(categorySlug ?? "")
+    const { data: brand } = useBrandBySlug(brandSlug ?? "")
 
     // State với giá trị mặc định từ URL
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -150,15 +149,17 @@ function ProductListingContent({
         }))
     }, [searchParams, categorySlug, brandSlug, category?.id, brand?.id])
 
+    const trimmedSearchTerm = debouncedSearchTerm.trim()
+
     // Chuẩn bị filters cho API call
     const apiFilters: ProductFiltersType = {
         ...filters,
-        searchTerm: debouncedSearchTerm,
+        searchTerm: trimmedSearchTerm || undefined,
         pageNumber: currentPage,
         pageSize: 12,
     }
 
-    const useElasticSearch = debouncedSearchTerm.trim().length > 0
+    const useElasticSearch = trimmedSearchTerm.length > 0
     const catalogQuery = useProducts(apiFilters, !useElasticSearch)
     const searchQuery = useSearchProducts(apiFilters, useElasticSearch)
     const activeQuery = useElasticSearch ? searchQuery : catalogQuery
@@ -177,7 +178,7 @@ function ProductListingContent({
             }))
             setCurrentPage(1)
         },
-        [categorySlug, brandSlug],
+        [categorySlug, brandSlug, category?.id, brand?.id],
     )
 
     const handleSortChange = useCallback(

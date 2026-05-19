@@ -6,7 +6,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Star, AlertCircle, ShoppingBag } from "lucide-react"
+import { ArrowLeft, Star, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { formatPrice } from "@/lib/contants"

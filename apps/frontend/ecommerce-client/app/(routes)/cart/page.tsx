@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useCart } from "@/hooks/use-cart"
 
 import CartHeader from '@/components/cart/CartHeader'
@@ -45,7 +45,7 @@ export default function CartPage() {
         description: `Giảm giá ${(cart?.discount ?? 0).toLocaleString('vi-VN')}₫ đã được áp dụng vào đơn hàng`,
       })
     }
-  }, [isApplyingPromoCode, cart?.discount, toast])
+  }, [isApplyingPromoCode, cart?.discount])
 
   // Show toast when clearing cart
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function CartPage() {
         description: "Tất cả sản phẩm đã được xóa khỏi giỏ hàng",
       })
     }
-  }, [isClearingCart, cart?.items.length, toast])
+  }, [isClearingCart, cart?.items.length])
 
   if (error) {
     return <ErrorMessage />;

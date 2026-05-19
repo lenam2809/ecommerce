@@ -39,13 +39,16 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
         {
             try
             {
-                string filterRaw = $"{request.SearchTerm?.Trim().ToLowerInvariant()}" +
+                var searchTerm = request.SearchTerm?.Trim() ?? string.Empty;
+                var sortBy = request.SortBy?.Trim().ToLowerInvariant() ?? "name";
+
+                string filterRaw = $"{searchTerm.ToLowerInvariant()}" +
                     $"_{request.CategoryIds}" +
                     $"_{request.BrandIds}" +
                     $"_{request.Rating?.ToString() ?? "null"}" +
                     $"_{request.MinPrice?.ToString() ?? "null"}" +
                     $"_{request.MaxPrice?.ToString() ?? "null"}" +
-                    $"_{request.SortBy?.Trim().ToLowerInvariant()}" +
+                    $"_{sortBy}" +
                     $"_{request.IsDescending}";
 
                 string filterHash = Convert.ToBase64String(System.Security.Cryptography.MD5.Create()
@@ -79,7 +82,7 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
                         .ToList();
                 // Xây dựng biểu thức filter từ các tham số truy vấn
                 Expression<Func<Product, bool>> filter = product =>
-                    (string.IsNullOrEmpty(request.SearchTerm) || product.Name.Contains(request.SearchTerm)) &&
+                    (string.IsNullOrEmpty(searchTerm) || product.Name.Contains(searchTerm)) &&
                     (string.IsNullOrEmpty(request.CategoryIds)
                         || categoryIds.Contains(product.CategoryId)) &&
                     (string.IsNullOrEmpty(request.BrandIds)
@@ -91,7 +94,7 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
                 // Xây dựng sắp xếp từ tham số SortBy và IsDescending
                 Func<IQueryable<Product>, IOrderedQueryable<Product>> orderBy = query =>
                 {
-                    return request.SortBy.ToLower() switch
+                    return sortBy switch
                     {
                         "price" => request.IsDescending
                             ? query.OrderByDescending(p => p.Price)

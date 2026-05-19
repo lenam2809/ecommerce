@@ -14,7 +14,6 @@ function VnPayReturnContent() {
     useEffect(() => {
         const success = searchParams.get("success") === "True" || searchParams.get("success") === "true";
         const responseCode = searchParams.get("vnp_ResponseCode")
-        const orderId = searchParams.get("vnp_TxnRef")
 
         if (success && responseCode === "00") {
             setStatus("success")

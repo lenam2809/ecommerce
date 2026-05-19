@@ -17,7 +17,6 @@ export function ProductTabs({
     productId,
     specifications,
     description,
-    name,
     reviewCount = 0,
 }: ProductTabsProps) {
     if (isLoading) {
