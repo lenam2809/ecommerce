@@ -4,12 +4,35 @@ import type { NextRequest } from 'next/server';
 interface AuthProfile {
     userId: string;
     email: string;
-    roles: string[];
-    permissions: string[];
 }
 
 const LOGIN_PATH = '/login';
-const ADMIN_PATH_PREFIXES = ['/admin', '/dashboard'];
+const DEFAULT_AUTHENTICATED_PATH = '/dashboard';
+const PROTECTED_PATH_PREFIXES = [
+    '/about',
+    '/account',
+    '/account-locks',
+    '/admin',
+    '/brands',
+    '/bulk-management',
+    '/categories',
+    '/configs',
+    '/contact',
+    '/dashboard',
+    '/help',
+    '/inventory',
+    '/logs',
+    '/notifications',
+    '/orders',
+    '/permissions',
+    '/products',
+    '/reports',
+    '/returns',
+    '/roles',
+    '/settings',
+    '/user-activities',
+    '/users',
+];
 
 function matchesPath(pathname: string, prefixes: string[]): boolean {
     return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -17,17 +40,18 @@ function matchesPath(pathname: string, prefixes: string[]): boolean {
 
 function buildUnauthorizedRedirect(request: NextRequest, pathname: string): NextResponse {
     const url = new URL(LOGIN_PATH, request.url);
+    const returnUrl = `${pathname}${request.nextUrl.search}`;
     url.searchParams.set('reason', 'unauthorized');
-    url.searchParams.set('from', pathname);
+    url.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(url);
 }
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const isLoginPath = pathname === LOGIN_PATH || pathname.startsWith(`${LOGIN_PATH}/`);
-    const isAdminPath = matchesPath(pathname, ADMIN_PATH_PREFIXES);
+    const isProtectedPath = matchesPath(pathname, PROTECTED_PATH_PREFIXES);
 
-    if (!isAdminPath && !isLoginPath) {
+    if (!isProtectedPath && !isLoginPath) {
         return NextResponse.next();
     }
 
@@ -66,11 +90,11 @@ export async function middleware(request: NextRequest) {
     const profileResponse = await fetchProfile().catch(() => null);
 
     if (!profileResponse || profileResponse.status === 401 || profileResponse.status === 403) {
-        return isAdminPath ? buildUnauthorizedRedirect(request, pathname) : NextResponse.next();
+        return isProtectedPath ? buildUnauthorizedRedirect(request, pathname) : NextResponse.next();
     }
 
     if (!profileResponse.ok) {
-        return isAdminPath ? buildUnauthorizedRedirect(request, pathname) : NextResponse.next();
+        return isProtectedPath ? buildUnauthorizedRedirect(request, pathname) : NextResponse.next();
     }
 
     let profile: AuthProfile | null = null;
@@ -80,20 +104,44 @@ export async function middleware(request: NextRequest) {
         profile = null;
     }
 
-    const roles = profile?.roles ?? [];
-    const hasAdminAccess = roles.includes('Admin') || roles.includes('Manager');
+    const isAuthenticated = Boolean(profile?.userId);
 
-    if (isAdminPath && !hasAdminAccess) {
+    if (isProtectedPath && !isAuthenticated) {
         return buildUnauthorizedRedirect(request, pathname);
     }
 
-    if (isLoginPath && hasAdminAccess) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (isLoginPath && isAuthenticated) {
+        return NextResponse.redirect(new URL(DEFAULT_AUTHENTICATED_PATH, request.url));
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/dashboard/:path*', '/login'],
+    matcher: [
+        '/about/:path*',
+        '/account/:path*',
+        '/account-locks/:path*',
+        '/admin/:path*',
+        '/brands/:path*',
+        '/bulk-management/:path*',
+        '/categories/:path*',
+        '/configs/:path*',
+        '/contact/:path*',
+        '/dashboard/:path*',
+        '/help/:path*',
+        '/inventory/:path*',
+        '/logs/:path*',
+        '/notifications/:path*',
+        '/orders/:path*',
+        '/permissions/:path*',
+        '/products/:path*',
+        '/reports/:path*',
+        '/returns/:path*',
+        '/roles/:path*',
+        '/settings/:path*',
+        '/user-activities/:path*',
+        '/users/:path*',
+        '/login',
+    ],
 };
