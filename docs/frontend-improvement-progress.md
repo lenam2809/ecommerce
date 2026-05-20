@@ -267,3 +267,42 @@ Pham vi: bat lai build gate mac dinh cho `apps/frontend/ecommerce-client` va `ap
 - `ecommerce-client`: build bi chan boi lint debt con lai, chu yeu `@typescript-eslint/no-explicit-any` trong account/cart/checkout hooks/services/libs va 2 warning `<img>`.
 - `ecommerce-dashboard`: build bi chan boi lint debt con lai, chu yeu `@typescript-eslint/no-explicit-any` trong hooks/services/libs/types va 3 warning `<img>`.
 - Khong bat lai ignore de che cac blocker nay; can prompt rieng de typed API/domain model va review image usage.
+
+## Prompt 5 - Normalize React versions
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-20
+
+### Phuong an da chon
+
+- Giu `ecommerce-client` o React 19 vi package dang nhat quan: `react`/`react-dom` `^19.0.0` va `@types/react`/`@types/react-dom` `^19`.
+- Giu `ecommerce-dashboard` o React 18 de giam rui ro runtime va dependency, chi dua React type packages ve nhom React 18 tuong thich.
+- Khong nang dashboard len React 19 trong buoc nay vi app co nhieu dependency UI/table/chart/drag-drop dang chay voi React 18; nang runtime se co rui ro lon hon viec chuan hoa type.
+
+### Package da thay doi
+
+- `apps/frontend/ecommerce-dashboard/package.json`
+  - `@types/react`: `^19` -> `^18.3.29`
+  - `@types/react-dom`: `^19` -> `^18.3.7`
+- `apps/frontend/ecommerce-dashboard/package-lock.json`
+  - Lockfile da cap nhat theo `npm install --save-dev @types/react@^18.3.18 @types/react-dom@^18.3.5`.
+  - Version thuc te sau install: `@types/react@18.3.29`, `@types/react-dom@18.3.7`.
+
+### Ket qua command
+
+| App | Command | Ket qua | Ghi chu |
+| --- | --- | --- | --- |
+| `apps/frontend/ecommerce-dashboard` | `npm install --save-dev @types/react@^18.3.18 @types/react-dom@^18.3.5` | Passed | Co npm peer warning trong qua trinh resolve tu type 19 ve type 18; ket qua `npm ls` xac nhan React/type da nhat quan |
+| `apps/frontend/ecommerce-dashboard` | `npm ls react react-dom @types/react @types/react-dom --depth=0` | Passed | `react@18.3.1`, `react-dom@18.3.1`, `@types/react@18.3.29`, `@types/react-dom@18.3.7` |
+| `apps/frontend/ecommerce-dashboard` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-dashboard` | `npm run lint` | Failed | Van la blocker cu: `85 problems (82 errors, 3 warnings)` |
+| `apps/frontend/ecommerce-dashboard` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors con lai |
+| `apps/frontend/ecommerce-client` | `npm run typecheck` | Passed | Khong doi package client |
+| `apps/frontend/ecommerce-client` | `npm run lint` | Failed | Van la blocker cu: `49 problems (47 errors, 2 warnings)` |
+| `apps/frontend/ecommerce-client` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors con lai |
+
+### Rui ro con lai
+
+- Lint debt con lai van chan build production vi build gate da duoc bat lai o Prompt 4.
+- `npm install` bao `5 vulnerabilities (3 moderate, 2 high)` trong dashboard; chua chay `npm audit fix` de tranh nang cap dependency hang loat ngoai pham vi.
