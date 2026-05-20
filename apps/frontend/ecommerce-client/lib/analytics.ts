@@ -25,8 +25,11 @@ export type EventName =
   | "share_product"
   | "contact_form_submit"
 
+type EventPrimitive = string | number | boolean | undefined
+type EventItem = Record<string, EventPrimitive>
+
 export interface EventData {
-  [key: string]: string | number | boolean | undefined
+  [key: string]: EventPrimitive | EventItem[]
 }
 
 export interface ProductData {
