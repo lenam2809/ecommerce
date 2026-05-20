@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 
 const BrandActions = ({ brand }: { brand: Brand }) => {
     const router = useRouter()
-    const { mutate: deleteBrand, isPending } = useDeleteBrand();
+    const { mutate: deleteBrand } = useDeleteBrand();
 
     return (
         <DropdownMenu>

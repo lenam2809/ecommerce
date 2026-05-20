@@ -1,5 +1,4 @@
 // 2. Tạo BaseService trong thư mục services/base.service.ts
-import { OptionType } from '@/components/ui/select/single-select';
 import { toast } from '@/hooks/use-toast';
 import api from '@/lib/axios';
 import { logger } from '@/lib/logger';

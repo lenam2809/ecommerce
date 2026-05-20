@@ -35,7 +35,7 @@ export const useUpdateProfile = () => {
                 queryKey: accountKeys.profile
             });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateProfile' },
@@ -60,7 +60,7 @@ export const useChangePassword = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'changePassword' },

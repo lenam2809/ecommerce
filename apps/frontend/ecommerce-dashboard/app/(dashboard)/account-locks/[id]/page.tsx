@@ -22,7 +22,7 @@ import {
     AlertTriangle,
     CheckCircle
 } from "lucide-react"
-import { useccountLockById, useUnlockUser } from "@/hooks/use-account-lock"
+import { useAccountLockById, useUnlockUser } from "@/hooks/use-account-lock"
 import { ELockType } from "@/types/account-lock"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -33,7 +33,7 @@ export default function AccountLockDetailPage() {
 
     const { mutate: unlockUser, isPending: isUnlocking } = useUnlockUser()
 
-    const { data: accountLockResult, isLoading, error } = useccountLockById(lockId)
+    const { data: accountLockResult, isLoading, error } = useAccountLockById(lockId)
     const accountLock = accountLockResult?.data
 
     const handleUnlock = () => {

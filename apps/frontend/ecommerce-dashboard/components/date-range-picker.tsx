@@ -56,6 +56,7 @@ export function DateRangePicker<
 }: DateRangePickerProps<TFieldValues, TName>) {
     const [open, setOpen] = React.useState(false)
     const [, setDate] = React.useState<DateRange | undefined>(form.getValues(name))
+    const fieldValue = form.watch(name)
 
     // Default presets if none provided
     const defaultPresets = [
@@ -120,7 +121,7 @@ export function DateRangePicker<
         const value = form.getValues(name)
 
         setDate(value)
-    }, [form.getValues(name), dateFormat, form, name])
+    }, [fieldValue, form, name])
 
 
     // Apply preset

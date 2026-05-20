@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
@@ -18,7 +18,7 @@ export default function ReturnDetailPage() {
     const [returnRequest, setReturnRequest] = useState<ReturnRequest | null>(null)
     const [loading, setLoading] = useState(true)
 
-    const fetchDetail = async () => {
+    const fetchDetail = useCallback(async () => {
         setLoading(true)
         try {
             const result = await returnService.getReturnById(returnId)
@@ -38,11 +38,11 @@ export default function ReturnDetailPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [returnId])
 
     useEffect(() => {
         if (returnId) fetchDetail()
-    }, [returnId])
+    }, [returnId, fetchDetail])
 
     const handleActionComplete = () => {
         fetchDetail() // Refresh after approve/reject/update

@@ -30,7 +30,7 @@ export const useLikeReview = () => {
             // Invalidate tất cả queries liên quan đến reviews
             queryClient.invalidateQueries({ queryKey: reviewKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'likeReview' },
@@ -50,7 +50,7 @@ export const useReplyReview = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: reviewKeys.lists() });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'replyReview' },
@@ -80,7 +80,7 @@ export const useCreateReview = () => {
             // Invalidate reviews của sản phẩm
             queryClient.invalidateQueries({ queryKey: reviewKeys.list(variables.productId) });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createReview' },

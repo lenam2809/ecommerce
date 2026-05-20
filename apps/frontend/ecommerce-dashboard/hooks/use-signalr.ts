@@ -14,12 +14,12 @@ interface UseSignalROptions {
     reconnectOnAuthChange?: boolean;
 }
 
-export interface SignalRNotification<T = any> {
+export interface SignalRNotification<T = unknown> {
     type: string;
     data: T;
 }
 
-export function useSignalR<T = any>({
+export function useSignalR<T = unknown>({
     hubUrl,
     autoConnect = true,
     enabled = true,
@@ -32,7 +32,6 @@ export function useSignalR<T = any>({
     const [connectionAttempts, setConnectionAttempts] = useState(0);
     const maxInitialRetries = 3;
     const connectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const stateCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { isAuthenticated, loading } = useAuth();
 
     // Hàm kết nối với hub SignalR
@@ -95,7 +94,7 @@ export function useSignalR<T = any>({
         if (!loading && isAuthenticated) {
             connect();    // connect sẽ tự lấy JWT từ authService.getToken()
         }
-    }, [loading, isAuthenticated]);
+    }, [loading, isAuthenticated, connect]);
 
     // Theo dõi thay đổi token xác thực
     useEffect(() => {
@@ -142,10 +141,6 @@ export function useSignalR<T = any>({
             // Dọn dẹp timeout
             if (connectTimeoutRef.current) {
                 clearTimeout(connectTimeoutRef.current);
-            }
-
-            if (stateCheckIntervalRef.current) {
-                clearInterval(stateCheckIntervalRef.current);
             }
 
             // Ngắt kết nối nếu cần

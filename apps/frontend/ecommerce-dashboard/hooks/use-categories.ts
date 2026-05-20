@@ -83,7 +83,7 @@ export const useCreateCategory = () => {
             queryClient.invalidateQueries({ queryKey: categoryKeys.all });
             router.push('/categories');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createCategory' },
@@ -100,7 +100,7 @@ export const useUpdateCategory = () => {
 
     return useMutation({
         mutationFn: (categoryData: UpdateCategoryDto) => categoryService.updateCategory(categoryData),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Cập nhật danh mục",
                 description: 'Cập nhật danh mục thành công!',
@@ -109,7 +109,7 @@ export const useUpdateCategory = () => {
             queryClient.invalidateQueries({ queryKey: categoryKeys.all });
             router.push('/categories');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateCategory' },
@@ -125,7 +125,7 @@ export const useDeleteCategory = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => categoryService.deleteCategory(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa danh mục",
                 description: 'Xóa danh mục thành công!',
@@ -136,7 +136,7 @@ export const useDeleteCategory = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteCategory' },

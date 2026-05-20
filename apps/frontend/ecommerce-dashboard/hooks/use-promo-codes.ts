@@ -59,7 +59,7 @@ export const useCreatePromoCode = () => {
             queryClient.invalidateQueries({ queryKey: promoCodeKeys.active() });
             router.push('/configs/promo-codes');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createPromoCode' },
@@ -76,7 +76,7 @@ export const useUpdatePromoCode = () => {
 
     return useMutation({
         mutationFn: (promoCodeData: UpdatePromoCodeDto) => promoCodeService.updatePromoCode(promoCodeData.id, promoCodeData),
-        onSuccess: (data, variables) => {
+        onSuccess: (_, variables) => {
             toast({
                 title: "Cập nhật mã khuyến mãi",
                 description: 'Cập nhật mã khuyến mãi thành công!',
@@ -87,7 +87,7 @@ export const useUpdatePromoCode = () => {
             queryClient.invalidateQueries({ queryKey: promoCodeKeys.active() });
             router.push('/configs/promo-codes');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updatePromoCode' },
@@ -103,7 +103,7 @@ export const useDeletePromoCode = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => promoCodeService.deletePromoCode(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa mã khuyến mãi",
                 description: 'Xóa mã khuyến mãi thành công!',
@@ -116,7 +116,7 @@ export const useDeletePromoCode = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deletePromoCode' },
@@ -137,7 +137,7 @@ export const useApplyPromoCode = () => {
                 description: 'Áp dụng mã khuyến mãi thành công!',
             })
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'applyPromoCode' },

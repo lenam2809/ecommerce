@@ -70,7 +70,7 @@ export const useCreateUser = () => {
             });
             router.push('/users');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createUser' },
@@ -87,7 +87,7 @@ export const useUpdateUser = () => {
 
     return useMutation({
         mutationFn: (userData: FormUpdateUserSchema) => userService.updateUser(userData),
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Cập nhật người dùng",
                 description: `Cập nhật người dùng thành công!`,
@@ -98,7 +98,7 @@ export const useUpdateUser = () => {
             });
             router.push('/users');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateUser' },
@@ -114,7 +114,7 @@ export const useDeleteUser = (onSuccessCallback?: () => void) => {
 
     return useMutation({
         mutationFn: (id: string) => userService.deleteUser(id),
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             toast({
                 title: "Xóa người dùng",
                 description: `Xóa người dùng thành công!`,
@@ -126,7 +126,7 @@ export const useDeleteUser = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteUser' },

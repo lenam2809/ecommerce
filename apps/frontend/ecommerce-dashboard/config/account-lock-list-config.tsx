@@ -1,17 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, Eye, Lock, LockOpen, MoreHorizontal, Shield, User } from "lucide-react"
+import { ArrowUpDown, Eye, LockOpen, MoreHorizontal, Shield, User } from "lucide-react"
 import type { ListConfig } from "@/types/list-config"
 import { AccountLock, ELockType } from "@/types/account-lock"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
 import { useUnlockUser } from "@/hooks/use-account-lock"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow, format } from "date-fns"
 import { vi } from "date-fns/locale"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useState } from "react"
 
 const AccountLockActions = ({ accountLock }: { accountLock: AccountLock }) => {

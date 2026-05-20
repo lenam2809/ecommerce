@@ -40,7 +40,7 @@ export const useProductImport = () => {
                 });
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'importProducts' },

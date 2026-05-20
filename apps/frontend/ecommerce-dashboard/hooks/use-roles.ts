@@ -69,7 +69,7 @@ export const useCreateRole = () => {
             queryClient.invalidateQueries({ queryKey: roleKeys.lists() });
             router.push('/roles');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createRole' },
@@ -96,7 +96,7 @@ export const useUpdateRole = () => {
             queryClient.invalidateQueries({ queryKey: roleKeys.all });
             router.push('/roles');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateRole' },
@@ -123,7 +123,7 @@ export const useDeleteRole = (onSuccessCallback?: () => void) => {
                 onSuccessCallback();
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteRole' },
@@ -148,7 +148,7 @@ export const useAssignRolesToUser = () => {
             // Invalidate queries
             queryClient.invalidateQueries({ queryKey: roleKeys.userRoles(variables.userId) });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'assignRolesToUser' },

@@ -37,7 +37,7 @@ export const useCreateMarquee = () => {
             queryClient.invalidateQueries({ queryKey: marqueeKeys.all });
             router.push('/configs/marquee');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'createMarquee' },
@@ -63,7 +63,7 @@ export const useUpdateMarquee = () => {
             queryClient.invalidateQueries({ queryKey: marqueeKeys.all });
             router.push('/configs/marquee');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'updateMarquee' },
@@ -88,7 +88,7 @@ export const useDeleteMarquee = (onSuccessCallback?: () => void) => {
             queryClient.invalidateQueries({ queryKey: marqueeKeys.lists() });
             if (onSuccessCallback) onSuccessCallback();
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'deleteMarquee' },
@@ -111,7 +111,7 @@ export const useToggleMarquee = () => {
             });
             queryClient.invalidateQueries({ queryKey: marqueeKeys.all });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'toggleMarquee' },
@@ -134,7 +134,7 @@ export const useToggleGlobalMarquee = () => {
             });
             queryClient.invalidateQueries({ queryKey: marqueeKeys.all });
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'toggleGlobalMarquee' },

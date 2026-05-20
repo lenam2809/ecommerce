@@ -52,6 +52,7 @@ export function DatePicker<
 }: DatePickerProps<TFieldValues, TName>) {
     const [open, setOpen] = React.useState(false)
     const [inputValue, setInputValue] = React.useState("")
+    const fieldValue = form.watch(name)
 
     // Hàm vô hiệu hóa ngày dựa trên props
     const isDateDisabled = React.useCallback(
@@ -104,7 +105,7 @@ export function DatePicker<
         } else {
             setInputValue("")
         }
-    }, [form.getValues(name), dateFormat, form, name])
+    }, [fieldValue, dateFormat, form, name])
 
     // Đặt ngày hôm nay
     const handleSelectToday = () => {

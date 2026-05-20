@@ -15,7 +15,7 @@ import { UserActivityDialog } from "@/components/users/user-activity-dialog"
 
 const UserActions = ({ user }: { user: User }) => {
     const router = useRouter()
-    const { mutate: deleteUser, isPending } = useDeleteUser();
+    const { mutate: deleteUser } = useDeleteUser();
     const [lockDialogOpen, setLockDialogOpen] = useState(false)
     const [activityDialogOpen, setActivityDialogOpen] = useState(false)
 

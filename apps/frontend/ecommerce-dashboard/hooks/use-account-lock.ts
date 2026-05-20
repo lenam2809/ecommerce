@@ -43,7 +43,7 @@ export const useIsUserLocked = (userId: string) => {
 };
 
 // Lock user account
-export const useLockUser = (onSuccessCallback?: (data: any) => void) => {
+export const useLockUser = (onSuccessCallback?: (data: unknown) => void) => {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -73,7 +73,7 @@ export const useLockUser = (onSuccessCallback?: (data: any) => void) => {
                 onSuccessCallback(data);
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'lockUser' },
@@ -85,7 +85,7 @@ export const useLockUser = (onSuccessCallback?: (data: any) => void) => {
 };
 
 // Unlock user account
-export const useUnlockUser = (onSuccessCallback?: (data: any) => void) => {
+export const useUnlockUser = (onSuccessCallback?: (data: unknown) => void) => {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -115,7 +115,7 @@ export const useUnlockUser = (onSuccessCallback?: (data: any) => void) => {
                 onSuccessCallback(data);
             }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
             handleApiError({
                 error,
                 context: { operation: 'unlockUser' },
@@ -126,7 +126,7 @@ export const useUnlockUser = (onSuccessCallback?: (data: any) => void) => {
     });
 };
 
-export const useccountLockById = (id: string) => {
+export const useAccountLockById = (id: string) => {
     return useQuery({
         queryKey: accountLockKeys.detail(id),
         queryFn: () => accountLockService.getAccountLockById(id),
