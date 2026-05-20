@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
@@ -20,20 +22,24 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
         if (!loading) {
             // Case 1: Route requires authentication and user is not logged in
             if (requireAuth && !user) {
-                const returnUrl = window.location.pathname;
-                router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+                const returnUrl = `${window.location.pathname}${window.location.search}`
+                router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`)
             }
 
             // Case 2: User is logged in but should be redirected (e.g., login page when already authenticated)
             else if (!requireAuth && user && redirectAuthenticatedTo) {
-                router.push(redirectAuthenticatedTo)
+                router.replace(redirectAuthenticatedTo)
             }
         }
     }, [user, loading, requireAuth, redirectAuthenticatedTo, router])
 
     // Show loading or nothing during authentication check
     if (loading || (requireAuth && !user) || (!requireAuth && user && redirectAuthenticatedTo)) {
-        return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+        return (
+            <div className="flex min-h-[50vh] items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+        )
     }
 
     // Authentication passed, render children

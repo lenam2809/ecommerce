@@ -95,7 +95,7 @@ export default function CheckoutPage() {
   }, [user, form])
 
   const handleLoginRedirect = () => {
-    router.push("/login?from=/checkout")
+    router.push(`/login?returnUrl=${encodeURIComponent("/checkout")}`)
   }
 
   const onSubmit = async (values: CheckoutFormValues) => {
