@@ -306,3 +306,44 @@ Ngay thuc hien: 2026-05-20
 
 - Lint debt con lai van chan build production vi build gate da duoc bat lai o Prompt 4.
 - `npm install` bao `5 vulnerabilities (3 moderate, 2 high)` trong dashboard; chua chay `npm audit fix` de tranh nang cap dependency hang loat ngoai pham vi.
+
+## Prompt 6 - Dashboard auth guard
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-20
+
+### Route duoc bao ve
+
+- `/dashboard`
+- Cac route con nam trong `app/(dashboard)`, gom cac nhom URL: `/about`, `/account`, `/account-locks`, `/brands`, `/bulk-management`, `/categories`, `/configs`, `/contact`, `/help`, `/inventory`, `/logs`, `/notifications`, `/orders`, `/permissions`, `/products`, `/reports`, `/returns`, `/roles`, `/settings`, `/user-activities`, `/users`.
+- Giu matcher `/admin` neu co route/alias cu can bao ve.
+- Khong bao ve `/login` va `/forgot-password`; `/login` chi redirect ve `/dashboard` khi session hien tai hop le.
+
+### Cach guard hoat dong
+
+- `middleware.ts` chay truoc khi render cac route dashboard thuc te, forward cookie/authorization header den `/api/auth/me/profile`, va chi cho render khi backend xac nhan profile co `userId`.
+- Khi chua dang nhap hoac session khong hop le, middleware redirect ve `/login?reason=unauthorized&returnUrl=<current-path>`.
+- `returnUrl` giu ca query string cua route goc; login form chi chap nhan returnUrl noi bo bat dau bang `/` va khong bat dau bang `//` de tranh open redirect.
+- `app/(dashboard)/layout.tsx` giu fallback server-side bang cookie `access_token` de tranh render layout dashboard neu middleware khong chay, nhung khong decode role/JWT va khong cap quyen frontend bang hardcode role.
+- Backend van la nguon kiem tra quyen cuoi cung; frontend guard chi la lop UX/security boundary truoc render.
+
+### File da sua
+
+- `apps/frontend/ecommerce-dashboard/middleware.ts`
+- `apps/frontend/ecommerce-dashboard/app/(dashboard)/layout.tsx`
+- `apps/frontend/ecommerce-dashboard/components/auth/login-form.tsx`
+- `apps/frontend/ecommerce-dashboard/hooks/use-auth.tsx`
+
+### Test thu cong / command da chay
+
+| Command | Ket qua | Ghi chu |
+| --- | --- | --- |
+| `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | Chay rieng sau build de tranh race voi `.next/types`; `tsc --noEmit` hoan thanh thanh cong |
+| `cd apps/frontend/ecommerce-dashboard && npm run lint` | Failed | Van la blocker cu: `85 problems (82 errors, 3 warnings)` |
+| `cd apps/frontend/ecommerce-dashboard && npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors cu trong `lib/api-error.ts`, `lib/export-utils.ts` va warning image |
+
+### Rui ro con lai
+
+- Chua chay dev server/browser manual test trong prompt nay; can kiem tra thuc te cac case `/users -> /login?returnUrl=/users`, login thanh cong quay lai returnUrl, va truy cap `/login` khi da co session.
+- Lint debt cu van chan build production.

@@ -24,6 +24,17 @@ const formSchema = z.object({
   rememberMe: z.boolean(),
 })
 
+function getSafeReturnUrl(returnUrl: string | null): string {
+  if (!returnUrl) return "/dashboard"
+
+  try {
+    const decoded = decodeURIComponent(returnUrl)
+    return decoded.startsWith("/") && !decoded.startsWith("//") ? decoded : "/dashboard"
+  } catch {
+    return "/dashboard"
+  }
+}
+
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -32,8 +43,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
   // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
-  const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/dashboard"
-  const redirectUrl = decodeURIComponent(returnUrl)
+  const redirectUrl = getSafeReturnUrl(searchParams.get("returnUrl") || searchParams.get("redirect"))
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

@@ -64,7 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setUser(nextUser)
-        router.push("/dashboard")
       } else {
         setError("Login failed. Please check your credentials.")
       }
