@@ -14,6 +14,17 @@ import { useAuth } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
 import { getGuestId } from "@/lib/guest-id"
 
+function getSafeReturnUrl(returnUrl: string | null): string {
+    if (!returnUrl) return "/"
+
+    try {
+        const decoded = decodeURIComponent(returnUrl)
+        return decoded.startsWith("/") && !decoded.startsWith("//") ? decoded : "/"
+    } catch {
+        return "/"
+    }
+}
+
 export default function LoginPage() {
     return (
         <Suspense fallback={<div className="flex justify-center items-center h-[60vh]"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
@@ -36,8 +47,7 @@ function LoginContent() {
     const { login } = useAuth()
 
     // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
-    const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/"
-    const redirectUrl = decodeURIComponent(returnUrl)
+    const redirectUrl = getSafeReturnUrl(searchParams.get("returnUrl") || searchParams.get("redirect"))
     const googleLoginUrl = `/api/auth/external-login?provider=Google&returnUrl=${encodeURIComponent(redirectUrl)}`
 
     useEffect(() => {
@@ -70,25 +80,21 @@ function LoginContent() {
 
         setIsLoading(true);
 
-        setTimeout(async () => {
-            try {
-                await login(email, password);
-                AppToaster.success("Đăng nhập thành công", {
-                    description: "Chào mừng bạn quay trở lại!",
-                });
+        try {
+            await login(email, password);
+            AppToaster.success("Đăng nhập thành công", {
+                description: "Chào mừng bạn quay trở lại!",
+            });
 
-                // Redirect to the requested page or homepage
-                router.push(redirectUrl);
-            } catch {
-                AppToaster.error("Đăng nhập thất bại", {
-                    description: "Email hoặc mật khẩu không chính xác",
-                    // Duration Infinity is handled by default for error in AppToaster, or we can pass it explicitly
-                    duration: Infinity,
-                });
-            } finally {
-                setIsLoading(false); // Chỉ tắt loading sau khi xử lý xong
-            }
-        }, 5000);
+            router.push(redirectUrl);
+        } catch {
+            AppToaster.error("Đăng nhập thất bại", {
+                description: "Email hoặc mật khẩu không chính xác",
+                duration: Infinity,
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
 

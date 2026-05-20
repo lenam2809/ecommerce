@@ -347,3 +347,42 @@ Ngay thuc hien: 2026-05-20
 
 - Chua chay dev server/browser manual test trong prompt nay; can kiem tra thuc te cac case `/users -> /login?returnUrl=/users`, login thanh cong quay lai returnUrl, va truy cap `/login` khi da co session.
 - Lint debt cu van chan build production.
+
+## Prompt 7 - Client auth and checkout guard
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-20
+
+### Quyet dinh route guest/login
+
+- `apps/frontend/ecommerce-client/app/(routes)/account/**`: bat buoc dang nhap. Cac trang profile, orders, order detail, returns, return detail, addresses va new address tiep tuc nam duoi `account/layout.tsx` va duoc bao bang `AuthGuard`.
+- `apps/frontend/ecommerce-client/app/(routes)/checkout`: giu guest checkout theo hanh vi hien tai. Guest cart khong bi thay doi; user co the mua nhu khach hoac chon dang nhap de dung tai khoan.
+- `/login`: route guest, nhung sau login se redirect ve `returnUrl` noi bo neu co.
+
+### Cach guard hoat dong
+
+- `components/auth-guard.tsx` la client guard ro rang cho account layout: hien spinner trong luc `useAuth` dang kiem tra session, redirect bang `router.replace('/login?returnUrl=...')` khi chua dang nhap, va giu ca query string cua route account hien tai.
+- `app/(auth)/login/page.tsx` sanitize `returnUrl`/`redirect` de chi chap nhan URL noi bo bat dau bang `/` va khong bat dau bang `//`.
+- `hooks/use-auth.tsx` khong con push mac dinh ve `/` sau login; page login chiu trach nhiem dieu huong den `returnUrl`.
+- Checkout giu guest flow va doi nut dang nhap sang `/login?returnUrl=/checkout`; da bo timeout gia trong login submit de tranh logic cho 5 giay khong lam gi.
+
+### File da sua
+
+- `apps/frontend/ecommerce-client/components/auth-guard.tsx`
+- `apps/frontend/ecommerce-client/hooks/use-auth.tsx`
+- `apps/frontend/ecommerce-client/app/(auth)/login/page.tsx`
+- `apps/frontend/ecommerce-client/app/(routes)/checkout/page.tsx`
+
+### Command da chay
+
+| Command | Ket qua | Ghi chu |
+| --- | --- | --- |
+| `cd apps/frontend/ecommerce-client && npm run typecheck` | Passed | Chay rieng sau build de tranh race voi `.next/types`; `tsc --noEmit` hoan thanh thanh cong |
+| `cd apps/frontend/ecommerce-client && npm run lint` | Failed | Van la blocker cu: `49 problems (47 errors, 2 warnings)` |
+| `cd apps/frontend/ecommerce-client && npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors cu |
+
+### Rui ro con lai
+
+- Chua chay browser manual test; can kiem tra `/account/orders?x=1` redirect ve login voi returnUrl dung, login xong quay lai account route, va `/checkout` van cho guest checkout.
+- Lint debt cu van chan build production.

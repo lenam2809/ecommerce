@@ -73,7 +73,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 setUser(nextUser)
                 clearGuestId()
-                router.push("/")
             } else {
                 setError("Login failed. Please check your credentials.")
             }
