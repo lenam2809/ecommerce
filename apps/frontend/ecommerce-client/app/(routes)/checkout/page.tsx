@@ -127,14 +127,19 @@ export default function CheckoutPage() {
       const result = await createOrder.mutateAsync(orderData)
 
       if (result.success) {
+        const orderId = result.data
+        if (!orderId) {
+          throw new Error("Order creation succeeded without an order id")
+        }
+
         if (values.paymentMethod === "vnpay") {
           try {
             const paymentData = {
               orderType: "billpayment",
               amount: total,
-              orderDescription: `Thanh toan don hang ${result.data}`,
+              orderDescription: `Thanh toan don hang ${orderId}`,
               name: values.fullName,
-              orderId: result.data,
+              orderId,
             }
 
             const { default: paymentService } = await import("@/services/payment-service")
@@ -148,7 +153,7 @@ export default function CheckoutPage() {
             logger.error("VNPay URL creation failed", paymentError)
             toast.error("Lỗi tạo link thanh toán VNPay")
             if (user) {
-              router.push(`/account/orders/${result.data}`)
+              router.push(`/account/orders/${orderId}`)
             } else {
               router.push("/")
             }
@@ -160,7 +165,7 @@ export default function CheckoutPage() {
         clearCart()
 
         if (user) {
-          router.push(`/account/orders/${result.data}`)
+          router.push(`/account/orders/${orderId}`)
           return
         }
 

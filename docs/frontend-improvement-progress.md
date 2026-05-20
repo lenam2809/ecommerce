@@ -230,3 +230,40 @@ Pham vi: chi sua `apps/frontend/ecommerce-dashboard`; khong refactor kien truc, 
 | `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | Baseline typecheck pass |
 | `cd apps/frontend/ecommerce-dashboard && npm run lint` | Failed | Sau sua: `85 problems (82 errors, 3 warnings)` |
 | `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | Sau sua: `tsc --noEmit` hoan thanh thanh cong |
+
+## Prompt 4 - Enforce frontend build checks
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-20
+
+Pham vi: bat lai build gate mac dinh cho `apps/frontend/ecommerce-client` va `apps/frontend/ecommerce-dashboard`; khong dung `ignoreDuringBuilds`/`ignoreBuildErrors` de ne loi.
+
+### Cau hinh da thay doi
+
+- `apps/frontend/ecommerce-client/next.config.ts`: xoa `eslint.ignoreDuringBuilds: true`.
+- `apps/frontend/ecommerce-client/next.config.ts`: xoa `typescript.ignoreBuildErrors: true`.
+- `apps/frontend/ecommerce-dashboard/next.config.ts`: xoa `eslint.ignoreDuringBuilds: true`.
+
+### Sua type nho trong client
+
+- `apps/frontend/ecommerce-client/app/(routes)/checkout/page.tsx`: bao dam `orderId` co gia tri truoc khi tao VNPay URL va dung bien `orderId` da narrow type.
+- `apps/frontend/ecommerce-client/lib/analytics.ts`: mo rong `EventData` de chap nhan `items` array cua ecommerce events.
+- `apps/frontend/ecommerce-client/lib/seo-utils.ts`: dua OpenGraph product metadata ve type Next ho tro (`website`/`article`) thay vi `og:product` khong hop type.
+
+### Ket qua command
+
+| App | Command | Ket qua | Ghi chu |
+| --- | --- | --- | --- |
+| `apps/frontend/ecommerce-client` | `npm run lint` | Failed | `49 problems (47 errors, 2 warnings)` |
+| `apps/frontend/ecommerce-client` | `npm run typecheck` | Passed | Chay rieng sau build de tranh race voi `.next/types`; `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-client` | `npm run build` | Failed | Build compile thanh cong nhung fail o buoc lint/type gate do lint errors con lai |
+| `apps/frontend/ecommerce-dashboard` | `npm run lint` | Failed | `85 problems (82 errors, 3 warnings)` |
+| `apps/frontend/ecommerce-dashboard` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-dashboard` | `npm run build` | Failed | Build compile thanh cong nhung fail o buoc lint/type gate do lint errors con lai |
+
+### Blocker con lai
+
+- `ecommerce-client`: build bi chan boi lint debt con lai, chu yeu `@typescript-eslint/no-explicit-any` trong account/cart/checkout hooks/services/libs va 2 warning `<img>`.
+- `ecommerce-dashboard`: build bi chan boi lint debt con lai, chu yeu `@typescript-eslint/no-explicit-any` trong hooks/services/libs/types va 3 warning `<img>`.
+- Khong bat lai ignore de che cac blocker nay; can prompt rieng de typed API/domain model va review image usage.

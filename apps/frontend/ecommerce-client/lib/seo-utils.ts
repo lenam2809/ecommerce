@@ -43,7 +43,7 @@ export function generatePageMetadata(input: SeoMetadataInput): Metadata {
     openGraph: {
       title,
       description,
-      type: type === "product" ? "og:product" : type === "article" ? "article" : "website",
+      type: type === "article" ? "article" : "website",
       url,
       images: image ? [{ url: image, width: 1200, height: 630, alt: title }] : [],
     },
@@ -78,10 +78,7 @@ export function generateProductMetadata(input: ProductMetadataInput): Metadata {
 
   return {
     ...baseMetadata,
-    openGraph: {
-      ...baseMetadata.openGraph,
-      type: "og:product",
-    },
+    openGraph: baseMetadata.openGraph,
   }
 }
 
