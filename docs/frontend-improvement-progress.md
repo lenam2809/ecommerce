@@ -491,3 +491,30 @@ Ngay thuc hien: 2026-05-20
 - Chua co production image domain that trong repo; can cau hinh `NEXT_PUBLIC_IMAGE_REMOTE_URLS` tren moi truong deploy neu API/CDN tra absolute URLs.
 - Chua test browser thuc te; can verify cac man hinh product, category, brand, banner, avatar va upload preview.
 - Lint debt cu van chan build production.
+
+## Prompt 10 - Frontend documentation update
+
+Status: Done
+
+Ngay thuc hien: 2026-05-21
+
+### File da sua
+
+- `README.md`
+- `docs/frontend-improvement-progress.md`
+
+### Noi dung da cap nhat
+
+- Cap nhat bang cong nghe frontend theo `package.json` hien tai:
+  - `ecommerce-client`: Next.js `^15.5.14`, React `^19.0.0`, `@types/react`/`@types/react-dom` `^19`.
+  - `ecommerce-dashboard`: Next.js `^15.5.14`, React `^18.3.1`, `@types/react` `^18.3.29`, `@types/react-dom` `^18.3.7`.
+- Cap nhat so do kien truc frontend tu Next.js 15.2/15.3 thanh Next.js 15.5.
+- Bo sung scripts thuc te cua ca hai app: `dev`, `build`, `start`, `lint`, `typecheck`.
+- Lam ro cach chay dashboard song song voi client bang `npm run dev -- -p 3001`, vi script `dev` hien tai khong hardcode port 3001.
+- Bo sung env frontend:
+  - `NEXT_PUBLIC_API_URL`, mac dinh `http://localhost:5000/api`.
+  - `NEXT_PUBLIC_IMAGE_REMOTE_URLS` cho production/CDN image allowlist.
+- Bo sung ghi chu Next rewrites:
+  - `/api/:path*` proxy sang backend API tu `NEXT_PUBLIC_API_URL`.
+  - `/uploads/:path*` proxy sang backend upload base.
+  - localhost image remotePatterns chi danh cho development; production can domain that qua env.

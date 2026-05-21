@@ -35,8 +35,9 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 ### Frontend
 | Thành phần | ecommerce-client | ecommerce-dashboard |
 |------------|------------------|---------------------|
-| Framework | Next.js 15.2 | Next.js 15.3 |
-| React | React 19 | React 18 |
+| Framework | Next.js `^15.5.14` | Next.js `^15.5.14` |
+| React | React `^19.0.0` | React `^18.3.1` |
+| React Types | `@types/react` `^19`, `@types/react-dom` `^19` | `@types/react` `^18.3.29`, `@types/react-dom` `^18.3.7` |
 | Styling | Tailwind CSS v4 | Tailwind CSS v4 |
 | UI Components | Radix UI, Lucide Icons | Radix UI, Tabler Icons, Lucide Icons |
 | State Management | TanStack Query v5 | TanStack Query v5 |
@@ -69,7 +70,7 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 │                              FRONTEND LAYER                                  │
 │  ┌─────────────────────────────┐    ┌─────────────────────────────────────┐ │
 │  │     ecommerce-client        │    │       ecommerce-dashboard           │ │
-│  │     (Next.js 15.2)          │    │         (Next.js 15.3)              │ │
+│  │     (Next.js 15.5)          │    │         (Next.js 15.5)              │ │
 │  │     Port: 3000              │    │         Port: 3001                  │ │
 │  │     Customer Website        │    │         Admin Panel                 │ │
 │  └──────────────┬──────────────┘    └─────────────────┬───────────────────┘ │
@@ -247,13 +248,31 @@ npm run dev
 ```
 Client sẽ chạy tại: `http://localhost:3000`
 
+Scripts hiện có:
+```bash
+npm run dev        # Next dev server
+npm run build      # next build
+npm run start      # next start
+npm run lint       # eslint .
+npm run typecheck  # tsc --noEmit
+```
+
 ### Bước 6: Chạy Frontend Dashboard
 ```bash
 cd apps/frontend/ecommerce-dashboard
 npm install
-npm run dev
+npm run dev -- -p 3001
 ```
-Dashboard sẽ chạy tại: `http://localhost:3001`
+Dashboard mặc định của `next dev` là `http://localhost:3000`; dùng `-p 3001` khi chạy song song với client để dashboard chạy tại `http://localhost:3001`.
+
+Scripts hiện có:
+```bash
+npm run dev        # Next dev server
+npm run build      # next build
+npm run start      # next start
+npm run lint       # eslint .
+npm run typecheck  # tsc --noEmit
+```
 
 ### Ports sử dụng
 | Service | Port | URL |
@@ -323,6 +342,14 @@ Order confirmation, order status update, password reset, and admin resend emails
 | Biến | Mô tả | Mặc định |
 |------|-------|----------|
 | `NEXT_PUBLIC_API_URL` | Backend API URL | http://localhost:5000/api |
+| `NEXT_PUBLIC_IMAGE_REMOTE_URLS` | Danh sách URL prefix cho image host production/CDN, phân tách bằng dấu phẩy; dùng cho `next/image` remotePatterns ngoài Supabase/Unsplash và localhost development | rỗng |
+
+Frontend dùng relative API path để cookie auth same-origin hoạt động ổn định:
+
+- Request frontend đến `/api/:path*` được Next rewrites proxy sang `${NEXT_PUBLIC_API_URL}/:path*`.
+- Request frontend đến `/uploads/:path*` được Next rewrites proxy sang backend upload base tương ứng.
+- Nếu không set `NEXT_PUBLIC_API_URL`, cả client và dashboard dùng mặc định `http://localhost:5000/api`.
+- Các remote image host localhost chỉ được allow trong development. Production cần cấu hình domain upload/CDN thật bằng `NEXT_PUBLIC_IMAGE_REMOTE_URLS` nếu backend trả absolute image URLs.
 
 ### Docker (.env)
 
