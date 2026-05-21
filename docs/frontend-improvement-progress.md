@@ -518,3 +518,84 @@ Ngay thuc hien: 2026-05-21
   - `/api/:path*` proxy sang backend API tu `NEXT_PUBLIC_API_URL`.
   - `/uploads/:path*` proxy sang backend upload base.
   - localhost image remotePatterns chi danh cho development; production can domain that qua env.
+
+## Prompt 11 - Manual test checklist
+
+Status: Done
+
+Ngay thuc hien: 2026-05-21
+
+### File da tao/cap nhat
+
+- `docs/frontend-manual-test-checklist.md`
+- `docs/frontend-improvement-progress.md`
+
+### Noi dung da cap nhat
+
+- Tao checklist test thu cong cho `ecommerce-client`:
+  - Home page
+  - Product listing
+  - Product detail
+  - Search
+  - Cart guest
+  - Cart logged-in user
+  - Login/register/logout
+  - Wishlist
+  - Checkout
+  - Account profile
+  - Orders
+- Tao checklist test thu cong cho `ecommerce-dashboard`:
+  - Login/logout
+  - Dashboard overview
+  - Product management
+  - Order management
+  - Customer management
+  - Upload/image display
+  - Notification/SignalR
+- Moi checklist item gom `Muc tieu`, `Buoc test`, `Ket qua mong doi`, va `Ghi chu loi neu co`.
+- Khong sua code production.
+
+## Prompt 12 - Final frontend improvement summary
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-21
+
+### Trang thai tong the
+
+- Tong the dot cai tien frontend: Partial.
+- Cac cai tien ve build gate, typecheck, React types, auth guard, image security config, README va manual checklist da duoc thuc hien.
+- Production build cua ca hai app van bi chan boi ESLint debt con lai; khong bat lai ignore de che loi.
+
+### File da tao/cap nhat
+
+- `docs/frontend-improvement-summary.md`
+- `docs/frontend-improvement-progress.md`
+
+### Ket qua command lan cuoi
+
+| App | Command | Ket qua | Ghi chu |
+| --- | --- | --- | --- |
+| `apps/frontend/ecommerce-client` | `npm run lint` | Failed | `49 problems (47 errors, 2 warnings)` |
+| `apps/frontend/ecommerce-client` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-client` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors con lai |
+| `apps/frontend/ecommerce-dashboard` | `npm run lint` | Failed | `85 problems (82 errors, 3 warnings)` |
+| `apps/frontend/ecommerce-dashboard` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-dashboard` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors con lai |
+
+### Prompt status summary
+
+| Prompt | Status |
+| --- | --- |
+| Prompt 1 - Audit | Done |
+| Prompt 2 - Fix ecommerce-client lint | Partial |
+| Prompt 3 - Fix ecommerce-dashboard lint/type | Partial |
+| Prompt 4 - Enforce frontend build checks | Partial |
+| Prompt 5 - Normalize React versions | Partial |
+| Prompt 6 - Dashboard auth guard | Partial |
+| Prompt 7 - Client auth and checkout guard | Partial |
+| Prompt 8 - Shared frontend utilities | Done |
+| Prompt 9 - Image and frontend security config | Partial |
+| Prompt 10 - Frontend documentation update | Done |
+| Prompt 11 - Manual test checklist | Done |
+| Prompt 12 - Final frontend improvement summary | Partial |
