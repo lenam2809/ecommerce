@@ -386,3 +386,108 @@ Ngay thuc hien: 2026-05-20
 
 - Chua chay browser manual test; can kiem tra `/account/orders?x=1` redirect ve login voi returnUrl dung, login xong quay lai account route, va `/checkout` van cho guest checkout.
 - Lint debt cu van chan build production.
+
+## Prompt 8 - Shared frontend utilities
+
+Status: Done
+
+Ngay thuc hien: 2026-05-20
+
+### Ket qua so sanh
+
+- `ecommerce-client/lib/api.ts` va `ecommerce-dashboard/lib/axios.ts` trung lap cac phan nen: axios base config `baseURL: '/api'`, `withCredentials: true`, CSRF cookie helper, refresh-token queue, broadcast `SESSION_REFRESH`, redirect login voi `returnUrl`.
+- `ecommerce-client/lib/api.ts` co hanh vi rieng cho storefront: guest cart header `X-Guest-ID`, soft endpoints khong redirect guest (`wishlist`, `me/profile`, `products`, `cart`, `categories`, `banner`), retry limit refresh-token 3 lan/phut, va fallback data cho soft endpoint.
+- `ecommerce-dashboard/lib/axios.ts` co hanh vi chat hon cho admin/dashboard: 401 refresh mot lan, refresh fail thi redirect login, khong co guest cart/soft endpoint.
+- `session-sync.ts` gan nhu trung lap, chi khac comment/cleanup nho; event names chung la `LOGOUT`, `LOGIN`, `SESSION_REFRESH`.
+- `logger.ts` trung y tuong sanitize sensitive fields, nhung API khac nho: client co `log`, dashboard co `info`.
+
+### Quyet dinh
+
+- Chua tach shared utility trong prompt nay.
+- Ly do: root repo khong co `package.json`/workspace setup, hai app chi co `@/*` alias cuc bo tro ve tung app, nen them `packages/frontend-shared` hoac `apps/frontend/shared` se can cau hinh monorepo/build/tsconfig rieng va co rui ro cao hon pham vi prompt.
+- Khong dung relative import xuyen app vi de vo Next build boundary, alias `@/`, va ownership cua tung app.
+- Khong hop nhat axios refresh code luc nay vi client va dashboard co auth behavior khac nhau; hop nhat sai co the lam mat guest cart hoac lam dashboard cho guest di qua soft endpoints.
+
+### Recommendation tiep theo
+
+- Khi co workspace setup on dinh, tao package rieng, vi du `packages/frontend-shared`, export cac primitive khong phu thuoc app:
+  - `AUTH_SESSION_EVENTS` / `SessionEventType`
+  - `createSessionSync(channelName, options)`
+  - `getCsrfToken(cookieName = 'csrf_token')`
+  - `createRefreshQueue()`
+  - `createLogger({ exposeInfoAlias?: boolean })`
+- Giu phan policy rieng trong tung app:
+  - client: guest cart, soft endpoints, retry limit
+  - dashboard: dashboard/admin redirect policy va stricter auth failure
+
+### File da sua
+
+- `docs/frontend-improvement-progress.md`
+
+Khong sua source code cua hai app trong prompt nay de tranh thay doi hanh vi auth hien co.
+
+### Command da chay
+
+| Command | Ket qua | Ghi chu |
+| --- | --- | --- |
+| `cd apps/frontend/ecommerce-client && npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `cd apps/frontend/ecommerce-client && npm run lint` | Failed | Van la blocker cu: `49 problems (47 errors, 2 warnings)` |
+| `cd apps/frontend/ecommerce-dashboard && npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `cd apps/frontend/ecommerce-dashboard && npm run lint` | Failed | Van la blocker cu: `85 problems (82 errors, 3 warnings)` |
+
+### Rui ro con lai
+
+- Trung lap code API/session/logger van con ton tai.
+- Can workspace/shared package setup truoc khi tach utility de tranh import khong on dinh va khong pha behavior auth/guest checkout.
+
+## Prompt 9 - Image and frontend security config
+
+Status: Partial
+
+Ngay thuc hien: 2026-05-20
+
+### Cau hinh da doi
+
+- `apps/frontend/ecommerce-client/next.config.ts`
+  - Tach `images.remotePatterns` thanh `sharedRemotePatterns` va `developmentRemotePatterns`.
+  - `localhost`, `localhost:3000`, `localhost:5000/uploads/**`, `localhost:6262/uploads/**` chi duoc them khi `NODE_ENV !== "production"`.
+  - Giu `images.unsplash.com` va Supabase Storage `*.supabase.co/storage/v1/object/public/**`.
+  - Them allowlist production qua bien moi truong `NEXT_PUBLIC_IMAGE_REMOTE_URLS` (comma-separated URL prefixes), de trien khai domain that ma khong hardcode domain gia.
+  - Tat `dangerouslyAllowSVG`; bo CSP rieng cho remote SVG vi chua thay nhu cau remote SVG bat buoc. SVG local trong `public` khong bi anh huong.
+- `apps/frontend/ecommerce-dashboard/next.config.ts`
+  - Tach `images.remotePatterns` thanh `sharedRemotePatterns` va `developmentRemotePatterns`.
+  - `localhost` chi duoc them khi `NODE_ENV !== "production"`.
+  - Giu Supabase Storage `*.supabase.co/storage/v1/object/public/**`.
+  - Them allowlist production qua `NEXT_PUBLIC_IMAGE_REMOTE_URLS`.
+
+### Ly do
+
+- Localhost va cac port dev (`3000`, `5000`, `6262`) khong nen nam trong production remote image allowlist.
+- Upload path hien tai van duoc rewrite qua `/uploads/:path*` den backend, nen anh upload same-origin khong can remote host production neu UI dung `/uploads/...`.
+- Neu backend tra absolute production image URLs, can khai bao domain that qua `NEXT_PUBLIC_IMAGE_REMOTE_URLS`, vi prompt yeu cau khong hardcode production domain gia.
+- Remote SVG khong duoc mo mac dinh de giam rui ro scriptable SVG; chi nen bat lai neu co use case remote SVG ro rang va CSP chat.
+
+### Checklist kiem thu anh
+
+- Development: anh tu `http://localhost`, `http://localhost:5000/uploads/**`, `http://localhost:6262/uploads/**` van render.
+- Production/staging: set `NEXT_PUBLIC_IMAGE_REMOTE_URLS` voi domain upload/CDN that, vi du URL prefix cua backend/CDN that, roi verify product/category/brand/banner/user avatar images.
+- Supabase: verify anh `https://*.supabase.co/storage/v1/object/public/**` van render.
+- Unsplash client: verify homepage/marketing images tu `images.unsplash.com` van render neu con duoc dung.
+- SVG: verify local `/placeholder.svg` van render; neu co remote SVG bi chan thi can danh gia lai nhu cau va CSP truoc khi bat `dangerouslyAllowSVG`.
+
+### Command da chay
+
+| App | Command | Ket qua | Ghi chu |
+| --- | --- | --- | --- |
+| `apps/frontend/ecommerce-client` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-client` | `npm run lint` | Failed | Van la blocker cu: `49 problems (47 errors, 2 warnings)` |
+| `apps/frontend/ecommerce-client` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors cu |
+| `apps/frontend/ecommerce-dashboard` | `npm run typecheck` | Passed | `tsc --noEmit` hoan thanh thanh cong |
+| `apps/frontend/ecommerce-dashboard` | `npm run lint` | Failed | Van la blocker cu: `85 problems (82 errors, 3 warnings)` |
+| `apps/frontend/ecommerce-dashboard` | `npm run build` | Failed | Compile thanh cong, fail o lint/type gate do lint errors cu |
+
+### Rui ro con lai
+
+- Chua co production image domain that trong repo; can cau hinh `NEXT_PUBLIC_IMAGE_REMOTE_URLS` tren moi truong deploy neu API/CDN tra absolute URLs.
+- Chua test browser thuc te; can verify cac man hinh product, category, brand, banner, avatar va upload preview.
+- Lint debt cu van chan build production.
