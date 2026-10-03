@@ -17,6 +17,16 @@ const DEFAULT_PROD_DESCRIPTION = "Something went wrong, please try again later"
 
 const dedupeCache = new Map<string, number>()
 
+interface ApiErrorLike {
+  response?: {
+    status?: unknown
+  }
+  config?: {
+    url?: unknown
+    method?: unknown
+  }
+}
+
 function isDev() {
   return process.env.NODE_ENV !== "production"
 }
@@ -33,28 +43,32 @@ function getErrorMessage(error: unknown): string {
   }
 }
 
-function getAxiosStatus(error: any): number | undefined {
-  const status = error?.response?.status
+function asApiErrorLike(error: unknown): ApiErrorLike {
+  return typeof error === "object" && error !== null ? (error as ApiErrorLike) : {}
+}
+
+function getAxiosStatus(error: unknown): number | undefined {
+  const status = asApiErrorLike(error).response?.status
   return typeof status === "number" ? status : undefined
 }
 
-function getAxiosEndpoint(error: any, fallback?: string): string | undefined {
-  const url = error?.config?.url
+function getAxiosEndpoint(error: unknown, fallback?: string): string | undefined {
+  const url = asApiErrorLike(error).config?.url
   return typeof url === "string" ? url : fallback
 }
 
-function getAxiosMethod(error: any): string | undefined {
-  const method = error?.config?.method
+function getAxiosMethod(error: unknown): string | undefined {
+  const method = asApiErrorLike(error).config?.method
   return typeof method === "string" ? method.toUpperCase() : undefined
 }
 
-function getErrorKind(status: number | undefined, error: any): ApiErrorKind {
+function getErrorKind(status: number | undefined, error: unknown): ApiErrorKind {
   if (typeof status === "number") {
     if (status >= 400 && status <= 499) return "client"
     if (status >= 500) return "server"
   }
 
-  const hasAxiosResponse = typeof error?.response !== "undefined"
+  const hasAxiosResponse = typeof asApiErrorLike(error).response !== "undefined"
   if (!hasAxiosResponse) return "network"
   return "unknown"
 }
@@ -89,11 +103,10 @@ function buildDevDescription(params: {
 }
 
 export function getApiErrorUi(error: unknown, context?: ApiErrorContext, ui?: { devTitle?: string }): ApiErrorUi {
-  const anyErr = error as any
-  const status = getAxiosStatus(anyErr)
-  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, anyErr)
-  const endpoint = getAxiosEndpoint(anyErr, context?.endpoint)
-  const method = getAxiosMethod(anyErr) ?? context?.method
+  const status = getAxiosStatus(error)
+  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, error)
+  const endpoint = getAxiosEndpoint(error, context?.endpoint)
+  const method = getAxiosMethod(error) ?? context?.method
   const operation = context?.operation
 
   const title = isDev() ? ui?.devTitle ?? "API Error" : DEFAULT_PROD_TITLE
@@ -107,11 +120,10 @@ export function getApiErrorUi(error: unknown, context?: ApiErrorContext, ui?: { 
 export function getApiErrorDescription(error: unknown, options?: { fallbackDescription?: string; context?: ApiErrorContext }) {
   if (!isDev()) return options?.fallbackDescription ?? DEFAULT_PROD_DESCRIPTION
 
-  const anyErr = error as any
-  const status = getAxiosStatus(anyErr)
-  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, anyErr)
-  const endpoint = getAxiosEndpoint(anyErr, options?.context?.endpoint)
-  const method = getAxiosMethod(anyErr) ?? options?.context?.method
+  const status = getAxiosStatus(error)
+  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, error)
+  const endpoint = getAxiosEndpoint(error, options?.context?.endpoint)
+  const method = getAxiosMethod(error) ?? options?.context?.method
   const operation = options?.context?.operation
 
   return buildDevDescription({ kind, status, endpoint, operation, method, error })
@@ -134,12 +146,11 @@ export function handleApiError(params: {
     notify,
   } = params
 
-  const anyErr = error as any
-  const status = getAxiosStatus(anyErr)
+  const status = getAxiosStatus(error)
   if (typeof status === "number" && suppressStatuses.includes(status)) return
 
-  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, anyErr)
-  const endpoint = getAxiosEndpoint(anyErr, context?.endpoint)
+  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, error)
+  const endpoint = getAxiosEndpoint(error, context?.endpoint)
 
   const dedupeKey = buildDedupeKey(kind, status, endpoint)
   const now = Date.now()

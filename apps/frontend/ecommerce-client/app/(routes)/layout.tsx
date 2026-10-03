@@ -14,7 +14,7 @@ export default function RoutesLayout({ children }: RoutesLayoutProps) {
             <CartProvider>
                 <WishlistProvider>
                     <Header />
-                    <main className="flex-grow pt-16 md:pt-20">
+                    <main className="flex-grow pt-16 md:pt-[72px]">
                         {children}
                     </main>
                     <Footer />

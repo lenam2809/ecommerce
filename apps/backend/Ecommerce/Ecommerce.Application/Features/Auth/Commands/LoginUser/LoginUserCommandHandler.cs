@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Auth.Dto;
 using Ecommerce.Domain.Enums;
@@ -46,17 +46,25 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                 var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
                 if (user == null)
                 {
-                    return Result<AuthResponseDto>.BadRequest("Invalid email or password.");
+                    // 🔒 SECURITY (M11): thông báo đồng nhất cho MỌI trường hợp thất bại —
+                    // không để lộ tài khoản có tồn tại hay không (chống user enumeration)
+                    return Result<AuthResponseDto>.BadRequest("Email hoặc mật khẩu không đúng.");
                 }
 
                 if (await _unitOfWork.AccountLocks.IsUserLockedAsync(user.Id))
                 {
                     var activeLock = await _unitOfWork.AccountLocks.GetActiveLockAsync(user.Id);
-                    return Result<AuthResponseDto>.BadRequest(
-                        $"Account is locked. Reason: {activeLock.Reason}. " +
-                        (activeLock.ExpiresAt.HasValue
-                            ? $"Unlocks at: {activeLock.ExpiresAt.Value:u}"
-                            : "Permanent lock."));
+                    await _logger.LogAsync(
+                        ELogLevel.Warning,
+                        "Login attempt on locked account {UserId}",
+                        "LoginFailed_Locked",
+                        properties: new Dictionary<string, object?>
+                        {
+                            { "UserId", user.Id },
+                            { "LockReason", activeLock.Reason }
+                        });
+                    // M11: không tiết lộ trạng thái khóa cho người gọi (lý do đã được ghi log)
+                    return Result<AuthResponseDto>.BadRequest("Email hoặc mật khẩu không đúng.");
                 }
 
                 var passwordValid = await _unitOfWork.Users.CheckPasswordAsync(user, request.Password);
@@ -81,10 +89,12 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                             expiresAt));
 
                         await _unitOfWork.CompleteAsync(cancellationToken);
-                        return Result<AuthResponseDto>.BadRequest("Account locked for 30 minutes due to too many failed attempts.");
+                        // M11: thông báo chung — không tiết lộ cơ chế khóa cho kẻ tấn công
+                        return Result<AuthResponseDto>.BadRequest("Email hoặc mật khẩu không đúng.");
                     }
 
-                    return Result<AuthResponseDto>.BadRequest($"Invalid email or password. Remaining attempts: {5 - failCount}.");
+                    // M11: trước đây lộ "Remaining attempts: {n}" → cho phép xác định tài khoản tồn tại
+                    return Result<AuthResponseDto>.BadRequest("Email hoặc mật khẩu không đúng.");
                 }
 
                 await _unitOfWork.Users.ResetAccessFailedCountAsync(user);

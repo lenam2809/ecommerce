@@ -1,83 +1,129 @@
-import { ShoppingCart, Share2, ShieldCheck, Truck, RotateCcw } from "lucide-react"
+"use client"
+
+import { ShoppingCart, Zap, Truck, ShieldCheck, RotateCcw, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import AddToWishlistButton from "../add-to-wishlist-button"
+import { toast } from "sonner"
 
 interface ProductActionsProps {
-    productId: string;
+    productId: string
     isLoading: boolean
     isAddingToCart: boolean
     onAddToCart: () => void
+    onBuyNow?: () => void
+    productName?: string
+    price?: number
+    categoryName?: string
 }
 
-export function ProductActions({ productId, isLoading, isAddingToCart, onAddToCart }: ProductActionsProps) {
+/**
+ * ProductActions — Editorial Tech Minimalism
+ * Dual CTA: Add to cart (carbon black pill) + Buy now (ruby red pill)
+ * Trust guarantees and wishlist action
+ */
+export function ProductActions({
+    productId,
+    isLoading,
+    isAddingToCart,
+    onAddToCart,
+    onBuyNow,
+    productName,
+    price,
+    categoryName,
+}: ProductActionsProps) {
     if (isLoading) {
         return (
-            <div className="flex space-x-3 mb-6">
-                <Skeleton className="h-12 flex-1 rounded-2xl" />
-                <Skeleton className="h-12 flex-1 rounded-2xl" />
+            <div className="space-y-4">
+                <div className="flex gap-3">
+                    <Skeleton className="h-12 flex-1 rounded-full" />
+                    <Skeleton className="h-12 flex-1 rounded-full" />
+                </div>
+                <Skeleton className="h-20 w-full rounded-2xl" />
             </div>
         )
     }
 
-    return (
-        <div className="pt-2">
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                {/* Primary CTA - Mua ngay */}
-                <Button
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(59,130,246,0.3)] h-14 rounded-2xl text-[17px] font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_30px_rgba(59,130,246,0.5)]"
-                >
-                    Mua Ngay
-                </Button>
+    const handleShare = () => {
+        if (typeof window !== "undefined") {
+            navigator.clipboard.writeText(window.location.href)
+            toast.success("Đã sao chép liên kết sản phẩm!")
+        }
+    }
 
-                {/* Secondary CTA - Thêm vào giỏ hàng */}
+    return (
+        <div className="space-y-6 pt-2">
+            {/* Dual Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+                {/* Secondary CTA - Thêm vào giỏ */}
                 <Button
-                    variant="outline"
-                    className="flex-1 glass-card bg-secondary/20 border-border/50 hover:bg-secondary/40 h-14 rounded-2xl text-[17px] transition-all duration-300 hover:-translate-y-1 group"
                     onClick={onAddToCart}
                     disabled={isAddingToCart}
+                    className="flex-1 h-12 rounded-full bg-ink text-background hover:bg-brand hover:text-white dark:hover:text-white text-small font-semibold transition-all duration-200 shadow-xs focus-ring"
                 >
-                    <ShoppingCart className="h-5 w-5 mr-2.5 text-foreground/80 group-hover:text-primary transition-colors" />
-                    {isAddingToCart ? "Đang xử lý..." : "Thêm Giỏ Hàng"}
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ"}
+                </Button>
+
+                {/* Primary CTA - Mua ngay */}
+                <Button
+                    onClick={onBuyNow || onAddToCart}
+                    disabled={isAddingToCart}
+                    className="flex-1 h-12 rounded-full bg-brand text-white hover:bg-brand-hover text-small font-semibold transition-all duration-200 shadow-sm hover:shadow-md focus-ring"
+                >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Mua ngay
                 </Button>
             </div>
-            
-            {/* Auxiliary actions */}
-            <div className="flex items-center justify-center sm:justify-start space-x-8 mb-8 pb-8 border-b border-border/40">
-                <div className="flex items-center gap-2 group cursor-pointer">
-                    <div className="p-2.5 rounded-full bg-secondary/40 group-hover:bg-primary/10 transition-colors">
-                        <AddToWishlistButton
-                            productId={productId}
-                            className="bg-transparent hover:bg-transparent shadow-none p-0 h-auto"
-                        />
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Thêm vào yêu thích</span>
+
+            {/* Utility row: Wishlist & Share */}
+            <div className="flex items-center justify-between text-small border-y border-line/60 py-3">
+                <div className="flex items-center gap-2">
+                    <AddToWishlistButton
+                        productId={productId}
+                        productName={productName}
+                        price={price}
+                        category={categoryName}
+                        className="h-8.5 w-8.5 p-1.5 rounded-full bg-surface-2 hover:bg-surface text-ink border border-line shadow-xs transition-all hover:scale-105"
+                    />
+                    <span className="text-tiny font-medium text-ink-soft">
+                        Lưu vào danh sách yêu thích
+                    </span>
                 </div>
 
-                <div className="flex items-center gap-2 group cursor-pointer">
-                    <div className="p-2.5 rounded-full bg-secondary/40 group-hover:bg-primary/10 transition-colors">
-                        <Share2 className="h-4 w-4 text-foreground/70 group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Chia sẻ</span>
-                </div>
+                <button
+                    onClick={handleShare}
+                    className="inline-flex items-center gap-1.5 text-tiny font-medium text-ink-soft hover:text-ink transition-colors p-1"
+                >
+                    <Share2 className="h-3.5 w-3.5" />
+                    <span>Chia sẻ</span>
+                </button>
             </div>
 
-            {/* Trust Signals */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex flex-col items-center sm:items-start p-4 rounded-2xl bg-secondary/10 border border-border/30">
-                    <Truck className="h-6 w-6 text-primary mb-2" />
-                    <h5 className="text-sm font-semibold text-foreground">Giao hàng miễn phí</h5>
-                    <p className="text-xs text-center sm:text-left text-muted-foreground mt-1">Nội thành TP.HCM & HN</p>
+            {/* 3-Column Trust Guarantees */}
+            <div className="grid grid-cols-3 gap-2.5 p-4 rounded-2xl bg-surface/60 border border-line/60 text-center">
+                <div className="flex flex-col items-center gap-1.5">
+                    <span className="p-2 rounded-full bg-brand-soft text-brand shrink-0">
+                        <Truck className="h-4 w-4" />
+                    </span>
+                    <span className="text-tiny font-semibold text-ink">Giao siêu tốc 2H</span>
+                    <span className="text-[11px] text-ink-faint">Toàn quốc</span>
                 </div>
-                <div className="flex flex-col items-center sm:items-start p-4 rounded-2xl bg-secondary/10 border border-border/30">
-                    <ShieldCheck className="h-6 w-6 text-primary mb-2" />
-                    <h5 className="text-sm font-semibold text-foreground">Bảo hành 1 năm</h5>
-                    <p className="text-xs text-center sm:text-left text-muted-foreground mt-1">Chính hãng 100%</p>
+
+                <div className="flex flex-col items-center gap-1.5">
+                    <span className="p-2 rounded-full bg-brand-soft text-brand shrink-0">
+                        <ShieldCheck className="h-4 w-4" />
+                    </span>
+                    <span className="text-tiny font-semibold text-ink">Bảo hành 24T</span>
+                    <span className="text-[11px] text-ink-faint">Chính hãng 100%</span>
                 </div>
-                <div className="flex flex-col items-center sm:items-start p-4 rounded-2xl bg-secondary/10 border border-border/30">
-                    <RotateCcw className="h-6 w-6 text-primary mb-2" />
-                    <h5 className="text-sm font-semibold text-foreground">Đổi trả 30 ngày</h5>
-                    <p className="text-xs text-center sm:text-left text-muted-foreground mt-1">Lỗi do nhà sản xuất</p>
+
+                <div className="flex flex-col items-center gap-1.5">
+                    <span className="p-2 rounded-full bg-brand-soft text-brand shrink-0">
+                        <RotateCcw className="h-4 w-4" />
+                    </span>
+                    <span className="text-tiny font-semibold text-ink">1 đổi 1 30 ngày</span>
+                    <span className="text-[11px] text-ink-faint">Nếu lỗi NSX</span>
                 </div>
             </div>
         </div>

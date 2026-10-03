@@ -1,9 +1,11 @@
 export interface OrderItem {
     productId: string;
     name: string;
+    productName?: string;
     unitPrice: number;
     quantity: number;
     image: string;
+    imageUrl?: string;
     color: string;
     size: string;
 }

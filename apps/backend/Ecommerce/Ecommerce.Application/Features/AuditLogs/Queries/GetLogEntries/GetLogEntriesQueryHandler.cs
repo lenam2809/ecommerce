@@ -39,11 +39,19 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntries
             try
             {
                 var currentUserId = _currentUserService.UserId;
-                var isAdmin = await _currentUserService.IsInRoleAsync(EUserRoles.Admin);
+                var isAdmin = _currentUserService.IsInRole(EUserRoles.Admin);
+
+                // 🔒 SECURITY (H1): fail-closed — anonymous tuyệt đối không được đọc log hệ thống.
+                // (LogEntry.ApplicationUserId == null là log của background worker/system;
+                //  nếu không chặn, anonymous với currentUserId = null sẽ khớp toàn bộ các dòng này)
+                if (!isAdmin && !currentUserId.HasValue)
+                {
+                    return Result<PaginatedList<LogEntryDto>>.Forbidden("Yêu cầu đăng nhập");
+                }
 
                 // Xây dựng biểu thức filter
                 Expression<Func<LogEntry, bool>> filter = logEntry =>
-                    // Phân quyền: Admin xem tất cả, user thường chỉ xem log của mình
+                    // Phân quyền: Admin xem tất cả, user thường chỉ xem log của chính mình
                     (isAdmin || logEntry.ApplicationUserId == currentUserId) &&
                     // Lọc theo khoảng thời gian
                     (!request.StartDate.HasValue || logEntry.Timestamp >= request.StartDate.Value) &&

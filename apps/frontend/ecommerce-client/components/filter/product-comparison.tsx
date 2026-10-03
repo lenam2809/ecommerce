@@ -56,7 +56,7 @@ export default function ProductComparison() {
                     <Button variant="outline" size="sm" className="relative" disabled={comparedProducts.length === 0}>
                         So sánh sản phẩm
                         {comparedProducts.length > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-[#2A5CAA] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            <span className="absolute -top-2 -right-2 bg-brand text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                 {comparedProducts.length}
                             </span>
                         )}
@@ -71,7 +71,7 @@ export default function ProductComparison() {
                     <div className="mt-4">
                         {comparedProducts.length === 0 ? (
                             <div className="text-center py-8">
-                                <p className="text-gray-500">Chưa có sản phẩm nào được chọn để so sánh</p>
+                                <p className="text-ink-faint">Chưa có sản phẩm nào được chọn để so sánh</p>
                             </div>
                         ) : (
                             <>
@@ -79,7 +79,7 @@ export default function ProductComparison() {
                                     {comparedProducts.map((product) => (
                                         <div key={product.id} className="min-w-[200px] border rounded-md p-3 relative">
                                             <button
-                                                className="absolute top-2 right-2 bg-gray-100 rounded-full p-1"
+                                                className="absolute top-2 right-2 bg-surface-2 rounded-full p-1"
                                                 onClick={() => removeFromComparison(product.id)}
                                             >
                                                 <X className="h-4 w-4" />
@@ -96,7 +96,7 @@ export default function ProductComparison() {
                                                     />
                                                 </div>
                                                 <h3 className="text-sm font-medium line-clamp-2 text-center mb-1">{product.name}</h3>
-                                                <p className="text-[#FF6B00] font-semibold">
+                                                <p className="text-brand font-semibold">
                                                     {formatPrice(product.salePrice || product.price)}
                                                 </p>
                                             </div>

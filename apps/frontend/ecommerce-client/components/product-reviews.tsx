@@ -221,14 +221,14 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           ))
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
+            <p className="text-ink-faint">Chưa có đánh giá nào cho sản phẩm này</p>
           </div>
         )}
       </div>
 
       {reviews.length > 0 && (
         <div className="mt-6 text-center">
-          <Button variant="outline" className="border-[#2A5CAA] text-[#2A5CAA]">
+          <Button variant="outline" className="rounded-full border-line text-ink hover:text-brand hover:border-brand">
             Xem thêm đánh giá
           </Button>
         </div>

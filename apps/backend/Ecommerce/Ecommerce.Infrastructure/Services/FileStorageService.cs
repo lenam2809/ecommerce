@@ -1,4 +1,4 @@
-﻿
+
 using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +15,14 @@ namespace Ecommerce.Infrastructure.Services
         private readonly IWebHostEnvironment _env;
         private readonly FileStorageConfig _config;
         private readonly string _baseUrl;
+
+        // 🔒 SECURITY (M10): whitelist extension — chặn upload .html/.svg/.js... lên wwwroot
+        // (trước đây file không-phải-ảnh đi qua không kiểm tra → stored XSS cùng origin)
+        private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".gif", ".webp",  // ảnh (đã kiểm magic bytes riêng)
+            ".xlsx", ".csv", ".pdf", ".txt"            // tài liệu — không thực thi được
+        };
 
         public FileStorageService(IWebHostEnvironment env, IOptions<FileStorageConfig> config)
         {
@@ -44,7 +52,24 @@ namespace Ecommerce.Infrastructure.Services
             }
 
             var fileName = GetUniqueFileName(file.FileName);
-            var folderPath = Path.Combine(_rootPath, folderName);
+
+            // 🔒 SECURITY (M10): whitelist extension (xem AllowedExtensions)
+            var extension = Path.GetExtension(fileName);
+            if (!AllowedExtensions.Contains(extension))
+            {
+                throw new ArgumentException($"Loại file '{extension}' không được phép upload.");
+            }
+
+            // 🔒 SECURITY (M10): chặn path traversal qua folderName
+            // (call-site thường là hằng số, nhưng TestStorageController nhận folder từ query)
+            var rootFullPath = Path.GetFullPath(_rootPath);
+            var folderPath = Path.GetFullPath(Path.Combine(_rootPath, folderName));
+            if (!folderPath.Equals(rootFullPath, StringComparison.OrdinalIgnoreCase) &&
+                !folderPath.StartsWith(rootFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Tên thư mục không hợp lệ.");
+            }
+
             var filePath = Path.Combine(folderPath, fileName);
 
             // Đảm bảo thư mục tồn tại

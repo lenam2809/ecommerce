@@ -17,15 +17,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function ComparePage() {
     return (
         <Suspense fallback={
-            <div className="container py-8 space-y-8">
-                <div className="glass-card rounded-3xl p-8 border-white/5">
+            <div className="container-app py-8 space-y-8">
+                <div className="bg-card rounded-3xl p-8 border border-line">
                     <div className="flex justify-between mb-8">
-                        <Skeleton className="h-10 w-48 rounded-xl bg-secondary/50" />
+                        <Skeleton className="h-10 w-48 rounded-xl" />
                     </div>
                     <div className="grid grid-cols-3 gap-8">
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
                     </div>
                 </div>
             </div>
@@ -74,15 +74,15 @@ function CompareContent() {
 
     if (loading) {
         return (
-            <div className="container py-8 space-y-8">
-                <div className="glass-card rounded-3xl p-8 border-white/5">
+            <div className="container-app py-8 space-y-8">
+                <div className="bg-card rounded-3xl p-8 border border-line">
                     <div className="flex justify-between mb-8">
-                        <Skeleton className="h-10 w-48 rounded-xl bg-secondary/50" />
+                        <Skeleton className="h-10 w-48 rounded-xl" />
                     </div>
                     <div className="grid grid-cols-3 gap-8">
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
-                        <Skeleton className="h-96 w-full rounded-2xl bg-secondary/30" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
+                        <Skeleton className="h-96 w-full rounded-2xl" />
                     </div>
                 </div>
             </div>
@@ -91,16 +91,16 @@ function CompareContent() {
 
     if (products.length < 2) {
         return (
-            <div className="container py-12 flex justify-center">
-                <div className="glass-card rounded-3xl p-12 text-center max-w-md w-full border-white/5">
-                    <div className="h-24 w-24 rounded-full bg-secondary/30 flex items-center justify-center mx-auto mb-6">
-                        <AlertCircle className="h-10 w-10 text-muted-foreground" />
+            <div className="container-app py-12 flex justify-center">
+                <div className="bg-card rounded-3xl p-12 text-center max-w-md w-full border border-line">
+                    <div className="h-24 w-24 rounded-full bg-surface flex items-center justify-center mx-auto mb-6">
+                        <AlertCircle className="h-10 w-10 text-ink-faint" />
                     </div>
-                    <h2 className="text-2xl tech-heading mb-3">Chưa đủ sản phẩm</h2>
-                    <p className="text-muted-foreground mb-8">
+                    <h2 className="text-h2 font-semibold text-ink mb-3">Chưa đủ sản phẩm</h2>
+                    <p className="text-ink-soft mb-8">
                         Vui lòng chọn ít nhất 2 sản phẩm để thực hiện so sánh chi tiết.
                     </p>
-                    <Button asChild className="btn-glow w-full rounded-full py-6 text-base">
+                    <Button asChild className="rounded-full bg-brand text-white hover:bg-brand-hover w-full h-12 text-small font-semibold">
                         <Link href="/products">Quay lại trang sản phẩm</Link>
                     </Button>
                 </div>
@@ -111,49 +111,55 @@ function CompareContent() {
     // Get all unique specifications
     const allSpecs = new Set<string>()
     products.forEach((product) => {
-        if (product.specifications) {
-            Object.keys(product.specifications).forEach((key) => {
-                allSpecs.add(key)
+        if (Array.isArray(product.specifications)) {
+            product.specifications.forEach((s) => {
+                if (s.name) allSpecs.add(s.name)
             })
         }
     })
 
-    // Sort specs if needed, or predefined list
     const sortedSpecs = Array.from(allSpecs)
 
     return (
-        <div className="container py-8">
-            <div className="mb-6">
-                <Button variant="ghost" className="hover:bg-secondary/50 rounded-full pl-0" asChild>
-                    <Link href="/products" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
+        <div className="container-app py-8 md:py-12">
+            <div className="mb-6 flex items-center justify-between">
+                <Button variant="ghost" className="hover:bg-surface rounded-full text-ink-soft hover:text-brand px-3" asChild>
+                    <Link href="/products" className="flex items-center">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Quay lại trang sản phẩm
+                        Quay lại danh mục sản phẩm
                     </Link>
                 </Button>
             </div>
 
-            <div className="glass-card rounded-3xl overflow-hidden border-white/5">
-                <div className="p-8 border-b border-white/5 bg-gradient-to-r from-secondary/20 to-transparent">
-                    <h1 className="text-3xl tech-heading">So sánh sản phẩm</h1>
+            <div className="bg-card rounded-3xl overflow-hidden border border-line shadow-xs">
+                <div className="p-6 md:p-8 border-b border-line/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <p className="text-tiny font-bold uppercase tracking-widest text-brand mb-1">Ma trận thông số</p>
+                        <h1 className="text-h2 font-bold tracking-tight text-ink">So sánh chi tiết thiết bị</h1>
+                        <p className="text-small text-ink-soft mt-1">Đối chiếu trực quan thông số kỹ thuật giữa {products.length} sản phẩm</p>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th className="p-6 min-w-[200px] text-muted-foreground font-medium border-b border-white/5 bg-secondary/10">Thông tin sản phẩm</th>
+                            <tr className="border-b border-line/70">
+                                <th className="p-6 min-w-[200px] text-tiny font-bold uppercase tracking-wider text-ink-faint bg-surface/50 align-top">
+                                    Thiết bị
+                                </th>
                                 {products.map((product) => (
-                                    <th key={product.id} className="p-6 min-w-[250px] border-b border-white/5 border-l border-white/5">
-                                        <div className="flex flex-col items-center group">
-                                            <Link href={`/product/${product.slug || product.id}`} className="relative w-40 h-40 mb-4 rounded-xl overflow-hidden bg-background/50 p-2 transition-transform hover:scale-105">
+                                    <th key={product.id} className="p-6 min-w-[260px] border-l border-line/70 align-top bg-card">
+                                        <div className="flex flex-col items-center group text-center">
+                                            <Link href={`/product/${product.slug || product.id}`} className="relative w-36 h-36 mb-4 rounded-2xl overflow-hidden bg-surface-2/40 border border-line transition-transform duration-200 group-hover:scale-105">
                                                 <Image
                                                     src={product.mainImage || "/placeholder.svg"}
                                                     alt={product.name}
                                                     fill
-                                                    className="object-contain"
+                                                    sizes="144px"
+                                                    className="object-contain p-2"
                                                 />
                                             </Link>
-                                            <Link href={`/product/${product.slug || product.id}`} className="font-semibold text-lg text-foreground hover:text-primary text-center line-clamp-2 transition-colors">
+                                            <Link href={`/product/${product.slug || product.id}`} className="font-semibold text-small text-ink hover:text-brand line-clamp-2 transition-colors">
                                                 {product.name}
                                             </Link>
                                         </div>
@@ -161,32 +167,32 @@ function CompareContent() {
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-line/60">
                             {/* Price Row */}
-                            <tr className="bg-secondary/5 hover:bg-secondary/10 transition-colors">
-                                <td className="p-6 font-semibold text-foreground bg-secondary/10">Giá bán</td>
+                            <tr className="bg-surface/30 hover:bg-surface/60 transition-colors">
+                                <td className="p-6 font-semibold text-small text-ink bg-surface/50">Giá niêm yết</td>
                                 {products.map((product) => (
-                                    <td key={`${product.id}-price`} className="p-6 text-center border-l border-white/5">
+                                    <td key={`${product.id}-price`} className="p-6 text-center border-l border-line/60">
                                         {product.salePrice ? (
                                             <div className="flex flex-col items-center">
-                                                <span className="text-xl font-bold text-red-500">{formatPrice(product.salePrice)}</span>
-                                                <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">{formatPrice(product.price)}</span>
+                                                <span className="text-h3 font-bold text-brand tracking-tight">{formatPrice(product.salePrice)}</span>
+                                                <span className="text-tiny text-ink-faint line-through mt-0.5">{formatPrice(product.price)}</span>
                                             </div>
                                         ) : (
-                                            <span className="text-xl font-bold text-foreground">{formatPrice(product.price)}</span>
+                                            <span className="text-h3 font-bold text-ink tracking-tight">{formatPrice(product.price)}</span>
                                         )}
                                     </td>
                                 ))}
                             </tr>
 
                             {/* Rating Row */}
-                            <tr className="hover:bg-secondary/10 transition-colors">
-                                <td className="p-6 font-medium text-foreground bg-secondary/10">Đánh giá</td>
+                            <tr className="hover:bg-surface/40 transition-colors">
+                                <td className="p-6 font-semibold text-small text-ink bg-surface/50">Đánh giá thực tế</td>
                                 {products.map((product) => (
-                                    <td key={`${product.id}-rating`} className="p-6 text-center border-l border-white/5">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <span className="font-bold text-lg">{product.rating.toFixed(1)}</span>
-                                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                    <td key={`${product.id}-rating`} className="p-6 text-center border-l border-line/60">
+                                        <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                                            <span className="font-bold text-small">{product.rating.toFixed(1)}</span>
+                                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                         </div>
                                     </td>
                                 ))}
@@ -194,8 +200,8 @@ function CompareContent() {
 
                             {/* Dynamic Specs */}
                             {sortedSpecs.map((spec) => (
-                                <tr key={spec} className="hover:bg-secondary/10 transition-colors">
-                                    <td className="p-6 font-medium text-muted-foreground capitalize bg-secondary/10">
+                                <tr key={spec} className="hover:bg-surface/40 transition-colors">
+                                    <td className="p-6 font-medium text-small text-ink-soft capitalize bg-surface/50">
                                         {spec.replace(/_/g, " ")}
                                     </td>
                                     {products.map((product) => {
@@ -203,11 +209,11 @@ function CompareContent() {
                                             (s) => s.name === spec
                                         );
                                         return (
-                                            <td key={`${product.id}-${spec}`} className="p-6 text-center border-l border-white/5">
+                                            <td key={`${product.id}-${spec}`} className="p-6 text-center border-l border-line/60">
                                                 {matchedSpec ? (
-                                                    <span className="font-medium">{matchedSpec.value}</span>
+                                                    <span className="font-medium text-small text-ink">{matchedSpec.value}</span>
                                                 ) : (
-                                                    <span className="text-muted-foreground/30">—</span>
+                                                    <span className="text-ink-faint/40">—</span>
                                                 )}
                                             </td>
                                         );
@@ -216,14 +222,14 @@ function CompareContent() {
                             ))}
 
                             {/* Actions Row */}
-                            <tr className="bg-secondary/5">
-                                <td className="p-6 font-medium bg-secondary/10"></td>
+                            <tr className="bg-surface/30">
+                                <td className="p-6 font-semibold text-small text-ink bg-surface/50">Đặt mua</td>
                                 {products.map((product) => (
-                                    <td key={`${product.id}-actions`} className="p-6 text-center border-l border-white/5">
-                                        <div className="flex flex-col gap-3">
+                                    <td key={`${product.id}-actions`} className="p-6 text-center border-l border-line/60">
+                                        <div className="flex flex-col gap-2.5 max-w-[200px] mx-auto">
                                             <AddToCartButton productId={product.id} />
-                                            <Button variant="ghost" size="sm" asChild className="w-full text-muted-foreground hover:text-foreground">
-                                                <Link href={`/product/${product.slug || product.id}`}>Xem chi tiết</Link>
+                                            <Button variant="outline" size="sm" asChild className="w-full rounded-full border-line text-ink-soft hover:text-ink text-tiny h-9">
+                                                <Link href={`/product/${product.slug || product.id}`}>Chi tiết</Link>
                                             </Button>
                                         </div>
                                     </td>

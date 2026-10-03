@@ -24,7 +24,7 @@ interface SignalRContextType {
     offReviewLikeUpdated: (callback: (data: { ReviewId: string; LikeCount: number }) => void) => void
     offUserTyping: (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
     // New handler for notifications
-    onReceiveNotification: (callback: (type: string, payload: any) => void) => void
+    onReceiveNotification: (callback: (type: string, payload: unknown) => void) => void
 }
 
 const SignalRContext = createContext<SignalRContextType | undefined>(undefined)
@@ -64,7 +64,7 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
 
         const baseUrl = getBaseUrl();
         const csrfToken = getCsrfToken();
-        const headers: any = {};
+        const headers: Record<string, string> = {};
         if (csrfToken) {
             headers['X-CSRF-Token'] = csrfToken;
         }
@@ -132,7 +132,7 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
 
         const baseUrl = getBaseUrl();
         const csrfToken = getCsrfToken();
-        const headers: any = {};
+        const headers: Record<string, string> = {};
         if (csrfToken) {
             headers['X-CSRF-Token'] = csrfToken;
         }
@@ -230,7 +230,7 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         }
     }
 
-    const onReceiveNotification = (callback: (type: string, payload: any) => void) => {
+    const onReceiveNotification = (callback: (type: string, payload: unknown) => void) => {
         if (notificationConnection) {
             notificationConnection.on('ReceiveNotification', callback)
         }

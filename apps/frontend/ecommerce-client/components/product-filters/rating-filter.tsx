@@ -1,4 +1,3 @@
-// components/product-filters/rating-filter.tsx
 "use client"
 
 import { Star } from "lucide-react"
@@ -12,32 +11,49 @@ interface RatingFilterProps {
 export function RatingFilter({ rating, onRatingChange }: RatingFilterProps) {
     return (
         <div className="space-y-2">
-            {[5, 4, 3].map((itemRating) => (
-                <div key={itemRating} className="flex items-center space-x-2">
-                    <Checkbox
-                        id={`rating-${itemRating}`}
-                        checked={rating === itemRating}
-                        onCheckedChange={() => onRatingChange(itemRating)}
-                    />
-                    <label
-                        htmlFor={`rating-${itemRating}`}
-                        className="text-sm cursor-pointer flex items-center dark:text-gray-300"
+            {[5, 4, 3].map((itemRating) => {
+                const isChecked = rating === itemRating
+
+                return (
+                    <div
+                        key={itemRating}
+                        className={`flex items-center space-x-2.5 p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            isChecked ? "bg-surface-2" : "hover:bg-surface-2/60"
+                        }`}
+                        onClick={() => onRatingChange(itemRating)}
                     >
-                        <div className="flex">
-                            {[...Array(itemRating)].map((_, i) => (
-                                <Star key={`full-${i}`} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            ))}
-                            {[...Array(5 - itemRating)].map((_, i) => (
-                                <Star
-                                    key={`empty-${i}`}
-                                    className="h-4 w-4 fill-gray-200 text-gray-200 dark:fill-gray-600 dark:text-gray-600"
-                                />
-                            ))}
-                        </div>
-                        <span className="ml-1">{itemRating === 5 ? '' : `trở lên`}</span>
-                    </label>
-                </div>
-            ))}
+                        <Checkbox
+                            id={`rating-${itemRating}`}
+                            checked={isChecked}
+                            onCheckedChange={() => onRatingChange(itemRating)}
+                            className="data-[state=checked]:bg-brand data-[state=checked]:border-brand"
+                        />
+                        <label
+                            htmlFor={`rating-${itemRating}`}
+                            className="text-small cursor-pointer flex items-center text-ink flex-1"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center gap-0.5">
+                                {[...Array(itemRating)].map((_, i) => (
+                                    <Star
+                                        key={`full-${i}`}
+                                        className="h-3.5 w-3.5 fill-amber-400 text-amber-400"
+                                    />
+                                ))}
+                                {[...Array(5 - itemRating)].map((_, i) => (
+                                    <Star
+                                        key={`empty-${i}`}
+                                        className="h-3.5 w-3.5 fill-line text-line"
+                                    />
+                                ))}
+                            </div>
+                            <span className="ml-2 text-tiny font-medium text-ink-soft">
+                                {itemRating === 5 ? "5.0 sao" : `Từ ${itemRating}.0 sao`}
+                            </span>
+                        </label>
+                    </div>
+                )
+            })}
         </div>
     )
 }

@@ -38,6 +38,15 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         {
             try
             {
+                // 🔒 SECURITY (H4): defense-in-depth — kể cả khi controller sót, handler
+                // vẫn LUÔN ghi đè bằng danh tính đã xác thực, không dùng giá trị client gửi.
+                if (_currentUserService.UserId.HasValue)
+                {
+                    request.ApplicationUserId = _currentUserService.UserId.Value;
+                }
+                // Guest: UserId = null → giữ ApplicationUserId = null → đi nhánh guest order
+                // (guestId sẽ được lấy từ signed cookie server-side — sẽ vá ở H6).
+
                 for (var attempt = 1; attempt <= 3; attempt++)
                 {
                     var decrementedStockItems = new List<OrderStockItem>();
@@ -214,7 +223,9 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 null,
                 request.DeliveryInstructions,
                 request.ExpectedDeliveryDate,
-                string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim(),
+                // 🔒 SECURITY (H6): KHÔNG dùng GuestId từ body nữa — lấy từ cookie guest_id
+                // do server cấp (qua _currentUserService.GuestId)
+                _currentUserService.GuestId,
                 guestOrderCode);
 
             return CreateOrderContext.WithOrder(guestOrder, guestName);

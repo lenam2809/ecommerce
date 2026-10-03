@@ -12,6 +12,7 @@ import * as z from "zod"
 import { useCart } from "@/hooks/use-cart"
 import { useCreateOrder } from "@/hooks/use-orders"
 import { CreateOrderRequest } from "@/types/order"
+import { CheckoutFormValues } from "@/types/checkout"
 import { CheckoutBreadcrumbs } from "@/components/checkout/checkout-breadcrumbs"
 import { useAuth } from "@/hooks/use-auth"
 import { Form } from "@/components/ui/form"
@@ -44,7 +45,6 @@ const checkoutSchema = z.object({
   note: z.string().optional(),
 })
 
-type CheckoutFormValues = z.infer<typeof checkoutSchema>
 type CheckoutMode = "guest" | "login"
 
 export default function CheckoutPage() {
@@ -182,37 +182,49 @@ export default function CheckoutPage() {
   }
 
   return (
-    <>
+    <div className="container-app py-6 md:py-10">
       <CheckoutBreadcrumbs />
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Thanh toán</h1>
+      <div className="mb-8">
+        <p className="text-tiny font-bold uppercase tracking-widest text-brand mb-1">Thanh toán an toàn</p>
+        <h1 className="text-h2 md:text-h1 font-bold text-ink tracking-tight">Hoàn tất đơn hàng</h1>
+        <p className="text-small text-ink-soft mt-1">
+          Vui lòng kiểm tra địa chỉ giao nhận và chọn phương thức thanh toán phù hợp.
+        </p>
+      </div>
 
       {!user && (
-        <div className="mb-6 rounded-lg border border-border/20 bg-card p-4">
-          <p className="mb-3 text-sm font-medium">Bạn muốn tiếp tục theo cách nào?</p>
+        <div className="mb-8 rounded-3xl border border-line bg-card p-5 md:p-6 shadow-xs">
+          <p className="mb-3 text-small font-semibold text-ink">Hình thức đặt hàng:</p>
           <RadioGroup
             value={checkoutMode}
             onValueChange={(value) => setCheckoutMode(value as CheckoutMode)}
-            className="space-y-3"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
-            <div className="flex items-center gap-2 rounded-md border border-border/20 p-3">
-              <RadioGroupItem id="checkout-mode-guest" value="guest" />
-              <Label htmlFor="checkout-mode-guest" className="cursor-pointer">
-                Mua như khách
+            <div className="flex items-center gap-3 rounded-2xl border border-line/70 p-4 hover:border-ink/40 transition-all duration-200 has-[[data-state=checked]]:border-brand has-[[data-state=checked]]:bg-brand-soft/30 cursor-pointer">
+              <RadioGroupItem id="checkout-mode-guest" value="guest" className="data-[state=checked]:border-brand data-[state=checked]:text-brand" />
+              <Label htmlFor="checkout-mode-guest" className="cursor-pointer font-medium text-small text-ink">
+                Đặt hàng nhanh (Khách vãng lai)
               </Label>
             </div>
-            <div className="flex items-center gap-2 rounded-md border border-border/20 p-3">
-              <RadioGroupItem id="checkout-mode-login" value="login" />
-              <Label htmlFor="checkout-mode-login" className="cursor-pointer">
-                Đăng nhập để sử dụng tài khoản
+            <div className="flex items-center gap-3 rounded-2xl border border-line/70 p-4 hover:border-ink/40 transition-all duration-200 has-[[data-state=checked]]:border-brand has-[[data-state=checked]]:bg-brand-soft/30 cursor-pointer">
+              <RadioGroupItem id="checkout-mode-login" value="login" className="data-[state=checked]:border-brand data-[state=checked]:text-brand" />
+              <Label htmlFor="checkout-mode-login" className="cursor-pointer font-medium text-small text-ink">
+                Đăng nhập tài khoản thành viên
               </Label>
             </div>
           </RadioGroup>
 
           {isLoginModeForGuest && (
-            <div className="mt-4 flex items-center justify-between rounded-md border border-primary/30 bg-primary/5 p-3">
-              <p className="text-sm text-muted-foreground">Đăng nhập để theo dõi đơn hàng trong tài khoản của bạn.</p>
-              <Button type="button" onClick={handleLoginRedirect}>
-                Đăng nhập
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-brand/20 bg-brand-soft/40 p-4">
+              <p className="text-small text-ink-soft">
+                Đăng nhập để tích điểm ShopViet Rewards và dễ dàng theo dõi hành trình đơn hàng.
+              </p>
+              <Button
+                type="button"
+                onClick={handleLoginRedirect}
+                className="rounded-full bg-brand text-white hover:bg-brand-hover h-10 px-6 text-small font-semibold shadow-xs shrink-0 cursor-pointer"
+              >
+                Đăng nhập ngay
               </Button>
             </div>
           )}
@@ -242,6 +254,6 @@ export default function CheckoutPage() {
           </div>
         </form>
       </Form>
-    </>
+    </div>
   )
 }

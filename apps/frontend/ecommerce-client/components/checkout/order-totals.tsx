@@ -1,9 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Separator } from "@/components/ui/separator"
 import { formatPrice } from "@/lib/contants"
-import { HelpCircle } from "lucide-react"
+import { HelpCircle, CheckCircle2 } from "lucide-react"
 import {
     Popover,
     PopoverContent,
@@ -20,67 +19,92 @@ const FREE_SHIPPING_THRESHOLD = 500000 // ₫500,000 for free shipping
 
 export function OrderTotals({ subtotal, shippingCost, total }: OrderTotalsProps) {
     const [showShippingInfo, setShowShippingInfo] = useState(false)
-    const isFreeShipping = shippingCost === 0
-    const qualifiesForFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
-
-    const shippingTooltip = qualifiesForFreeShipping && isFreeShipping
-        ? "Bạn đã đủ điều kiện miễn phí vận chuyển! 🎉"
-        : qualifiesForFreeShipping
-        ? "Thêm ₫" + formatPrice(FREE_SHIPPING_THRESHOLD - subtotal) + " để được miễn phí vận chuyển"
-        : `Thêm ₫${formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} để được miễn phí vận chuyển`
+    const isFreeShipping = shippingCost === 0 || subtotal >= FREE_SHIPPING_THRESHOLD
+    const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+    const progressPercent = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100))
 
     return (
-        <>
-            <div className="space-y-2">
+        <div className="space-y-3 pt-2">
+            {/* Free shipping status bar */}
+            <div className="rounded-xl bg-surface-2/70 p-3 border border-line/60">
+                <div className="flex items-center justify-between text-tiny mb-1.5">
+                    <span className="font-medium text-ink flex items-center gap-1.5">
+                        {isFreeShipping ? (
+                            <>
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Miễn phí vận chuyển toàn quốc</span>
+                            </>
+                        ) : (
+                            <span>Đạt miễn phí vận chuyển</span>
+                        )}
+                    </span>
+                    {!isFreeShipping && (
+                        <span className="text-ink-soft">
+                            Thiếu <strong className="text-brand font-semibold">{formatPrice(remainingForFreeShipping)}</strong>
+                        </span>
+                    )}
+                </div>
+                <div className="h-1.5 w-full bg-line rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-brand rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2 pt-1 text-small">
                 <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tạm tính</span>
-                    <span className="font-medium">{formatPrice(subtotal)}</span>
+                    <span className="text-ink-soft">Tạm tính</span>
+                    <span className="font-medium text-ink">{formatPrice(subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">Phí vận chuyển</span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-ink-soft">Phí vận chuyển</span>
                         <Popover open={showShippingInfo} onOpenChange={setShowShippingInfo}>
                             <PopoverTrigger asChild>
-                                <button 
-                                    className="inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                                    aria-label="Shipping fee information"
+                                <button
+                                    type="button"
+                                    className="inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded"
+                                    aria-label="Thông tin phí vận chuyển"
                                 >
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                    <HelpCircle className="h-3.5 w-3.5 text-ink-faint hover:text-ink transition-colors" />
                                 </button>
                             </PopoverTrigger>
-                            <PopoverContent side="left" className="max-w-xs">
-                                <div className="space-y-2">
-                                    <p className="font-semibold">Thông tin vận chuyển</p>
-                                    <p className="text-sm">{shippingTooltip}</p>
-                                    <p className="text-xs text-muted-foreground/80">
-                                        • Miễn phí vận chuyển cho đơn hàng từ ₫500.000
+                            <PopoverContent side="left" className="max-w-xs rounded-2xl border-line">
+                                <div className="space-y-2 text-tiny">
+                                    <p className="font-semibold text-ink">Chính sách vận chuyển ShopViet</p>
+                                    <p className="text-ink-soft">
+                                        • Miễn phí giao hàng tiêu chuẩn cho đơn từ ₫500.000.
                                     </p>
-                                    <p className="text-xs text-muted-foreground/80">
-                                        • Thời gian giao dự kiến: 2-3 ngày làm việc
+                                    <p className="text-ink-soft">
+                                        • Giao siêu tốc 2H tại Hà Nội & TP.HCM (phụ phí tính theo khu vực).
+                                    </p>
+                                    <p className="text-ink-faint">
+                                        • Đồng kiểm tra khi nhận hàng trước khi thanh toán.
                                     </p>
                                 </div>
                             </PopoverContent>
                         </Popover>
                     </div>
-                    <span className={`font-medium ${isFreeShipping ? "text-green-600 dark:text-green-400" : ""}`}>
+                    <span className={`font-semibold ${isFreeShipping ? "text-emerald-700 dark:text-emerald-400" : "text-ink"}`}>
                         {isFreeShipping ? "Miễn phí" : formatPrice(shippingCost)}
                     </span>
                 </div>
-
-                {!isFreeShipping && !qualifiesForFreeShipping && (
-                    <p className="text-xs text-muted-foreground text-right">
-                        Thêm {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} để được miễn phí vận chuyển
-                    </p>
-                )}
             </div>
 
-            <Separator />
+            <div className="h-px bg-line/80 my-2" />
 
-            <div className="flex justify-between font-bold">
-                <span>Tổng cộng</span>
-                <span className="text-lg">{formatPrice(total)}</span>
+            <div className="flex justify-between items-baseline">
+                <div>
+                    <span className="text-base font-semibold text-ink block">Tổng thanh toán</span>
+                    <span className="text-[11px] text-ink-faint">Đã bao gồm thuế VAT (nếu có)</span>
+                </div>
+                <span className="text-2xl font-bold text-brand tracking-tight">
+                    {formatPrice(total)}
+                </span>
             </div>
-        </>
+        </div>
     )
 }
+

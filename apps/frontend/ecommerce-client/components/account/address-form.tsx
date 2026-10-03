@@ -6,7 +6,7 @@ import * as z from "zod";
 import { CreateAddressDto } from "@/types/address";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { getAddressSuggestions, getPostalCodeByCity, getStateByCity } from "@/lib/address-suggestions";
+import { AddressSuggestion, getAddressSuggestions, getPostalCodeByCity, getStateByCity } from "@/lib/address-suggestions";
 import { CheckCircle2 } from "lucide-react";
 
 import {
@@ -56,7 +56,7 @@ export function AddressForm({
 }: AddressFormProps) {
     const router = useRouter();
     const [cityQuery, setCityQuery] = useState("");
-    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -99,7 +99,7 @@ export function AddressForm({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSelectSuggestion = (suggestion: any) => {
+    const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
         form.setValue("city", suggestion.city);
         form.setValue("state", suggestion.state);
         form.setValue("postalCode", suggestion.postalCode);
@@ -225,7 +225,7 @@ export function AddressForm({
                                                 className="w-full px-4 py-2 text-left hover:bg-accent transition-colors text-sm"
                                             >
                                                 <div className="font-medium">{suggestion.city}</div>
-                                                <div className="text-xs text-muted-foreground">{suggestion.state} - {suggestion.postalCode}</div>
+                                                <div className="text-tiny text-ink-faint">{suggestion.state} - {suggestion.postalCode}</div>
                                             </button>
                                         ))}
                                     </div>
@@ -305,16 +305,21 @@ export function AddressForm({
                     )}
                 />
 
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end gap-3">
                     <Button
                         type="button"
                         variant="outline"
                         onClick={() => router.back()}
                         disabled={isSubmitting}
+                        className="rounded-full border-line text-ink-soft hover:text-ink h-11 px-6"
                     >
                         Hủy bỏ
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="rounded-full bg-brand text-white hover:bg-brand-hover h-11 px-8 text-small font-semibold"
+                    >
                         {isSubmitting && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}

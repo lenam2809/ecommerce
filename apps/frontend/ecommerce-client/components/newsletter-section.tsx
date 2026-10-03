@@ -3,10 +3,8 @@
 import type React from "react"
 import Link from "next/link"
 import { useState } from "react"
-import { motion } from "framer-motion"
-import { Mail, Gift } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Mail, ArrowRight, ShieldCheck } from "lucide-react"
+import { toast } from "sonner"
 
 export function NewsletterSection() {
     const [email, setEmail] = useState("")
@@ -14,68 +12,61 @@ export function NewsletterSection() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setIsLoading(true)
+        if (!email) return
 
+        setIsLoading(true)
         // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 800))
 
         setIsLoading(false)
         setEmail("")
+        toast.success("Cảm ơn bạn đã đăng ký! Mã ưu đãi 10% đã được gửi tới email của bạn.")
     }
 
     return (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <div className="relative rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl p-8 md:p-16 lg:p-20">
-                {/* Subtle Glow Effect */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-full bg-primary/10 blur-[100px] pointer-events-none" />
-                
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    viewport={{ once: true }}
-                    className="relative z-10 text-center max-w-3xl mx-auto"
-                >
-                    <div className="flex justify-center mb-8">
-                        <div className="p-4 bg-secondary/50 rounded-2xl border border-white/5 shadow-sm">
-                            <Gift className="h-8 w-8 text-primary" />
-                        </div>
+        <section className="container-app py-14 md:py-20 border-t border-line/60">
+            <div className="max-w-2xl mx-auto text-center">
+                <span className="section-label mb-3 inline-block">Bản Tin Công Nghệ</span>
+                <h2 className="section-title">Nhận ưu đãi 10% cho đơn hàng đầu tiên</h2>
+                <p className="mt-3 text-small text-ink-soft leading-relaxed max-w-lg mx-auto">
+                    Đăng ký nhận bản tin công nghệ của ShopViet để là người đầu tiên tiếp cận các đợt mở bán flagship, ưu đãi đặc quyền và review chuyên sâu.
+                </p>
+
+                <form onSubmit={handleSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                    <div className="relative flex-1">
+                        <label htmlFor="newsletter-email" className="sr-only">
+                            Địa chỉ email
+                        </label>
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
+                        <input
+                            id="newsletter-email"
+                            type="email"
+                            placeholder="Nhập địa chỉ email của bạn..."
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="w-full h-12 pl-11 pr-4 rounded-full border border-line bg-surface/70 text-small text-ink placeholder:text-ink-faint focus:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 transition-all"
+                        />
                     </div>
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="h-12 px-7 rounded-full bg-brand text-white text-small font-semibold hover:bg-brand-hover transition-all disabled:opacity-60 focus-ring shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                        <span>{isLoading ? "Đang gửi..." : "Đăng ký ngay"}</span>
+                        {!isLoading && <ArrowRight className="h-4 w-4" />}
+                    </button>
+                </form>
 
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 tracking-tight text-foreground">
-                        Giảm giá 10% cho đơn hàng đầu tiên của bạn
-                    </h2>
-                    <p className="text-lg md:text-xl mb-10 text-muted-foreground leading-relaxed">
-                        Đăng ký nhận bản tin của chúng tôi và là người đầu tiên biết về các sản phẩm mới, ưu đãi độc quyền và thông tin chuyên sâu về công nghệ.
-                    </p>
-
-                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                        <div className="relative flex-1">
-                            <label htmlFor="newsletter-email" className="sr-only">Địa chỉ email</label>
-                            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input
-                                id="newsletter-email"
-                                type="email"
-                                placeholder="Nhập email của bạn"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="pl-12 h-12 rounded-full bg-secondary/30 border-white/10 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary transition-all"
-                            />
-                        </div>
-                        <Button 
-                            type="submit" 
-                            disabled={isLoading} 
-                            className="h-12 rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all font-medium"
-                        >
-                            {isLoading ? "Đang xử lý..." : "Đăng ký ngay"}
-                        </Button>
-                    </form>
-
-                    <p className="text-sm text-muted-foreground mt-6 max-w-md mx-auto">
-                        Không spam, có thể hủy đăng ký bất cứ lúc nào. Bằng cách đăng ký, bạn đồng ý với <Link href="/privacy" className="underline hover:text-foreground transition-colors">Chính sách Quyền riêng tư</Link> của chúng tôi.
-                    </p>
-                </motion.div>
+                <div className="flex items-center justify-center gap-2 text-tiny text-ink-faint mt-5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-brand" />
+                    <span>
+                        Không spam • Có thể hủy bất kỳ lúc nào • Tuân thủ{" "}
+                        <Link href="/privacy" className="underline hover:text-ink transition-colors">
+                            Chính sách bảo mật
+                        </Link>
+                    </span>
+                </div>
             </div>
         </section>
     )

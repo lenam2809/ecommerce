@@ -2,98 +2,160 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { Star } from "lucide-react"
+import { Star, ArrowRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import type { Product } from "@/types/product"
 import { formatPrice } from "@/lib/contants"
 import AddToCartButton from "./add-to-cart-button"
+import AddToWishlistButton from "./add-to-wishlist-button"
 import AddToComparison from "./filter/add-to-comparison"
 
 interface ProductListItemProps {
     product: Product
 }
 
+/**
+ * ProductListItem — Editorial Tech Minimalism
+ * Horizontal layout for catalog list-view mode
+ */
 export default function ProductListItem({ product }: ProductListItemProps) {
-    const discount = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : 0
+    const discount = product.salePrice
+        ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+        : 0
+    const isSoldOut = (product.stockQuantity ?? 0) <= 0
 
     return (
-        <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-            <div className="flex flex-col md:flex-row">
-                <div className="relative md:w-48 h-48 overflow-hidden">
-                    {discount > 0 && <Badge className="absolute top-2 left-2 z-10 bg-[#FF6B00] text-white">-{discount}%</Badge>}
-                    <Link href={`/products/${product.id}`} className="block h-full">
+        <article className="group relative bg-card rounded-2xl border border-line overflow-hidden transition-all duration-300 hover:border-ink/40 hover:shadow-md">
+            <div className="flex flex-col sm:flex-row items-stretch">
+                {/* Product Image Frame */}
+                <div className="relative sm:w-52 md:w-60 h-52 sm:h-auto overflow-hidden bg-surface-2/40 flex-shrink-0">
+                    {/* Discount badge */}
+                    {discount > 0 && (
+                        <span className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-brand text-white text-tiny font-bold tracking-tight shadow-xs">
+                            -{discount}%
+                        </span>
+                    )}
+
+                    {/* Wishlist Button */}
+                    <div className="absolute top-2.5 right-2.5 z-10">
+                        <AddToWishlistButton
+                            productId={product.id}
+                            productName={product.name}
+                            price={product.salePrice || product.price}
+                            category={product.categoryName}
+                            className="h-8 w-8 p-1.5 rounded-full bg-background/85 backdrop-blur-md hover:bg-background text-foreground border border-line/80 shadow-xs transition-all hover:scale-105"
+                        />
+                    </div>
+
+                    <Link
+                        href={`/product/${product.slug}`}
+                        className={`block h-full w-full ${isSoldOut ? "grayscale" : ""}`}
+                    >
                         <Image
                             src={product.mainImage || "/placeholder.svg"}
                             alt={product.name}
                             fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            priority={false}
+                            className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
                             loading="lazy"
-                            sizes="(max-width: 768px) 100vw, 192px"
+                            sizes="(max-width: 640px) 100vw, 240px"
                         />
+
+                        {isSoldOut && (
+                            <div className="absolute inset-0 grid place-items-center bg-background/70 backdrop-blur-xs">
+                                <span className="px-3 py-1 rounded-full bg-ink text-background text-tiny font-semibold uppercase tracking-wider">
+                                    Hết hàng
+                                </span>
+                            </div>
+                        )}
                     </Link>
                 </div>
 
-                <div className="flex-1 p-4 flex flex-col">
-                    <div className="mb-2">
-                        <Link href={`/products/${product.id}`} className="block">
-                            <h3 className="text-lg font-medium line-clamp-1 group-hover:text-[#2A5CAA] dark:text-white dark:group-hover:text-blue-400 transition-colors">
+                {/* Content Area */}
+                <div className="flex-1 p-5 md:p-6 flex flex-col justify-between">
+                    <div>
+                        {/* Category micro-label */}
+                        {product.categoryName && (
+                            <p className="text-tiny font-semibold uppercase tracking-wider text-ink-faint mb-1">
+                                {product.categoryName}
+                            </p>
+                        )}
+
+                        {/* Title */}
+                        <Link href={`/product/${product.slug}`} className="block group">
+                            <h3 className="text-base md:text-lg font-semibold text-ink line-clamp-2 transition-colors duration-200 group-hover:text-brand">
                                 {product.name}
                             </h3>
                         </Link>
 
-                        <div className="flex items-center mt-1">
-                            <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className={`h-4 w-4 ${i < Math.floor(product.rating)
-                                            ? "fill-yellow-400 text-yellow-400"
-                                            : "fill-gray-200 text-gray-200 dark:fill-gray-600 dark:text-gray-600"
-                                            }`}
-                                    />
-                                ))}
+                        {/* Rating row */}
+                        <div className="flex items-center mt-2 gap-2">
+                            <div className="flex items-center gap-1">
+                                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                <span className="text-tiny font-semibold text-ink">
+                                    {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
+                                </span>
                             </div>
-                            <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">({product.rating})</span>
-                            <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Danh mục: {product.categoryName}</span>
+                            <span className="text-tiny text-ink-faint">
+                                {product.reviewCount ? `(${product.reviewCount} đánh giá)` : "(Đã kiểm định)"}
+                            </span>
+                            {product.brandSlug && (
+                                <>
+                                    <span className="text-tiny text-ink-faint">·</span>
+                                    <span className="text-tiny font-medium text-ink-soft">
+                                        Chính hãng
+                                    </span>
+                                </>
+                            )}
                         </div>
+
+                        {/* Description */}
+                        <p className="mt-3 text-ink-soft text-small line-clamp-2 leading-relaxed">
+                            {product.description ||
+                                "Trải nghiệm thiết bị thông minh thế hệ mới với hiệu năng vượt trội, độ bền cao và chế độ bảo hành chính hãng toàn diện."}
+                        </p>
                     </div>
 
-                    <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-4 flex-grow">
-                        {product.description ||
-                            "Sản phẩm chất lượng cao với nhiều tính năng hữu ích. Thiết kế hiện đại, bền bỉ và dễ sử dụng."}
-                    </p>
-
-                    <div className="flex items-center justify-between mt-auto">
+                    {/* Bottom Action Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t border-line/60">
+                        {/* Price */}
                         <div>
                             {product.salePrice ? (
-                                <div className="flex items-center">
-                                    <span className="font-semibold text-[#FF6B00] text-lg">{formatPrice(product.salePrice)}</span>
-                                    <span className="text-sm text-gray-500 dark:text-gray-400 line-through ml-2">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="font-bold text-lg md:text-xl text-ink tracking-tight">
+                                        {formatPrice(product.salePrice)}
+                                    </span>
+                                    <span className="text-tiny text-ink-faint line-through">
                                         {formatPrice(product.price)}
                                     </span>
                                 </div>
                             ) : (
-                                <span className="font-semibold text-lg dark:text-white">{formatPrice(product.price)}</span>
+                                <span className="font-bold text-lg md:text-xl text-ink tracking-tight">
+                                    {formatPrice(product.price)}
+                                </span>
                             )}
                         </div>
 
-                        <div className="flex space-x-2">
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2">
+                            <AddToComparison product={product} />
+
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-[#2A5CAA] text-[#2A5CAA] hover:bg-[#2A5CAA] hover:text-white dark:border-blue-500 dark:text-blue-500 dark:hover:bg-blue-700"
+                                className="rounded-full border-line text-ink hover:bg-surface h-10 px-4 text-tiny font-semibold"
                                 asChild
                             >
-                                <Link href={`/products/${product.id}`}>Chi tiết</Link>
+                                <Link href={`/product/${product.slug}`} className="flex items-center gap-1.5">
+                                    Chi tiết
+                                    <ArrowRight className="h-3.5 w-3.5" />
+                                </Link>
                             </Button>
-                            <AddToComparison product={product} />
-                            <AddToCartButton 
-                                productId={product.id} 
-                                title="Thêm vào giỏ hàng" 
+
+                            <AddToCartButton
+                                productId={product.id}
+                                stockQuantity={product.stockQuantity}
+                                className="h-10 rounded-full bg-ink text-background hover:bg-brand hover:text-white dark:hover:text-white px-5 text-tiny font-semibold shadow-xs"
                                 productName={product.name}
                                 price={product.salePrice || product.price}
                                 category={product.categoryName}
@@ -102,6 +164,6 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                     </div>
                 </div>
             </div>
-        </div>
+        </article>
     )
 }

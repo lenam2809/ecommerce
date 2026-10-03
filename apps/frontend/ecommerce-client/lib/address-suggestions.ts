@@ -1,7 +1,7 @@
 // Vietnamese cities and their postal codes for address auto-complete
 // This provides fast, offline address suggestions without API dependency
 
-interface AddressSuggestion {
+export interface AddressSuggestion {
   street: string
   city: string
   state: string

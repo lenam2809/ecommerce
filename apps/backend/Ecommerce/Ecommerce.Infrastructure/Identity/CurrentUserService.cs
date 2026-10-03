@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
@@ -65,8 +66,8 @@ namespace Ecommerce.Infrastructure.Identity
             return User.IsInRole(role);
         }
 
-        public string? GuestId => _httpContextAccessor.HttpContext?
-            .Request.Headers["X-Guest-ID"].FirstOrDefault();
+        public string? GuestId => _httpContextAccessor.HttpContext?.Request.Cookies[GuestCartConstants.GuestIdCookieName]
+            ?? _httpContextAccessor.HttpContext?.Items[GuestCartConstants.GuestIdItemKey] as string;
     }
 
 }

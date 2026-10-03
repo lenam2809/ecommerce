@@ -5,6 +5,7 @@ using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Features.Products.Dto;
+using Ecommerce.Domain.Interfaces.Logging;
 using Ecommerce.Infrastructure.Elasticsearch.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -20,17 +21,20 @@ namespace Ecommerce.Infrastructure.Elasticsearch
         private readonly ElasticsearchClient _client;
         private readonly string _indexName;
         private readonly ILogger<ElasticsearchProductSearchService> _logger;
+        private readonly ILogSanitizer _sanitizer;
 
         public ElasticsearchProductSearchService(
             ElasticsearchClient client,
             IConfiguration configuration,
-            ILogger<ElasticsearchProductSearchService> logger)
+            ILogger<ElasticsearchProductSearchService> logger,
+            ILogSanitizer sanitizer)
         {
             _client = client;
             var options = configuration.GetSection(ElasticsearchOptions.SectionName).Get<ElasticsearchOptions>()
                 ?? new ElasticsearchOptions();
             _indexName = options.ResolvedIndexName;
             _logger = logger;
+            _sanitizer = sanitizer;
         }
 
         #region Search
@@ -136,20 +140,25 @@ namespace Ecommerce.Infrastructure.Elasticsearch
 
                 if (!response.IsValidResponse)
                 {
-                    _logger.LogWarning("Elasticsearch search failed: {DebugInfo}", response.DebugInformation);
+                    _logger.LogWarning("Elasticsearch search failed: {DebugInfo}", _sanitizer.Sanitize(response.DebugInformation));
                     throw new SearchServiceUnavailableException("Elasticsearch search failed.");
                 }
 
                 var items = response.Documents.Select(MapToDto).ToList();
                 var totalCount = response.Total;
 
-                _logger.LogDebug("Elasticsearch search: keyword='{Keyword}', found {Total} results", keyword, totalCount);
+                _logger.LogDebug("Elasticsearch search: keyword='{Keyword}', found {Total} results", _sanitizer.Sanitize(keyword), totalCount);
 
                 return (items, totalCount);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi search Elasticsearch với keyword: {Keyword}", keyword);
+                // 🔒 SECURITY (M4): không log exception thô (ILogger<T> bypass sanitizer) —
+                // chỉ log message + keyword đã sanitize
+                _logger.LogError(
+                    "Lỗi khi search Elasticsearch với keyword: {Keyword}. Error: {Error}",
+                    _sanitizer.Sanitize(keyword),
+                    _sanitizer.Sanitize(ex.Message));
                 throw new SearchServiceUnavailableException("Elasticsearch is unavailable.", ex);
             }
         }
@@ -195,7 +204,7 @@ namespace Ecommerce.Infrastructure.Elasticsearch
 
                 if (!response.IsValidResponse)
                 {
-                    _logger.LogWarning("Elasticsearch suggest failed: {DebugInfo}", response.DebugInformation);
+                    _logger.LogWarning("Elasticsearch suggest failed: {DebugInfo}", _sanitizer.Sanitize(response.DebugInformation));
                     return new List<ProductSuggestionDto>();
                 }
 

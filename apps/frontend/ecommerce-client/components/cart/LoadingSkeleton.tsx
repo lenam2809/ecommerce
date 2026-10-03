@@ -7,8 +7,8 @@ const LoadingSkeleton = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-                <div className="bg-card rounded-lg border overflow-hidden shadow-sm">
-                    <div className="p-4 bg-muted/50 border-b">
+                <div className="bg-card rounded-2xl border border-line overflow-hidden">
+                    <div className="p-4 bg-muted/50 border-b border-line">
                         <div className="grid grid-cols-12 gap-4">
                             <div className="col-span-6">
                                 <Skeleton className="h-6 w-24" />
@@ -55,8 +55,8 @@ const LoadingSkeleton = () => {
             </div>
 
             <div className="lg:col-span-1">
-                <div className="bg-card rounded-lg border overflow-hidden shadow-sm">
-                    <div className="p-4 bg-muted/50 border-b">
+                <div className="bg-card rounded-2xl border border-line overflow-hidden">
+                    <div className="p-4 bg-muted/50 border-b border-line">
                         <Skeleton className="h-6 w-40" />
                     </div>
 

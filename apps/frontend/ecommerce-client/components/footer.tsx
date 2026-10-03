@@ -5,7 +5,7 @@ import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 
 export default function Footer() {
   return (
-    <footer className="relative bg-background text-foreground border-t border-white/5 overflow-hidden">
+    <footer className="relative bg-background text-foreground border-t border-line overflow-hidden">
       {/* Mesh Gradient Background */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background opacity-50 pointer-events-none" />
 
@@ -30,7 +30,7 @@ export default function Footer() {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-secondary/50 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-10 w-10 rounded-full bg-surface-2 border border-line flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Facebook className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span className="sr-only">Facebook</span>
@@ -39,7 +39,7 @@ export default function Footer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-secondary/50 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-[#E1306C] hover:text-white hover:border-[#E1306C] transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-10 w-10 rounded-full bg-surface-2 border border-line flex items-center justify-center text-muted-foreground hover:bg-[#E1306C] hover:text-white hover:border-[#E1306C] transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span className="sr-only">Instagram</span>
@@ -48,7 +48,7 @@ export default function Footer() {
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-secondary/50 border border-white/5 flex items-center justify-center text-muted-foreground hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2] transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-10 w-10 rounded-full bg-surface-2 border border-line flex items-center justify-center text-muted-foreground hover:bg-[#1DA1F2] hover:text-white hover:border-[#1DA1F2] transition-all duration-300 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Twitter className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span className="sr-only">Twitter</span>
@@ -130,7 +130,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-white/5 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="border-t border-line mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
             &copy; {new Date().getFullYear()} ShopViet. Tất cả các quyền được bảo lưu.
           </p>

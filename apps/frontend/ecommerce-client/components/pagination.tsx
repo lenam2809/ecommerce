@@ -7,6 +7,9 @@ interface PaginationProps {
   onPageChange: (page: number) => void
 }
 
+/**
+ * Pagination — Editorial Minimal
+ */
 export default function Pagination({ totalPages, currentPage, onPageChange }: PaginationProps) {
   // Generate page numbers to display
   const getPageNumbers = () => {
@@ -45,13 +48,13 @@ export default function Pagination({ totalPages, currentPage, onPageChange }: Pa
   const pageNumbers = getPageNumbers()
 
   return (
-    <div className="flex items-center justify-center space-x-2">
+    <div className="flex items-center justify-center gap-2">
       <Button
         variant="outline"
         size="icon"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="rounded-full border-white/10 hover:bg-white/5 transition-colors"
+        className="rounded-full border-line hover:bg-surface transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
         <span className="sr-only">Trang trước</span>
@@ -59,7 +62,7 @@ export default function Pagination({ totalPages, currentPage, onPageChange }: Pa
 
       {pageNumbers.map((page, index) =>
         page === "..." ? (
-          <span key={`ellipsis-${index}`} className="px-3 py-2 text-muted-foreground">
+          <span key={`ellipsis-${index}`} className="px-2 text-ink-faint">
             ...
           </span>
         ) : (
@@ -67,10 +70,10 @@ export default function Pagination({ totalPages, currentPage, onPageChange }: Pa
             key={`page-${page}`}
             variant={currentPage === page ? "default" : "outline"}
             size="icon"
-            className={`rounded-full transition-all duration-300 ${
-              currentPage === page 
-                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-transparent" 
-                : "border-white/10 hover:bg-white/5 text-muted-foreground hover:text-foreground"
+            className={`rounded-full transition-colors duration-200 ${
+              currentPage === page
+                ? "bg-brand text-white hover:bg-brand-hover border-transparent"
+                : "border-line hover:bg-surface text-ink-soft hover:text-ink"
             }`}
             onClick={() => onPageChange(Number(page))}
           >
@@ -84,7 +87,7 @@ export default function Pagination({ totalPages, currentPage, onPageChange }: Pa
         size="icon"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="rounded-full border-white/10 hover:bg-white/5 transition-colors"
+        className="rounded-full border-line hover:bg-surface transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
         <span className="sr-only">Trang sau</span>

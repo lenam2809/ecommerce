@@ -1,22 +1,32 @@
-// components/cart/OrderSummary.tsx
-import React, { useState } from "react";
-import Link from "next/link";
-import { CreditCard, Truck, ShoppingBag, ChevronRight, Tag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { formatPrice } from "@/lib/contants";
+"use client"
+
+import React, { useState } from "react"
+import Link from "next/link"
+import { ShoppingBag, ArrowRight, Tag, ShieldCheck, Check, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { formatPrice } from "@/lib/contants"
+
+export type PromoCodeError = {
+    response?: { data?: { message?: string } }
+    message?: string
+}
+
+function getPromoCodeErrorMessage(error: unknown) {
+    const maybeError = error as PromoCodeError
+    return maybeError.response?.data?.message || maybeError.message || "Mã giảm giá không hợp lệ"
+}
 
 type OrderSummaryProps = {
-    subtotal: number;
-    shippingCost: number;
-    discount: number;
-    total: number;
-    itemCount: number;
-    onApplyPromoCode: (code: string) => void;
-    isApplyingPromoCode: boolean;
-    promoCodeError?: any;
-};
+    subtotal: number
+    shippingCost: number
+    discount: number
+    total: number
+    itemCount: number
+    onApplyPromoCode: (code: string) => void
+    isApplyingPromoCode: boolean
+    promoCodeError?: unknown
+}
 
 const OrderSummary = ({
     subtotal,
@@ -28,124 +38,148 @@ const OrderSummary = ({
     isApplyingPromoCode,
     promoCodeError,
 }: OrderSummaryProps) => {
-    const [promoCode, setPromoCode] = useState("");
+    const [promoCode, setPromoCode] = useState("")
 
     const handleApplyPromoCode = () => {
         if (promoCode.trim()) {
-            onApplyPromoCode(promoCode);
+            onApplyPromoCode(promoCode.trim())
         }
-    };
+    }
+
+    const isFreeShipping = shippingCost === 0 || subtotal >= 500000
 
     return (
-        <div className="glass-card rounded-xl overflow-hidden sticky top-24">
-            <div className="p-5 border-b border-white/10 bg-white/5 backdrop-blur-md">
-                <h3 className="text-lg font-semibold tracking-tight text-foreground flex items-center">
-                    <ShoppingBag className="h-5 w-5 mr-3 text-primary" />
-                    Tóm tắt đơn hàng
-                </h3>
+        <aside className="bg-card rounded-3xl border border-line overflow-hidden sticky top-28 shadow-xs">
+            <div className="p-5 border-b border-line/60 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-5 w-5 text-brand" />
+                    <h3 className="text-small font-semibold text-ink">Tóm tắt đơn hàng</h3>
+                </div>
+                <span className="text-tiny font-medium text-ink-faint">
+                    {itemCount} sản phẩm
+                </span>
             </div>
 
-            <div className="p-5 md:p-6 space-y-6">
-                <div className="space-y-3 text-sm">
+            <div className="p-5 md:p-6 space-y-5">
+                {/* Price breakdown */}
+                <div className="space-y-3 text-small">
                     <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Tạm tính ({itemCount} sản phẩm)</span>
-                        <span className="font-medium text-foreground">{formatPrice(subtotal)}</span>
+                        <span className="text-ink-soft">Tạm tính</span>
+                        <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
                     </div>
 
                     <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Phí vận chuyển</span>
+                        <span className="text-ink-soft">Phí vận chuyển</span>
                         <span className="font-medium">
-                            {shippingCost === 0 ? (
-                                <span className="text-emerald-500 font-semibold">Miễn phí</span>
+                            {isFreeShipping ? (
+                                <span className="text-brand font-semibold px-2 py-0.5 rounded-full bg-brand-soft text-tiny">
+                                    Miễn phí
+                                </span>
                             ) : (
-                                formatPrice(shippingCost)
+                                <span className="text-ink">{formatPrice(shippingCost || 30000)}</span>
                             )}
                         </span>
                     </div>
 
                     {discount > 0 && (
-                        <div className="flex justify-between items-center text-emerald-500">
-                            <span className="flex items-center"><Tag className="w-3 h-3 mr-1" /> Giảm giá</span>
-                            <span className="font-semibold">-{formatPrice(discount)}</span>
+                        <div className="flex justify-between items-center text-brand">
+                            <span className="flex items-center gap-1 font-medium">
+                                <Tag className="w-3.5 h-3.5" /> Giảm giá voucher
+                            </span>
+                            <span className="font-bold">-{formatPrice(discount)}</span>
                         </div>
                     )}
                 </div>
 
-                <Separator className="bg-white/10" />
+                <div className="h-px bg-line/60" />
 
-                <div className="flex justify-between items-end">
-                    <span className="text-base font-medium text-foreground">Tổng cộng</span>
+                {/* Total */}
+                <div className="flex justify-between items-baseline">
+                    <span className="text-base font-semibold text-ink">Tổng cộng</span>
                     <div className="text-right">
-                        <span className="block text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
+                        <span className="block text-2xl font-bold text-ink tracking-tight">
                             {formatPrice(total)}
                         </span>
-                        <span className="text-xs text-muted-foreground mt-1 block">(Đã bao gồm VAT)</span>
+                        <span className="text-tiny text-ink-faint mt-0.5 block">
+                            (Đã bao gồm VAT 10%)
+                        </span>
                     </div>
                 </div>
 
-                <div className="bg-black/20 p-4 rounded-lg border border-white/10 space-y-3">
-                    <h4 className="font-medium text-sm text-foreground flex items-center">
-                        <Tag className="h-3 w-3 mr-2" /> Mã giảm giá
-                    </h4>
+                {/* Promo Code Box */}
+                <div className="bg-surface-2/60 rounded-2xl border border-line/70 p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-tiny font-semibold text-ink flex items-center gap-1.5 uppercase tracking-wider">
+                            <Tag className="h-3.5 w-3.5 text-brand" />
+                            <span>Mã giảm giá</span>
+                        </h4>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPromoCode("TECHVIP500")
+                                onApplyPromoCode("TECHVIP500")
+                            }}
+                            className="text-[11px] text-brand hover:underline font-medium inline-flex items-center gap-1"
+                        >
+                            <Sparkles className="h-3 w-3" />
+                            Gợi ý: TECHVIP500
+                        </button>
+                    </div>
+
                     <div className="flex gap-2">
                         <Input
-                            placeholder="Nhập mã code"
+                            placeholder="Nhập mã ưu đãi..."
                             value={promoCode}
                             onChange={(e) => setPromoCode(e.target.value)}
-                            className="bg-white/5 border-white/10 focus-visible:ring-primary/50 h-10 transition-all font-mono text-sm"
+                            className="h-10 rounded-full border-line bg-background text-tiny text-ink placeholder:text-ink-faint focus-visible:ring-brand/40"
                             disabled={isApplyingPromoCode}
                         />
                         <Button
                             variant="outline"
                             onClick={handleApplyPromoCode}
                             disabled={!promoCode.trim() || isApplyingPromoCode}
-                            className="bg-transparent border-white/10 hover:bg-white/10 hover:text-white transition-all duration-200"
+                            className="h-10 px-5 rounded-full border-line text-ink hover:bg-surface text-tiny font-semibold shrink-0"
                         >
                             {isApplyingPromoCode ? "..." : "Áp dụng"}
                         </Button>
                     </div>
+
                     {discount > 0 && (
-                        <p className="text-emerald-500 text-xs flex items-center bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-2 flex-shrink-0 animate-pulse"></span>
-                            Mã giảm giá đã được áp dụng!
+                        <p className="text-tiny text-brand font-medium flex items-center gap-1.5 bg-brand-soft px-3 py-1.5 rounded-full">
+                            <Check className="h-3 w-3" />
+                            Đã áp dụng mã giảm giá thành công!
                         </p>
                     )}
-                    {promoCodeError && (
-                        <p className="text-red-500 text-xs flex items-center bg-red-500/10 p-2 rounded border border-red-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-500 mr-2 flex-shrink-0"></span>
-                            {promoCodeError?.response?.data?.message || promoCodeError?.message || "Mã giảm giá không hợp lệ"}
+
+                    {Boolean(promoCodeError) && (
+                        <p className="text-tiny text-destructive flex items-center bg-destructive/5 px-3 py-1.5 rounded-full">
+                            <span className="h-1.5 w-1.5 rounded-full bg-destructive mr-2 shrink-0" />
+                            {getPromoCodeErrorMessage(promoCodeError)}
                         </p>
                     )}
                 </div>
 
-                <div className="pt-2">
+                {/* Checkout CTA Button */}
+                <div className="space-y-4 pt-1">
                     <Button
-                        className="w-full relative overflow-hidden group h-12 text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300"
+                        className="w-full h-12 rounded-full bg-brand text-white hover:bg-brand-hover text-small font-semibold transition-all shadow-sm hover:shadow-md focus-ring"
                         asChild
                     >
-                        <Link href="/checkout" className="flex items-center justify-center bg-primary hover:bg-primary/90">
-                            <span className="relative z-10 flex items-center">
-                                Tiến hành thanh toán
-                                <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700 ease-in-out"></div>
+                        <Link href="/checkout" className="flex items-center justify-center gap-2">
+                            <span>Tiến hành thanh toán</span>
+                            <ArrowRight className="h-4 w-4" />
                         </Link>
                     </Button>
 
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="flex flex-col items-center justify-center text-center p-3 rounded-lg bg-white/5 border border-white/5">
-                            <CreditCard className="h-5 w-5 mb-2 text-primary/80" />
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Thanh toán an toàn</span>
-                        </div>
-                        <div className="flex flex-col items-center justify-center text-center p-3 rounded-lg bg-white/5 border border-white/5">
-                            <Truck className="h-5 w-5 mb-2 text-primary/80" />
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Giao hàng nhanh</span>
-                        </div>
+                    {/* Trust guarantee */}
+                    <div className="flex items-center justify-center gap-2 text-tiny text-ink-faint text-center">
+                        <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Thanh toán an toàn, mã hóa SSL 256-bit</span>
                     </div>
                 </div>
             </div>
-        </div>
-    );
-};
+        </aside>
+    )
+}
 
-export default OrderSummary;
+export default OrderSummary

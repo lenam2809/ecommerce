@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Configs;
 using Ecommerce.Application.Common.Observability;
 using Ecommerce.Application.Extensions;
 using Ecommerce.Infrastructure;
@@ -15,6 +15,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Globalization;
+using System.Net;
 using System.Threading.RateLimiting;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -34,6 +35,15 @@ builder.Services.Configure<RequestLoggingOptions>(
     builder.Configuration.GetSection(RequestLoggingOptions.SectionName));
 builder.Services.Configure<ObservabilityOptions>(
     builder.Configuration.GetSection(ObservabilityOptions.SectionName));
+
+// 🔒 SECURITY (H5): fail-fast khi khởi động — app crash NGAY LÚC BOOT nếu thiếu hoặc
+// quá ngắn Auth:TokenHashSecret (biến môi trường Auth__TokenHashSecret), thay vì chết
+// giữa chừng khi user đầu tiên login (TokenService.cs:77-81 throw khi thiếu).
+// Lưu ý: đây là section "Auth" — khác với section "AuthConfig" (feature flags).
+builder.Services.AddOptions<AuthTokenSettings>()
+    .Bind(builder.Configuration.GetSection("Auth"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration,
@@ -104,7 +114,7 @@ builder.Services.AddRateLimiter(options =>
     // Global default: 1000 requests/minute per IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim() ?? ctx.Connection.RemoteIpAddress?.ToString() ?? ctx.Request.Headers.Host.ToString(),
+            partitionKey: ResolveRateLimitKey(ctx),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 1000,
@@ -115,7 +125,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("AuthPolicy", context =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim() ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            partitionKey: ResolveRateLimitKey(context),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 100,
@@ -126,7 +136,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("LoginPolicy", context =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim() ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            partitionKey: ResolveRateLimitKey(context),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 20,
@@ -137,7 +147,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("PasswordResetPolicy", context =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim() ?? context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+            partitionKey: ResolveRateLimitKey(context),
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
@@ -263,6 +273,15 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 
+// 🔒 SECURITY (M9): chặn request của tài khoản đang bị khóa (HTTP 423).
+// Middleware này được định nghĩa từ lâu nhưng QUÊN đăng ký — trước đây khóa tài khoản
+// chỉ chặn được login mới, session cũ (access/refresh token) vẫn hoạt động bình thường.
+app.UseAccountLockCheck();
+
+// 🔒 SECURITY (H6): cấp guest_id cookie server-side cho khách chưa đăng nhập
+// (thay cho header X-Guest-ID do client tự đặt — chặn giả mạo giỏ hàng guest)
+app.UseGuestCart();
+
 // CSRF Protection middleware - sau Authentication, trước Authorization
 app.UseCsrfValidation();
 
@@ -287,4 +306,47 @@ app.MapHealthChecks("/api/health/redis").AllowAnonymous();
 
 app.Run();
 
-public partial class Program;
+public partial class Program
+{
+    /// <summary>
+    /// 🔒 SECURITY (M7): partition key cho rate limiter — KHÔNG tin giá trị X-Forwarded-For
+    /// do client gửi nữa (trước đây lấy entry ĐẦU tiên của header thô → attacker đổi header
+    /// mỗi request để bypass mọi policy, kể cả LoginPolicy).
+    /// Logic: ưu tiên RemoteIpAddress (peer TCP thật). Nếu peer là loopback/private (chạy sau
+    /// reverse proxy nội bộ) thì lấy entry CUỐI CÙNG (rightmost) của X-Forwarded-For — entry
+    /// này do hop gần server nhất nối thêm, client không kiểm soát được; chỉ chấp nhận khi
+    /// parse được thành IP công khai hợp lệ.
+    /// </summary>
+    public static string ResolveRateLimitKey(HttpContext ctx)
+    {
+        var remote = ctx.Connection.RemoteIpAddress;
+        var xff = ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+        if (remote != null && IsPrivateOrLoopback(remote) && !string.IsNullOrWhiteSpace(xff))
+        {
+            var entries = xff.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (entries.Length > 0 &&
+                IPAddress.TryParse(entries[^1], out var last) &&
+                !IsPrivateOrLoopback(last))
+            {
+                return last.ToString();
+            }
+        }
+
+        return remote?.ToString() ?? ctx.Request.Headers.Host.ToString();
+    }
+
+    private static bool IsPrivateOrLoopback(IPAddress ip)
+    {
+        if (IPAddress.IsLoopback(ip))
+        {
+            return true;
+        }
+
+        var bytes = ip.GetAddressBytes();
+        return ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+               (bytes[0] == 10 ||
+                (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+                (bytes[0] == 192 && bytes[1] == 168));
+    }
+}

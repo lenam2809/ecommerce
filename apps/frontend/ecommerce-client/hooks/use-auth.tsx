@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import authService, { User } from "@/services/auth-service"
 import { useRouter } from "next/navigation"
 import { clearGuestId } from "@/lib/guest-id"
@@ -13,6 +13,12 @@ interface AuthContextType {
     register: (registerData: { firstName: string; lastName: string; email: string; phoneNumber?: string; password: string; confirmPassword?: string }) => Promise<void>
     logout: () => Promise<void>
     clearError: () => void
+    /**
+     * Re-fetch user từ backend (cookie-based) và cập nhật state đăng nhập.
+     * Dùng sau khi backend set cookie (ví dụ luồng OAuth Google) để cập nhật
+     * state trong tab hiện tại mà không cần reload trang.
+     */
+    refreshUser: () => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -125,6 +131,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError(null)
     }
 
+    // useCallback: giữ reference ổn định để các effect phụ thuộc vào refreshUser
+    // (vd trang /auth/google-callback) không chạy lại vô hạn khi AuthProvider re-render.
+    const refreshUser = useCallback(async (): Promise<User | null> => {
+        setError(null)
+
+        try {
+            const currentUser = await authService.getCurrentUser()
+            if (currentUser.success && currentUser.data) {
+                setUser(currentUser.data)
+                return currentUser.data
+            }
+            setUser(null)
+            return null
+        } catch {
+            setUser(null)
+            return null
+        }
+    }, [])
+
     const value = {
         user,
         loading,
@@ -134,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         clearError,
+        refreshUser,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

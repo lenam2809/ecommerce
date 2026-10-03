@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Features.Auth.Commands.LoginUser;
 using Ecommerce.Application.Features.Auth.Commands.ExternalLogin;
 using Ecommerce.Application.Features.Auth.Commands.RefreshToken;
@@ -18,6 +19,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
@@ -33,25 +35,29 @@ namespace Ecommerce.WebAPI.Controllers
         private readonly AuthConfig _authConfig;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             IMediator mediator, 
             IConfiguration configuration,
             IOptions<AuthConfig> authConfig,
             IUnitOfWork unitOfWork,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<AuthController> logger)
         {
             _mediator = mediator;
             _configuration = configuration;
             _authConfig = authConfig.Value;
             _unitOfWork = unitOfWork;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         /// <summary>
         /// Register a new user - returns only user ID (tokens set via cookies after login)
         /// </summary>
         [HttpPost("register")]
+        [EnableRateLimiting("AuthPolicy")] // 🔒 SECURITY (M8): chống tạo tài khoản hàng loạt
         public async Task<IActionResult> Register(RegisterCommand command)
         {
             var result = await _mediator.Send(command);
@@ -119,6 +125,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Refresh access token using refresh token from cookie or body
         /// </summary>
         [HttpPost("refresh-token")]
+        [EnableRateLimiting("AuthPolicy")] // 🔒 SECURITY (M8): chống brute-force refresh token
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand? command = null)
         {
             // Try to get tokens from cookies first (new way)
@@ -192,9 +199,14 @@ namespace Ecommerce.WebAPI.Controllers
                 {
                     await _mediator.Send(new RevokeTokenCommand { RefreshToken = refreshToken });
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore errors during revocation - still clear cookies
+                    // 🔒 SECURITY (H2): ghi log lỗi thay vì nuốt im lặng — nếu revoke thất bại
+                    // (ví dụ thiếu Auth:TokenHashSecret ở production, lỗi DB...) phải nhìn thấy trong log.
+                    // Vẫn xóa cookie client để user logout được, nhưng lỗi không bị che giấu.
+                    _logger.LogError(ex,
+                        "Revoke refresh token thất bại trong lúc logout. UserId: {UserId}",
+                        User.FindFirstValue(ClaimTypes.NameIdentifier));
                 }
             }
 
@@ -231,7 +243,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// </summary>
         [HttpPost("external-login")]
         [AllowAnonymous]
-        public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnUrl, [FromForm] string? guestId)
+        public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string? returnUrl)
         {
             if (!string.Equals(provider, "Google", StringComparison.OrdinalIgnoreCase))
             {
@@ -248,10 +260,8 @@ namespace Ecommerce.WebAPI.Controllers
             var redirectUrl = Url.Action(nameof(GoogleResponse), "Auth");
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             properties.Items["returnUrl"] = safeReturnUrl;
-            if (!string.IsNullOrWhiteSpace(guestId) && guestId.Length <= 64)
-            {
-                properties.Items["guestId"] = guestId;
-            }
+            // 🔒 SECURITY (H6): KHÔNG nhận guestId từ client nữa — guest_id cookie do server cấp
+            // sẽ được đọc lại ở GoogleResponse (cookie đi theo redirect của cùng browser).
 
             return Challenge(properties, provider);
         }
@@ -288,7 +298,9 @@ namespace Ecommerce.WebAPI.Controllers
                 principal.FindFirstValue(ClaimTypes.GivenName),
                 principal.FindFirstValue(ClaimTypes.Surname),
                 principal.FindFirstValue("picture"),
-                GetAuthenticationProperty(authenticateResult, "guestId"),
+                // 🔒 SECURITY (H6): guestId lấy từ cookie do server cấp (GuestCartMiddleware),
+                // không còn từ properties do client truyền vào
+                Request.Cookies[GuestCartConstants.GuestIdCookieName],
                 Request.Headers.UserAgent.ToString(),
                 HttpContext.Connection.RemoteIpAddress?.ToString());
 

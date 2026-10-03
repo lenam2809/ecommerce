@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState, Suspense } from "react"
+import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
-import { getGuestId } from "@/lib/guest-id"
+import { GoogleLoginButton } from "@/components/auth/google-login-button"
+import { isGoogleLoginEnabled } from "@/lib/google-auth"
 
 function getSafeReturnUrl(returnUrl: string | null): string {
     if (!returnUrl) return "/"
@@ -39,7 +40,6 @@ function LoginContent() {
     const [rememberMe, setRememberMe] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [guestId, setGuestId] = useState("")
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
 
     const router = useRouter()
@@ -48,11 +48,10 @@ function LoginContent() {
 
     // Get redirect URL from query params - support both 'returnUrl' and 'redirect'
     const redirectUrl = getSafeReturnUrl(searchParams.get("returnUrl") || searchParams.get("redirect"))
-    const googleLoginUrl = `/api/auth/external-login?provider=Google&returnUrl=${encodeURIComponent(redirectUrl)}`
 
-    useEffect(() => {
-        setGuestId(getGuestId() ?? "")
-    }, [])
+    // Nút Google chỉ render ở ecommerce-client (gate theo NEXT_PUBLIC_APP_TYPE)
+    // và có thể tắt bằng NEXT_PUBLIC_ENABLE_GOOGLE_LOGIN=false.
+    const googleLoginEnabled = isGoogleLoginEnabled()
 
     const validateForm = () => {
         const newErrors: { email?: string; password?: string } = {}
@@ -100,64 +99,68 @@ function LoginContent() {
 
 
     return (
-        <div className="glass-card p-8 rounded-2xl w-full text-left">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl tech-heading mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#2A5CAA] to-[#1e4785] dark:from-blue-400 dark:to-blue-600">
-                    Đăng nhập
+        <div className="bg-card border border-line rounded-3xl p-6 sm:p-8 w-full text-left shadow-xs">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand text-[11px] font-bold uppercase tracking-wider mb-3">
+                    <span>ShopViet Account</span>
+                </div>
+                <h1 className="text-h2 font-bold tracking-tight mb-1.5 text-ink">
+                    Chào mừng trở lại
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                    Chào mừng trở lại! Nhập thông tin để tiếp tục.
+                <p className="text-ink-soft text-small">
+                    Đăng nhập để quản lý đơn hàng và ưu đãi độc quyền
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                    <label htmlFor="email" className="tech-label ml-1">
-                        Email
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                    <label htmlFor="email" className="text-tiny font-semibold text-ink-soft ml-1">
+                        Email đăng nhập
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Mail className="h-5 w-5" />
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
+                            <Mail className="h-4 w-4" />
                         </div>
                         <Input
                             id="email"
                             type="email"
                             placeholder="name@example.com"
-                            className={`pl-10 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
+                            className={`h-11 pl-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
-                    {errors.email && <p className="text-sm text-red-500 ml-1">{errors.email}</p>}
+                    {errors.email && <p className="text-tiny text-destructive ml-2">{errors.email}</p>}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                        <label htmlFor="password" className="tech-label ml-1">
+                        <label htmlFor="password" className="text-tiny font-semibold text-ink-soft ml-1">
                             Mật khẩu
                         </label>
-                        <Link href="/forgot-password" className="text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors">
+                        <Link href="/forgot-password" className="text-tiny font-medium text-brand hover:underline transition-colors">
                             Quên mật khẩu?
                         </Link>
                     </div>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Lock className="h-5 w-5" />
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
+                            <Lock className="h-4 w-4" />
                         </div>
                         <Input
                             id="password"
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
-                            className={`pl-10 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
+                            className={`h-11 pl-10 pr-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={isLoading}
                         />
                         <button
                             type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-ink-faint hover:text-ink transition-colors cursor-pointer"
                             onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                         >
                             {showPassword ? (
                                 <EyeOff className="h-4 w-4" />
@@ -166,31 +169,31 @@ function LoginContent() {
                             )}
                         </button>
                     </div>
-                    {errors.password && <p className="text-sm text-red-500 ml-1">{errors.password}</p>}
+                    {errors.password && <p className="text-tiny text-destructive ml-2">{errors.password}</p>}
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center pt-1">
                     <Checkbox
                         id="remember-me"
                         checked={rememberMe}
                         onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                         disabled={isLoading}
-                        className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        className="rounded-md border-line data-[state=checked]:bg-brand data-[state=checked]:border-brand"
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-muted-foreground cursor-pointer select-none">
-                        Ghi nhớ đăng nhập
+                    <label htmlFor="remember-me" className="ml-2 block text-tiny text-ink-soft cursor-pointer select-none">
+                        Ghi nhớ phiên đăng nhập này
                     </label>
                 </div>
 
                 <Button
                     type="submit"
-                    className="w-full btn-glow h-11 text-base font-medium rounded-xl from-blue-600 to-indigo-600 bg-gradient-to-r hover:from-blue-700 hover:to-indigo-700 border-0"
+                    className="w-full h-11 text-small font-semibold rounded-full bg-brand text-white hover:bg-brand-hover shadow-xs hover:shadow-brand-glow transition-all cursor-pointer mt-2"
                     disabled={isLoading}
                 >
                     {isLoading ? (
                         <div className="flex items-center gap-2">
                             <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            <span>Đang xử lý...</span>
+                            <span>Đang xác thực...</span>
                         </div>
                     ) : (
                         "Đăng nhập"
@@ -198,35 +201,23 @@ function LoginContent() {
                 </Button>
             </form>
 
-            <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">Hoặc</span>
-                <div className="h-px flex-1 bg-border" />
-            </div>
+            {googleLoginEnabled && (
+                <>
+                    <div className="my-5 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-line" />
+                        <span className="text-tiny text-ink-faint">Hoặc tiếp tục với</span>
+                        <div className="h-px flex-1 bg-line" />
+                    </div>
 
-            <form method="post" action={googleLoginUrl}>
-                <input type="hidden" name="guestId" value={guestId} />
-                <Button
-                    type="submit"
-                    variant="outline"
-                    className="h-11 w-full rounded-xl border-[#dadce0] bg-white text-sm font-medium text-[#3c4043] hover:bg-[#f8fafd] dark:bg-background dark:text-foreground"
-                    disabled={isLoading}
-                >
-                    <svg aria-hidden="true" className="mr-3 h-5 w-5" viewBox="0 0 48 48">
-                        <path fill="#EA4335" d="M24 9.5c3.4 0 6.4 1.2 8.8 3.5l6.6-6.6C35.4 2.7 30.1.5 24 .5 14.8.5 6.9 5.8 3.1 13.5l7.7 6C12.6 13.6 17.8 9.5 24 9.5z" />
-                        <path fill="#4285F4" d="M47.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h13.2c-.6 3-2.3 5.6-4.9 7.3l7.5 5.8c4.4-4.1 7.7-10.1 7.7-17.1z" />
-                        <path fill="#FBBC05" d="M10.8 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.7-6C1.4 16.7.5 20.2.5 24s.9 7.3 2.6 10.5l7.7-6z" />
-                        <path fill="#34A853" d="M24 47.5c6.1 0 11.3-2 15.1-5.4l-7.5-5.8c-2.1 1.4-4.7 2.2-7.6 2.2-6.2 0-11.4-4.1-13.2-9.8l-7.7 6C6.9 42.2 14.8 47.5 24 47.5z" />
-                    </svg>
-                    Sign in with Google
-                </Button>
-            </form>
+                    <GoogleLoginButton returnUrl={redirectUrl} disabled={isLoading} />
+                </>
+            )}
 
-            <div className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
+            <div className="text-center mt-6 pt-4 border-t border-line/60">
+                <p className="text-small text-ink-soft">
                     Chưa có tài khoản?{" "}
-                    <Link href="/register" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-                        Đăng ký ngay
+                    <Link href="/register" className="font-semibold text-brand hover:underline transition-colors">
+                        Đăng ký thành viên
                     </Link>
                 </p>
             </div>

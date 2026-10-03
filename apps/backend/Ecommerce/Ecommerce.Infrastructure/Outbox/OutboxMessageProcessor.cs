@@ -1,4 +1,5 @@
 using Ecommerce.Domain.Events;
+using Ecommerce.Domain.Interfaces.Logging;
 using Ecommerce.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -18,17 +19,20 @@ public sealed class OutboxMessageProcessor
     private readonly ApplicationDbContext _dbContext;
     private readonly IPublisher _publisher;
     private readonly ILogger<OutboxMessageProcessor> _logger;
+    private readonly ILogSanitizer _sanitizer;
     private readonly OutboxOptions _options;
 
     public OutboxMessageProcessor(
         ApplicationDbContext dbContext,
         IPublisher publisher,
         ILogger<OutboxMessageProcessor> logger,
+        ILogSanitizer sanitizer,
         IOptions<OutboxOptions> options)
     {
         _dbContext = dbContext;
         _publisher = publisher;
         _logger = logger;
+        _sanitizer = sanitizer;
         _options = options.Value;
     }
 
@@ -76,14 +80,16 @@ public sealed class OutboxMessageProcessor
         {
             message.Status = OutboxMessageStatus.Failed;
             message.RetryCount++;
-            message.Error = Truncate(ex.ToString(), 4000);
+            // 🔒 SECURITY (M4): sanitize trước khi lưu exception vào DB (cột Error) và log
+            message.Error = Truncate(_sanitizer.Sanitize(ex.ToString()), 4000);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            // Không truyền exception object thô cho Serilog (bypass sanitizer)
             _logger.LogError(
-                ex,
-                "Failed to process outbox message {OutboxMessageId} of type {OutboxMessageType}",
+                "Failed to process outbox message {OutboxMessageId} of type {OutboxMessageType}. Error: {Error}",
                 message.Id,
-                message.Type);
+                message.Type,
+                _sanitizer.Sanitize(ex.Message));
 
             return false;
         }

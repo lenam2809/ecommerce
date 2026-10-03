@@ -1,7 +1,7 @@
 // components/cart/CartActions.tsx
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, Trash } from "lucide-react";
+import { ChevronLeft, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type CartActionsProps = {
@@ -11,18 +11,18 @@ type CartActionsProps = {
 
 const CartActions = ({ onClearCart, isClearingCart }: CartActionsProps) => {
     return (
-        <div className="mt-6 flex flex-col sm:flex-row sm:justify-between items-start">
+        <div className="mt-6 flex flex-col sm:flex-row sm:justify-between items-start gap-4">
             <Link
                 href="/products"
-                className="text-primary hover:underline flex items-center mb-4 sm:mb-0 font-medium hover:text-primary/80 transition-colors duration-150 group"
+                className="inline-flex items-center text-small font-medium text-ink-soft hover:text-brand transition-colors duration-150 focus-ring rounded-sm"
             >
-                <ChevronRight className="h-4 w-4 mr-1.5 rotate-180 group-hover:-translate-x-1 transition-transform duration-150" />
+                <ChevronLeft className="h-4 w-4 mr-1.5" />
                 Tiếp tục mua sắm
             </Link>
 
             <Button
                 variant="outline"
-                className="border-destructive text-destructive hover:bg-destructive/10 transition-colors duration-150 flex items-center"
+                className="rounded-full border-line text-ink-soft hover:text-brand hover:border-brand hover:bg-brand-soft transition-colors duration-150 flex items-center"
                 onClick={onClearCart}
                 disabled={isClearingCart}
             >

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Features.Brands.Queries.GetOptionUsers;
+using Ecommerce.Application.Features.Brands.Queries.GetOptionUsers;
 using Ecommerce.Application.Features.Orders.Queries.GetOrdersByUser;
 using Ecommerce.Application.Features.Users.Commands.CreateUser;
 using Ecommerce.Application.Features.Users.Commands.DeleteUser;
@@ -43,6 +43,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("paged")]
+        [Authorize(Policy = EPermissions.ViewUsers)] // 🔒 SECURITY (H3): chặn customer liệt kê PII toàn bộ user
         public async Task<IActionResult> GetPaged([FromQuery] GetPagedUsersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -50,6 +51,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("top")]
+        [Authorize(Policy = EPermissions.ViewUsers)] // 🔒 SECURITY (H3): chặn lộ tổng chi tiêu/order count của user khác
         public async Task<IActionResult> GetTopUsers([FromQuery] GetTopUsersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -65,6 +67,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("options")]
+        [Authorize(Policy = EPermissions.ViewUsers)] // 🔒 SECURITY (H3): chặn lộ danh sách Id + tên + email toàn bộ user
         public async Task<IActionResult> GetOptionUsers()
         {
             var result = await _mediator.Send(new GetOptionUsersQuery());

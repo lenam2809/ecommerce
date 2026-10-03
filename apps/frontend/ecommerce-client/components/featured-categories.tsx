@@ -12,10 +12,13 @@ interface FeaturedCategoriesProps {
     categories: Category[]
 }
 
+/**
+ * FeaturedCategories — Editorial Minimal (dark-mode ready)
+ */
 export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
     return (
-        <section className="py-16 bg-gray-50 dark:bg-gray-900">
-            <div className="container mx-auto px-4">
+        <section className="py-16 bg-surface">
+            <div className="container-app">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -23,10 +26,9 @@ export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
                     viewport={{ once: true }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                        Mua sắm theo danh mục
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+                    <p className="section-label mb-2">Danh mục</p>
+                    <h2 className="section-title">Mua sắm theo danh mục</h2>
+                    <p className="text-ink-soft text-body max-w-2xl mx-auto mt-2">
                         Khám phá nhiều sản phẩm công nghệ cao cấp của chúng tôi
                     </p>
                 </motion.div>
@@ -42,40 +44,37 @@ export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
                             className="flex-none snap-center"
                         >
                             <Link
-                                key={category.id}
                                 href={`/${category.slug}`}
                                 className={cn(
-                                    "flex-shrink-0 snap-start rounded-lg overflow-hidden group",
+                                    "flex-shrink-0 snap-start rounded-xl overflow-hidden group",
                                     "flex flex-col items-center transition-all",
                                 )}
                             >
-                                <Card className="w-64 h-90 group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                                    <CardContent className="p-0 relative overflow-hidden rounded-lg">
-                                        <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
+                                <Card className="w-64 group cursor-pointer hover:shadow-lg transition-shadow duration-300 border-line">
+                                    <CardContent className="p-0 relative overflow-hidden">
+                                        <div className="relative h-48 bg-surface">
                                             <Image
                                                 src={category.image || "/placeholder.svg"}
                                                 alt={category.name}
                                                 fill
-                                                className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
                                             />
-                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
                                         </div>
 
                                         <div className="p-6">
-                                            <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            <h3 className="text-h3 font-semibold mb-2 group-hover:text-brand transition-colors text-ink">
                                                 {category.name}
                                             </h3>
-                                            <Badge variant="secondary" className="mb-2">
+                                            <Badge variant="secondary" className="mb-2 bg-surface text-ink-soft border-line">
                                                 {category.productCount} sản phẩm
                                             </Badge>
-                                            <p className="text-gray-600 dark:text-gray-300 text-sm">
+                                            <p className="text-ink-soft text-small line-clamp-2">
                                                 {category.description}
                                             </p>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </Link>
-
                         </motion.div>
                     ))}
                 </div>

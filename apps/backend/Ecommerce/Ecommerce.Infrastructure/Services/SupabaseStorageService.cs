@@ -14,6 +14,13 @@ namespace Ecommerce.Infrastructure.Services
         private readonly Client _supabase;
         private readonly SupabaseStorageConfig _config;
 
+        // 🔒 SECURITY (M10): whitelist extension — chặn upload .html/.svg/.js... lên bucket public
+        private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".gif", ".webp",  // ảnh (đã kiểm magic bytes riêng)
+            ".xlsx", ".csv", ".pdf", ".txt"            // tài liệu — không thực thi được
+        };
+
         public SupabaseStorageService(IOptions<SupabaseStorageConfig> config)
         {
             _config = config.Value;
@@ -33,7 +40,22 @@ namespace Ecommerce.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(folderName)) folderName = "default";
 
             var fileName   = GetUniqueFileName(file.FileName);
-            var objectPath = $"{folderName}/{fileName}";
+
+            // 🔒 SECURITY (M10): whitelist extension (xem AllowedExtensions)
+            var extension = Path.GetExtension(fileName);
+            if (!AllowedExtensions.Contains(extension))
+            {
+                throw new ArgumentException($"Loại file '{extension}' không được phép upload.");
+            }
+
+            // 🔒 SECURITY (M10): chặn path traversal trong folderName (segment ".." hoặc rỗng)
+            var safeFolder = folderName.Replace('\\', '/').Trim('/');
+            if (safeFolder.Split('/').Any(segment => segment == ".." || string.IsNullOrWhiteSpace(segment)))
+            {
+                throw new ArgumentException("Tên thư mục không hợp lệ.");
+            }
+
+            var objectPath = $"{safeFolder}/{fileName}";
 
             byte[] fileBytes;
             string mimeType;

@@ -1,13 +1,14 @@
 "use client"
 
 import { useRef } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
+import Link from "next/link"
 import { Category } from "@/types/category"
 import { CategoryCard } from "./category-card"
 import { Button } from "./ui/button"
 
 interface CategorySectionProps {
-  categories: Category[];
+  categories: Category[]
 }
 
 export function CategorySection({ categories }: CategorySectionProps) {
@@ -16,62 +17,72 @@ export function CategorySection({ categories }: CategorySectionProps) {
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current
-      // Scroll by card width + gap (~300px) roughly, matching max view
-      const scrollAmount = direction === "left" ? -Math.max(container.clientWidth / 2, 300) : Math.max(container.clientWidth / 2, 300)
+      const scrollAmount =
+        direction === "left"
+          ? -Math.max(container.clientWidth / 2, 320)
+          : Math.max(container.clientWidth / 2, 320)
       container.scrollBy({ left: scrollAmount, behavior: "smooth" })
     }
   }
 
   return (
-    <section className="relative py-16 md:py-24 bg-background overflow-hidden border-y border-white/5">
-      {/* Subtle radial gradient background */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.15),transparent_60%)] pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-10 gap-4">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">Danh mục nổi bật</h2>
-            <p className="text-lg text-muted-foreground">Khám phá các sản phẩm công nghệ theo từng nhóm chuyên biệt</p>
+    <section className="py-14 md:py-20 bg-surface/30 border-b border-line/40">
+      <div className="container-app">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+          <div className="section-heading !mb-0">
+            <span className="section-label">Danh Mục Nổi Bật</span>
+            <h2 className="section-title">Khám phá theo danh mục</h2>
+            <p className="text-small text-ink-faint mt-1 max-w-lg">
+              Tuyển tập những thiết bị định hình phong cách sống và không gian làm việc hiện đại.
+            </p>
           </div>
-          
-          {/* Navigation Buttons for strict horizontal control */}
-          {categories.length > 0 && (
-            <div className="hidden md:flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => scroll("left")}
-                aria-label="Cuộn trái danh mục"
-                className="rounded-full bg-card border-white/10 hover:bg-secondary/50 text-foreground transition-all focus-visible:ring-2 focus-visible:ring-primary shadow-sm hover:shadow-md h-12 w-12"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => scroll("right")}
-                aria-label="Cuộn phải danh mục"
-                className="rounded-full bg-card border-white/10 hover:bg-secondary/50 text-foreground transition-all focus-visible:ring-2 focus-visible:ring-primary shadow-sm hover:shadow-md h-12 w-12"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-          )}
+
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            <Link
+              href="/products"
+              className="text-small font-semibold text-brand hover:underline inline-flex items-center gap-1 group"
+            >
+              Xem tất cả danh mục
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+
+            {categories.length > 0 && (
+              <div className="hidden sm:flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll("left")}
+                  aria-label="Cuộn trái danh mục"
+                  className="rounded-full border-line text-ink hover:bg-background h-10 w-10"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll("right")}
+                  aria-label="Cuộn phải danh mục"
+                  className="rounded-full border-line text-ink hover:bg-background h-10 w-10"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Horizontal Scroll Track */}
-        <div 
+        <div
           ref={scrollContainerRef}
-          className="flex overflow-x-auto pb-10 pt-4 -mb-4 snap-x snap-mandatory gap-6 scrollbar-hide px-2 -mx-2"
+          className="flex overflow-x-auto pb-4 pt-2 -mb-4 snap-x snap-mandatory gap-4.5 scrollbar-hide px-1 -mx-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {categories.map((category) => (
-             <CategoryCard key={category.id} category={category} />
+            <CategoryCard key={category.id} category={category} />
           ))}
 
           {categories.length === 0 && (
-            <div className="w-full text-center py-12 text-muted-foreground bg-card/50 rounded-2xl border border-white/5">
-                Chưa có danh mục nào.
+            <div className="w-full text-center py-12 text-ink-faint bg-card rounded-2xl border border-line">
+              Chưa có danh mục nào.
             </div>
           )}
         </div>

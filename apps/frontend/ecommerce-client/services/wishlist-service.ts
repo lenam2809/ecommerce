@@ -22,8 +22,8 @@ class WishlistService extends BaseService {
      * @param productId - The ID of the product to add
      * @returns Promise with the result of the operation
      */
-    async addToWishlist(productId: string): Promise<Result<any>> {
-        return await this.post<any>(`/wishlist/add/${productId}`, {});
+    async addToWishlist(productId: string): Promise<Result<unknown>> {
+        return await this.post<unknown>(`/wishlist/add/${productId}`, {});
     }
 
     /**
@@ -31,8 +31,8 @@ class WishlistService extends BaseService {
      * @param productId - The ID of the product to remove
      * @returns Promise with the result of the operation
      */
-    async removeFromWishlist(productId: string): Promise<Result<any>> {
-        return await this.delete<any>(`remove/${productId}`);
+    async removeFromWishlist(productId: string): Promise<Result<unknown>> {
+        return await this.delete<unknown>(`remove/${productId}`);
     }
 
     /**

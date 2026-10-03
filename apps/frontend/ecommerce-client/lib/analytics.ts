@@ -56,6 +56,25 @@ export interface CheckoutData {
   coupon?: string
 }
 
+type UserPropertiesConfig = {
+  user_id: string
+  user_properties: {
+    email?: string
+    name?: string
+  }
+}
+
+type Gtag = {
+  (command: "event", eventName: string, data?: EventData): void
+  (command: "config", config: UserPropertiesConfig): void
+}
+
+declare global {
+  interface Window {
+    gtag?: Gtag
+  }
+}
+
 class Analytics {
   private isEnabled: boolean = false
   private debugMode: boolean = false
@@ -77,7 +96,7 @@ class Analytics {
     }
 
     // Initialize Google Analytics if gtag is available
-    if (typeof window !== "undefined" && (window as any).gtag) {
+    if (typeof window !== "undefined" && window.gtag) {
       if (this.debugMode) {
         logger.debug("[Analytics] Google Analytics initialized")
       }
@@ -363,9 +382,9 @@ class Analytics {
     }
 
     // Send to Google Analytics if available
-    if (typeof window !== "undefined" && (window as any).gtag) {
+    if (typeof window !== "undefined" && window.gtag) {
       try {
-        (window as any).gtag("event", eventName, data)
+        window.gtag("event", eventName, data)
       } catch (error) {
         logger.error("[Analytics] Error sending to GA4:", error)
       }
@@ -388,9 +407,9 @@ class Analytics {
   setUserProperties(userId: string, email?: string, name?: string) {
     if (!this.isEnabled) return
 
-    if (typeof window !== "undefined" && (window as any).gtag) {
+    if (typeof window !== "undefined" && window.gtag) {
       try {
-        (window as any).gtag("config", {
+        window.gtag("config", {
           user_id: userId,
           user_properties: {
             email,
