@@ -8,6 +8,9 @@ import { AuthProvider } from "@/hooks/use-auth"
 import { SignalRProvider } from "@/hubs/signalr-context"
 import { AnalyticsProvider } from "@/components/analytics-provider"
 
+import { CartProvider } from "@/components/provider/cart-provider"
+import { WishlistProvider } from "@/components/provider/wishlist-provider"
+
 interface ProvidersProps {
   children: ReactNode
 }
@@ -35,9 +38,13 @@ export default function Providers({ children }: ProvidersProps) {
             defaultTheme="dark"
             enableSystem
           >
-            <AnalyticsProvider>
-              {children}
-            </AnalyticsProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <AnalyticsProvider>
+                  {children}
+                </AnalyticsProvider>
+              </WishlistProvider>
+            </CartProvider>
           </ThemeProvider>
         </SignalRProvider>
       </AuthProvider>

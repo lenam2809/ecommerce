@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Search, ShoppingCart, Heart, Menu, X, Sparkles, PhoneCall } from "lucide-react"
+import { Search, ShoppingCart, Heart, Menu, X, PhoneCall, ArrowLeftRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +25,7 @@ export function Header() {
     const { wishlist } = useWishlist()
     const [cartItemCount, setCartItemCount] = useState(0)
     const [wishlistItemCount, setWishlistItemCount] = useState(0)
+    const [comparedItemCount, setComparedItemCount] = useState(0)
 
     const { user, isAuthenticated, logout } = useAuth()
 
@@ -50,6 +50,26 @@ export function Header() {
             setWishlistItemCount(wishlist.items?.length || 0)
         }
     }, [wishlist])
+
+    useEffect(() => {
+        const updateComparedCount = () => {
+            try {
+                const stored = localStorage.getItem("comparedProducts")
+                if (stored) {
+                    const parsed = JSON.parse(stored)
+                    setComparedItemCount(Array.isArray(parsed) ? parsed.length : 0)
+                } else {
+                    setComparedItemCount(0)
+                }
+            } catch {
+                setComparedItemCount(0)
+            }
+        }
+
+        updateComparedCount()
+        window.addEventListener("comparisonUpdated", updateComparedCount)
+        return () => window.removeEventListener("comparisonUpdated", updateComparedCount)
+    }, [])
 
     const getUserInitials = () => {
         if (!user?.email) return "U"
@@ -77,31 +97,32 @@ export function Header() {
                 Chuyển đến nội dung chính
             </a>
 
-            {/* Top Announcement Bar — Editorial Minimalist */}
+            {/* Top Announcement Bar — Stitch Design Alignment */}
             {showAnnouncement && (
-                <div className="bg-surface-2 text-ink text-tiny border-b border-line/60 transition-all duration-200">
-                    <div className="container-app flex items-center justify-between py-1.5">
+                <div className="bg-surface-2 dark:bg-[#17181b] text-ink dark:text-[#a1a1aa] text-tiny border-b border-line dark:border-[#2c2d33] transition-all duration-200">
+                    <div className="container-app flex items-center justify-between py-2">
                         <div className="flex items-center gap-2 mx-auto md:mx-0 text-center md:text-left">
-                            <span className="inline-flex items-center gap-1 text-brand font-medium">
-                                <Sparkles className="h-3 w-3" />
-                                Đặc quyền 2026:
-                            </span>
+                            <span className="inline-block w-2 h-2 rounded-full bg-brand animate-pulse shrink-0" />
                             <span className="text-ink-soft">
-                                Miễn phí vận chuyển cho đơn từ 2.000.000₫ • 100% Chính hãng bảo hành 24T
+                                Miễn phí vận chuyển toàn quốc cho đơn từ 2.000.000₫
+                            </span>
+                            <span className="opacity-30 hidden sm:inline">|</span>
+                            <span className="hidden sm:inline text-ink-faint">
+                                Cam kết 100% chính hãng & Bảo hành ủy quyền 24 tháng
                             </span>
                         </div>
 
                         <div className="hidden md:flex items-center gap-4 text-ink-faint">
                             <a
                                 href="tel:19006868"
-                                className="flex items-center gap-1 hover:text-brand transition-colors"
+                                className="flex items-center gap-1 hover:text-brand transition-colors text-[11px]"
                             >
-                                <PhoneCall className="h-3 w-3" />
+                                <PhoneCall className="h-3 w-3 text-brand" />
                                 Hotline: <strong className="text-ink font-medium">1900 6868</strong>
                             </a>
                             <button
                                 onClick={() => setShowAnnouncement(false)}
-                                className="hover:text-ink transition-colors p-0.5"
+                                className="hover:text-ink transition-colors p-0.5 rounded-full hover:bg-surface"
                                 aria-label="Đóng thông báo"
                             >
                                 <X className="h-3.5 w-3.5" />
@@ -114,20 +135,15 @@ export function Header() {
             {/* Main Navigation Bar */}
             <div className="container-app">
                 <div className="flex items-center justify-between h-16 md:h-[72px]">
-                    {/* Brand Logo */}
+                    {/* Brand Logo - Stitch Typographic Identity */}
                     <Link
                         href="/"
-                        className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg shrink-0 group"
+                        className="flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg shrink-0 group py-1"
                     >
-                        <Image
-                            src="/logo.png?height=40&width=120"
-                            alt="ShopViet - Công nghệ chính hãng"
-                            width={124}
-                            height={40}
-                            className="h-8 md:h-9 w-auto dark:invert transition-transform duration-300 group-hover:scale-102"
-                            priority
-                        />
-                        <span className="hidden sm:inline-block h-2 w-2 rounded-full bg-brand animate-pulse" />
+                        <span className="text-xl md:text-2xl font-bold tracking-tight text-ink flex items-center">
+                            Shop<span className="text-brand">Viet</span>
+                        </span>
+                        <span className="w-2 h-2 rounded-full bg-brand inline-block translate-y-0.5 group-hover:scale-125 transition-transform duration-200" />
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -155,6 +171,29 @@ export function Header() {
                         >
                             <Search className="h-5 w-5" />
                         </Button>
+
+                        {/* Compare Button */}
+                        <Link
+                            href="/compare"
+                            className="relative hidden md:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-full"
+                        >
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full h-10 w-10 text-ink hover:text-brand hover:bg-surface transition-colors"
+                                aria-label={`So sánh sản phẩm ${comparedItemCount > 0 ? `(${comparedItemCount})` : ""}`}
+                            >
+                                <ArrowLeftRight className="h-5 w-5" />
+                            </Button>
+                            {comparedItemCount > 0 && (
+                                <Badge
+                                    className="absolute -top-1 -right-1 bg-ink text-background h-5 min-w-5 flex items-center justify-center p-0 text-[10px] font-semibold rounded-full border-2 border-background shadow-xs"
+                                    aria-label={`${comparedItemCount} sản phẩm đang so sánh`}
+                                >
+                                    {comparedItemCount}
+                                </Badge>
+                            )}
+                        </Link>
 
                         {/* Wishlist Button */}
                         <Link
@@ -239,6 +278,7 @@ export function Header() {
                 logout={logout}
                 cartCount={cartItemCount}
                 wishlistCount={wishlistItemCount}
+                compareCount={comparedItemCount}
             />
         </header>
     )

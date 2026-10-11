@@ -6,7 +6,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Star, AlertCircle } from "lucide-react"
+import { ArrowLeft, Star, AlertCircle, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { formatPrice } from "@/lib/contants"
@@ -41,26 +41,35 @@ function CompareContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
 
+    const handleRemoveProduct = (productId: string) => {
+        try {
+            const storedProducts = localStorage.getItem("comparedProducts")
+            if (storedProducts) {
+                const allProducts = JSON.parse(storedProducts)
+                const updated = allProducts.filter((p: Product) => p.id !== productId)
+                localStorage.setItem("comparedProducts", JSON.stringify(updated))
+                setProducts(products.filter((p) => p.id !== productId))
+                window.dispatchEvent(new CustomEvent("comparisonUpdated"))
+            }
+        } catch (error) {
+            logger.error("Error removing compared product:", error)
+        }
+    }
+
     useEffect(() => {
         const fetchProducts = async () => {
             const productIds = searchParams.get("ids")
 
-            if (!productIds) {
-                // If no IDs, just stop loading, render empty state will handle redirect button
-                // Or auto redirect
-                setLoading(false)
-                return
-            }
-
             try {
-                // In a real app, you would fetch the products from the API
-                // For now, we'll get them from localStorage
                 const storedProducts = localStorage.getItem("comparedProducts")
                 if (storedProducts) {
-                    const allProducts = JSON.parse(storedProducts)
-                    const idsToCompare = productIds.split(",")
-                    const filteredProducts = allProducts.filter((p: Product) => idsToCompare.includes(p.id))
-                    setProducts(filteredProducts)
+                    const allProducts: Product[] = JSON.parse(storedProducts)
+                    if (productIds) {
+                        const idsToCompare = productIds.split(",")
+                        setProducts(allProducts.filter((p) => idsToCompare.includes(p.id)))
+                    } else {
+                        setProducts(allProducts)
+                    }
                 }
             } catch (error) {
                 logger.error("Error fetching products:", error)
@@ -148,8 +157,15 @@ function CompareContent() {
                                     Thiết bị
                                 </th>
                                 {products.map((product) => (
-                                    <th key={product.id} className="p-6 min-w-[260px] border-l border-line/70 align-top bg-card">
-                                        <div className="flex flex-col items-center group text-center">
+                                    <th key={product.id} className="p-6 min-w-[260px] border-l border-line/70 align-top bg-card relative">
+                                        <button
+                                            onClick={() => handleRemoveProduct(product.id)}
+                                            className="absolute top-4 right-4 h-7 w-7 rounded-full bg-surface-2 hover:bg-destructive/10 hover:text-destructive text-ink-faint flex items-center justify-center transition-colors"
+                                            title="Xóa khỏi so sánh"
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                        </button>
+                                        <div className="flex flex-col items-center group text-center pt-2">
                                             <Link href={`/product/${product.slug || product.id}`} className="relative w-36 h-36 mb-4 rounded-2xl overflow-hidden bg-surface-2/40 border border-line transition-transform duration-200 group-hover:scale-105">
                                                 <Image
                                                     src={product.mainImage || "/placeholder.svg"}

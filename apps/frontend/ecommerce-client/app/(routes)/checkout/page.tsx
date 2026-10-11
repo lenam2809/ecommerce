@@ -163,13 +163,7 @@ export default function CheckoutPage() {
 
         toast.success("Đặt hàng thành công")
         clearCart()
-
-        if (user) {
-          router.push(`/account/orders/${orderId}`)
-          return
-        }
-
-        router.push("/")
+        router.push(`/payment/vnpay-return?success=true&orderId=${orderId}`)
       } else {
         const prodMsg = "Something went wrong, please try again later"
         const devMsg = result.error || "Có lỗi xảy ra khi đặt hàng"

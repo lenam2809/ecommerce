@@ -56,6 +56,22 @@
   --color-ink-faint: hsl(var(--ink-faint));
   --color-line: hsl(var(--line));
 
+  /* ─── Stitch design tokens (ShopViet UI/UX Redesign 2026) ─── */
+  --color-primary-container: #e11d48;
+  --color-on-primary-container: #fffaf9;
+  --color-primary-fixed: #ffdada;
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
   /* ─── Typography scale ─── */
   --text-display: 3.5rem;
   --text-display--line-height: 1.05;
@@ -88,33 +104,33 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
+    --background: 0 0% 98%;
+    --foreground: 240 4% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
+    --card-foreground: 240 4% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
+    --popover-foreground: 240 4% 11%;
 
     /* Brand red — đồng nhất light & dark */
     --primary: 347 77% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 4%;
+    --secondary-foreground: 240 4% 11%;
 
     --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 34%;
+    --muted-foreground: 240 4% 38%;
 
     --accent: 240 5% 96%;
-    --accent-foreground: 240 10% 4%;
+    --accent-foreground: 240 4% 11%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
     --ring: 347 77% 50%;
 
     --chart-1: 347 77% 50%;
@@ -131,43 +147,54 @@
     --brand-soft: 347 100% 97%;
 
     --surface: 0 0% 98%;
-    --surface-2: 240 5% 96%;
-    --ink: 240 10% 4%;
-    --ink-soft: 240 4% 34%;
-    --ink-faint: 240 4% 62%;
-    --line: 240 6% 90%;
+    --surface-2: 0 0% 95%;
+    --ink: 240 4% 11%;
+    --ink-soft: 240 4% 38%;
+    --ink-faint: 240 4% 60%;
+    --line: 0 0% 89%;
+
+    /* Stitch container tokens */
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f3f3f3;
+    --surface-container: #eeeeee;
+    --surface-container-high: #e8e8e8;
+    --surface-container-highest: #e2e2e2;
+    --on-surface: #1a1c1c;
+    --on-surface-variant: #5c3f40;
+    --outline: #906f70;
+    --outline-variant: #e5bdbe;
   }
 
   .dark {
     color-scheme: dark;
-    --background: 240 10% 4%;
-    --foreground: 0 0% 96%;
+    --background: 220 9% 6%;
+    --foreground: 240 3% 95%;
 
-    --card: 240 8% 8%;
-    --card-foreground: 0 0% 96%;
+    --card: 225 8% 10%;
+    --card-foreground: 240 3% 95%;
 
-    --popover: 240 8% 8%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 225 8% 10%;
+    --popover-foreground: 240 3% 95%;
 
     /* Cùng brand red, sáng hơn chút cho contrast trên nền tối */
-    --primary: 347 77% 56%;
+    --primary: 347 77% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 6% 13%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 225 7% 13%;
+    --secondary-foreground: 240 3% 95%;
 
-    --muted: 240 6% 13%;
-    --muted-foreground: 240 5% 66%;
+    --muted: 225 7% 13%;
+    --muted-foreground: 240 5% 68%;
 
-    --accent: 240 6% 13%;
-    --accent-foreground: 0 0% 96%;
+    --accent: 225 7% 13%;
+    --accent-foreground: 240 3% 95%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 17%;
-    --input: 240 6% 17%;
-    --ring: 347 77% 56%;
+    --border: 230 7% 19%;
+    --input: 230 7% 19%;
+    --ring: 347 77% 50%;
 
     --chart-1: 347 77% 56%;
     --chart-2: 160 60% 45%;
@@ -176,16 +203,27 @@
     --chart-5: 340 75% 55%;
 
     /* ─── Brand & neutral tokens (dark) ─── */
-    --brand: 347 77% 56%;
-    --brand-hover: 347 77% 60%;
+    --brand: 347 77% 50%;
+    --brand-hover: 347 77% 56%;
     --brand-soft: 347 40% 14%;
 
-    --surface: 240 8% 6%;
-    --surface-2: 240 6% 13%;
-    --ink: 0 0% 96%;
-    --ink-soft: 240 5% 66%;
-    --ink-faint: 240 5% 44%;
-    --line: 240 6% 17%;
+    --surface: 220 9% 6%;
+    --surface-2: 225 8% 10%;
+    --ink: 240 3% 95%;
+    --ink-soft: 240 5% 68%;
+    --ink-faint: 240 5% 50%;
+    --line: 230 7% 19%;
+
+    /* Stitch container tokens (Dark) */
+    --surface-container-lowest: #121316;
+    --surface-container-low: #17181b;
+    --surface-container: #1c1d22;
+    --surface-container-high: #222329;
+    --surface-container-highest: #2c2d33;
+    --on-surface: #f2f2f3;
+    --on-surface-variant: #a1a1aa;
+    --outline: #2c2d33;
+    --outline-variant: #3a3b42;
   }
 
   * {

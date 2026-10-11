@@ -137,7 +137,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-auto pt-2 flex items-baseline gap-2">
           {product.salePrice ? (
             <>
-              <span className="text-base md:text-lg font-bold text-ink tracking-tight">
+              <span className="text-base md:text-lg font-bold text-brand tracking-tight">
                 {formatPrice(product.salePrice)}
               </span>
               <span className="text-tiny text-ink-faint line-through">
@@ -145,7 +145,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             </>
           ) : (
-            <span className="text-base md:text-lg font-bold text-ink tracking-tight">
+            <span className="text-base md:text-lg font-bold text-brand tracking-tight">
               {formatPrice(product.price)}
             </span>
           )}

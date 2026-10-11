@@ -1,6 +1,5 @@
 // components/footer.tsx
 import Link from "next/link"
-import Image from "next/image"
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 
 export default function Footer() {
@@ -13,14 +12,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Company Info */}
           <div className="space-y-6 lg:pr-8">
-            <Link href="/" className="inline-block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md">
-              <Image
-                src="/logo.png?height=40&width=120"
-                alt="ShopViet Logo"
-                width={120}
-                height={40}
-                className="h-9 w-auto dark:invert transition-transform duration-300 hover:scale-105"
-              />
+            <Link href="/" className="inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-md group">
+              <span className="text-2xl font-bold tracking-tight text-foreground">
+                Shop<span className="text-brand">Viet</span>
+              </span>
+              <span className="w-2 h-2 rounded-full bg-brand inline-block translate-y-0.5 group-hover:scale-125 transition-transform duration-200" />
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
               Mang đến trải nghiệm mua sắm tuyệt vời với sản phẩm chất lượng cao và dịch vụ khách hàng xuất sắc nhất.

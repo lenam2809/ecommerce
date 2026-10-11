@@ -36,7 +36,7 @@ export function useCart() {
     select: (data) => {
       return data.data
     },
-    throwOnError: true,
+    throwOnError: false,
   })
 
   // B5 FIX: Dùng onMutate + cancelQueries + optimistic updates thay vì chỉ invalidateQueries
@@ -87,11 +87,15 @@ export function useCart() {
       return { previousCart }
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (err, _variables, context) => {
       // Rollback về snapshot cũ nếu mutation thất bại
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(["cart"], context.previousCart)
       }
+      const errorMessage = getApiErrorMessage(err, "Không thể thêm sản phẩm vào giỏ hàng")
+      AppToaster.error("Lỗi thêm vào giỏ hàng", {
+        description: errorMessage,
+      })
     },
 
     onSuccess: () => {

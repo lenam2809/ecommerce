@@ -97,7 +97,7 @@ const OrderSummary = ({
                 <div className="flex justify-between items-baseline">
                     <span className="text-base font-semibold text-ink">Tổng cộng</span>
                     <div className="text-right">
-                        <span className="block text-2xl font-bold text-ink tracking-tight">
+                        <span className="block text-2xl font-bold text-brand tracking-tight">
                             {formatPrice(total)}
                         </span>
                         <span className="text-tiny text-ink-faint mt-0.5 block">

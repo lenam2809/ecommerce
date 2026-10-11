@@ -29,7 +29,7 @@ export function ProductPrice({ isLoading, price, salePrice }: ProductPriceProps)
     return (
         <div className="p-4 rounded-2xl bg-surface-2/60 border border-line/60 space-y-2.5">
             <div className="flex flex-wrap items-baseline gap-3">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-brand">
                     {formatPrice(currentPrice)}
                 </span>
                 {salePrice && (
