@@ -116,6 +116,12 @@ namespace Ecommerce.Infrastructure.Services
             if (string.IsNullOrEmpty(relativePath))
                 return await Task.FromResult(string.Empty);
 
+            if (relativePath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                relativePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return await Task.FromResult(relativePath);
+            }
+
             // Đảm bảo đường dẫn tương đối bắt đầu với dấu gạch chéo
             if (!relativePath.StartsWith("/"))
                 relativePath = "/" + relativePath;

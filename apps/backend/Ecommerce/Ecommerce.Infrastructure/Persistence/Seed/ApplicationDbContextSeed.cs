@@ -457,7 +457,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Apple",
                         Description = "Nhà sản xuất điện thoại và máy tính hàng đầu thế giới",
                         Slug = "apple",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/apple.jpg"
                     },
                     new Brand
                     {
@@ -465,7 +465,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "HONOR",
                         Description = "Thương hiệu điện thoại thông minh của Trung Quốc",
                         Slug = "honor",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/honor.jpg"
                     },
                     new Brand
                     {
@@ -473,7 +473,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Hãng Khác",
                         Description = "Các thương hiệu điện thoại khác",
                         Slug = "hang-khac",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/other.jpg"
                     },
                     new Brand
                     {
@@ -481,7 +481,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "OPPO",
                         Description = "Thương hiệu điện thoại thông minh nổi tiếng châu Á",
                         Slug = "oppo",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/oppo.jpg"
                     },
                     new Brand
                     {
@@ -489,7 +489,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Samsung",
                         Description = "Thương hiệu điện tử hàng đầu Hàn Quốc",
                         Slug = "samsung",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/samsung.jpg"
                     },
                     new Brand
                     {
@@ -497,7 +497,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Xiaomi",
                         Description = "Thương hiệu điện thoại Trung Quốc nổi tiếng",
                         Slug = "xiaomi",
-                        LogoUrl = "brands/Apple_iPhone_15_Pro_256GB.png"
+                        LogoUrl = "brands/xiaomi.jpg"
                     },
                 };
 
@@ -525,7 +525,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Điện Thoại Di Động",
                         Description = "Các dòng điện thoại thông minh hiện đại",
                         Slug = "dien-thoai-di-dong",
-                        Image = "categories/apple_iphone_15_pro_256gb-20260323120346722-93fe9b.jpg"
+                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/dien-thoai-di-dong.jpg"
                     },
                     new Category
                     {
@@ -533,7 +533,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Laptop",
                         Description = "Máy tính xách tay và máy tính di động",
                         Slug = "laptop",
-                        Image = "categories/apple_iphone_15_pro_256gb-20260323120346722-93fe9b.jpg"
+                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/laptop.jpg"
                     },
                     new Category
                     {
@@ -541,7 +541,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Máy Tính Bảng",
                         Description = "Thiết bị máy tính di động màn hình lớn",
                         Slug = "may-tinh-bang",
-                        Image = "categories/apple_iphone_15_pro_256gb-20260323120346722-93fe9b.jpg"
+                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/may-tinh-bang.jpg"
                     },
                     new Category
                     {
@@ -549,7 +549,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Phụ Kiện Công Nghệ",
                         Description = "Phụ kiện điện tử và công nghệ",
                         Slug = "phu-kien-cong-nghe",
-                        Image = "categories/apple_iphone_15_pro_256gb-20260323120346722-93fe9b.jpg"
+                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/phu-kien-cong-nghe.jpg"
                     },
                     new Category
                     {
@@ -557,7 +557,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                         Name = "Âm Thanh",
                         Description = "Tai nghe, loa và thiết bị âm thanh",
                         Slug = "am-thanh",
-                        Image = "categories/apple_iphone_15_pro_256gb-20260323120346722-93fe9b.jpg"
+                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/am-thanh.jpg"
                     }
                 };
 
@@ -2877,27 +2877,27 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 {
                     new Banner
                     {
-                        Title = "Giảm 50% - Mùa hè rực rỡ",
-                        Description = "Ưu đãi đặc biệt cho tất cả sản phẩm thời trang mùa hè",
-                        ImageUrl = "banners/neutral-minimalist-summer-fashion-sale-banner-20250804151856963-cb21e9.png",
+                        Title = "Smartphone Mega Sale - Ưu Đãi Đỉnh Cao",
+                        Description = "Khám phá các dòng smartphone flagship màn hình OLED đỉnh cao với trợ giá lên đời hấp dẫn",
+                        ImageUrl = "banners/smartphone-mega-sale-banner.jpg",
                         ButtonText = "Mua ngay",
-                        ButtonLink = "/products?category=fashion&sale=summer"
+                        ButtonLink = "/products?category=dien-thoai-di-dong"
                     },
                     new Banner
                     {
-                        Title = "Điện tử giảm sốc",
-                        Description = "Giảm đến 30% cho các sản phẩm điện tử cao cấp",
-                        ImageUrl = "banners/gray-minimalist-fashion-big-sale-banner-20250804151827077-1f03c6.png",
+                        Title = "Điện Tử Giảm Sốc Đến 30%",
+                        Description = "Trải nghiệm laptop mỏng nhẹ, máy tính bảng đỉnh cao với hiệu năng vượt trội và bảo hành 24 tháng",
+                        ImageUrl = "banners/electronics-super-deal-banner.jpg",
                         ButtonText = "Khám phá",
-                        ButtonLink = "/products?category=electronics&sale=true"
+                        ButtonLink = "/products?category=laptop"
                     },
                     new Banner
                     {
-                        Title = "Ưu đãi gia dụng",
-                        Description = "Mua 1 tặng 1 cho tất cả sản phẩm gia dụng",
-                        ImageUrl = "banners/brown-modern-fashion-(banner-(landscape))-20250804151909078-70d252.png",
+                        Title = "Hệ Sinh Thái Âm Thanh & Phụ Kiện",
+                        Description = "Mua 1 tặng 1 phụ kiện cao cấp, tai nghe không dây chống ồn và loa bluetooth thời thượng",
+                        ImageUrl = "banners/smart-accessories-banner.jpg",
                         ButtonText = "Xem ngay",
-                        ButtonLink = "/products?category=home&promotion=buy1get1"
+                        ButtonLink = "/products?category=phu-kien-cong-nghe"
                     }
                 };
 

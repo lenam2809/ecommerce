@@ -117,6 +117,12 @@ namespace Ecommerce.Infrastructure.Services
             if (string.IsNullOrEmpty(relativePath))
                 return Task.FromResult(string.Empty);
 
+            if (relativePath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                relativePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(relativePath);
+            }
+
             var storage   = _supabase.Storage.From(_config.BucketName);
             var publicUrl = storage.GetPublicUrl(relativePath.TrimStart('/'));
             return Task.FromResult(publicUrl);
