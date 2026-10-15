@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 
 namespace Ecommerce.Application.Common.Interfaces
 {
@@ -36,12 +36,21 @@ namespace Ecommerce.Application.Common.Interfaces
         bool ValidateToken(string token);
 
         /// <summary>
-        /// Trích xuất UserId từ token.
+        /// Trích xuất ClaimsPrincipal từ token, tùy chọn xác thực thời hạn sống (validateLifetime).
+        /// Vẫn luôn xác thực chữ ký, issuer, audience và thuật toán bảo mật.
+        /// </summary>
+        /// <param name="token">Chuỗi JWT cần kiểm tra.</param>
+        /// <param name="validateLifetime">True nếu yêu cầu token chưa hết hạn; False nếu cho phép token đã hết hạn trong luồng refresh.</param>
+        /// <returns>ClaimsPrincipal nếu hợp lệ, ngược lại là null.</returns>
+        System.Security.Claims.ClaimsPrincipal? GetPrincipalFromToken(string token, bool validateLifetime = true);
+
+        /// <summary>
+        /// Trích xuất UserId từ token, tùy chọn xác thực thời hạn sống (validateLifetime).
         /// </summary>
         /// <param name="token">Chuỗi JWT chứa thông tin người dùng.</param>
-        /// <returns>UserId dưới dạng chuỗi, hoặc null nếu không tìm thấy.</returns>
-        string? GetUserIdFromToken(string token);
+        /// <param name="validateLifetime">True nếu yêu cầu token chưa hết hạn; False nếu cho phép token đã hết hạn trong luồng refresh.</param>
+        /// <returns>UserId dưới dạng chuỗi, hoặc null nếu không tìm thấy hoặc chữ ký không hợp lệ.</returns>
+        string? GetUserIdFromToken(string token, bool validateLifetime = true);
     }
-
 }
 

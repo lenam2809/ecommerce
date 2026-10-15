@@ -51,7 +51,7 @@ namespace Ecommerce.Infrastructure.Identity
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddMinutes(_jwtConfig.AccessTokenExpirationMinutes),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtConfig.AccessTokenExpirationMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtConfig.Issuer,
                 Audience = _jwtConfig.Audience
@@ -88,32 +88,16 @@ namespace Ecommerce.Infrastructure.Identity
 
         public bool ValidateToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtConfig.SecretKey);
-
-            try
-            {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwtConfig.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = _jwtConfig.Audience,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return GetPrincipalFromToken(token, validateLifetime: true) != null;
         }
 
-        public string? GetUserIdFromToken(string token)
+        public ClaimsPrincipal? GetPrincipalFromToken(string token, bool validateLifetime = true)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return null;
+            }
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtConfig.SecretKey);
 
@@ -127,16 +111,30 @@ namespace Ecommerce.Infrastructure.Identity
                     ValidIssuer = _jwtConfig.Issuer,
                     ValidateAudience = true,
                     ValidAudience = _jwtConfig.Audience,
+                    ValidateLifetime = validateLifetime,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
-                var userIdClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-                return userIdClaim?.Value;
+                if (validatedToken is not JwtSecurityToken jwtToken ||
+                    (!jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase) &&
+                     !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256Signature, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return null;
+                }
+
+                return principal;
             }
             catch
             {
                 return null;
             }
+        }
+
+        public string? GetUserIdFromToken(string token, bool validateLifetime = true)
+        {
+            var principal = GetPrincipalFromToken(token, validateLifetime);
+            var userIdClaim = principal?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            return userIdClaim?.Value;
         }
     }
 }

@@ -243,9 +243,14 @@ using (var scope = app.Services.CreateScope())
 
     // Always apply migrations
     await context.Database.MigrateAsync();
-    //await ApplicationDbContextSeed.SeedAsync(services, app.Environment.IsDevelopment());
-    await ApplicationDbContextSeed.SeedAsync(services, true);
+    var configuration = services.GetRequiredService<IConfiguration>();
+    var isDevelopment = app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "IntegrationTesting";
+    var seedEnabled = configuration.GetValue<bool?>("Seed:Enabled") ?? isDevelopment;
 
+    if (seedEnabled)
+    {
+        await ApplicationDbContextSeed.SeedAsync(services, isDevelopment, configuration);
+    }
 }
 
 app.UseRateLimiter();

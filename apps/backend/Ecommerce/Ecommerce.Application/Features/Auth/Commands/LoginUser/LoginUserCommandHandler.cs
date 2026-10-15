@@ -75,7 +75,7 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
 
                     if (failCount >= 5)
                     {
-                        var expiresAt = DateTime.Now.AddMinutes(30);
+                        var expiresAt = DateTime.UtcNow.AddMinutes(30);
                         await _unitOfWork.AccountLocks.LockUserAsync(
                             user.Id,
                             "Too many failed login attempts",
@@ -117,7 +117,7 @@ namespace Ecommerce.Application.Features.Auth.Commands.LoginUser
                     UserAgentHash = HashUserAgent(request.UserAgent),
                     IpSubnet = ExtractIpSubnet(request.IpAddress),
                     FamilyId = tokenFamilyId,
-                    ExpiryDate = DateTime.Now.AddDays(7),
+                    ExpiryDate = DateTime.UtcNow.AddDays(7),
                     IsRevoked = false,
                 });
 

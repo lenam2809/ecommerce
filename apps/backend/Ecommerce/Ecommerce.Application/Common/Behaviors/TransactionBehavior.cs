@@ -21,7 +21,7 @@ namespace Ecommerce.Application.Common.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            if (request is IQuery<TResponse> || _unitOfWork.HasActiveTransaction)
+            if (request is IQuery<TResponse> || request is INonTransactionalRequest || _unitOfWork.HasActiveTransaction)
             {
                 return await next();
             }

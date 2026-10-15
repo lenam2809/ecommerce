@@ -1,7 +1,8 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -13,20 +14,23 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<Role> _roleManager;
+        private readonly IConfiguration? _configuration;
 
         public ApplicationDbContextSeed(
             ILogger<ApplicationDbContextSeed> logger,
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            RoleManager<Role> roleManager)
+            RoleManager<Role> roleManager,
+            IConfiguration? configuration = null)
         {
             _logger = logger;
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _configuration = configuration;
         }
 
-        public static async Task SeedAsync(IServiceProvider serviceProvider, bool isDevelopment = true)
+        public static async Task SeedAsync(IServiceProvider serviceProvider, bool isDevelopment = true, IConfiguration? configuration = null)
         {
             using var scope = serviceProvider.CreateScope();
             var services = scope.ServiceProvider;
@@ -35,11 +39,13 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = services.GetRequiredService<RoleManager<Role>>();
 
+            var config = configuration ?? services.GetService<IConfiguration>();
+
             try
             {
-                logger.LogInformation("Starting database seeding");
+                logger.LogInformation("Starting database seeding (IsDevelopment: {IsDevelopment})", isDevelopment);
 
-                var seeder = new ApplicationDbContextSeed(logger, context, userManager, roleManager);
+                var seeder = new ApplicationDbContextSeed(logger, context, userManager, roleManager, config);
                 await seeder.SeedAllAsync(isDevelopment);
 
                 logger.LogInformation("Database seeding completed successfully");
@@ -162,11 +168,60 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
 
         private async Task<List<ApplicationUser>> SeedUsersAsync(bool isDevelopment)
         {
-            _logger.LogInformation("Seeding users");
+            _logger.LogInformation("Seeding users (IsDevelopment: {IsDevelopment})", isDevelopment);
 
             var users = new List<ApplicationUser>();
 
-            // Create admin user if it doesn't exist
+            if (!isDevelopment)
+            {
+                // In Production: NEVER seed hardcoded default credentials (SEC-07).
+                // Bootstrap admin ONLY if explicitly configured via Seed:AdminEmail and Seed:AdminPassword.
+                var bootstrapEmail = _configuration?["Seed:AdminEmail"];
+                var bootstrapPassword = _configuration?["Seed:AdminPassword"];
+
+                if (!string.IsNullOrWhiteSpace(bootstrapEmail) && !string.IsNullOrWhiteSpace(bootstrapPassword))
+                {
+                    var existingAdmin = await _userManager.FindByEmailAsync(bootstrapEmail);
+                    if (existingAdmin == null)
+                    {
+                        var bootstrapAdminUser = new ApplicationUser
+                        {
+                            UserName = bootstrapEmail,
+                            Email = bootstrapEmail,
+                            EmailConfirmed = true,
+                            FirstName = "System",
+                            LastName = "Administrator",
+                            FullName = "System Administrator",
+                            CustomerLevel = ECustomerLevel.Diamond,
+                            PromotionPoints = 1000,
+                            MustChangePassword = true
+                        };
+
+                        var result = await _userManager.CreateAsync(bootstrapAdminUser, bootstrapPassword);
+                        if (result.Succeeded)
+                        {
+                            _logger.LogInformation("Created bootstrap admin user for {Email}", bootstrapEmail);
+                            users.Add(bootstrapAdminUser);
+                        }
+                        else
+                        {
+                            _logger.LogError("Failed to create bootstrap admin user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                        }
+                    }
+                    else
+                    {
+                        users.Add(existingAdmin);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("Production mode: Default credentials seeding is disabled. No bootstrap admin credentials provided.");
+                }
+
+                return users;
+            }
+
+            // Create admin user if it doesn't exist (Development / Testing only)
             var adminEmail = "admin@Ecommerce.com";
             var adminUser = await _userManager.FindByEmailAsync(adminEmail);
 
@@ -183,7 +238,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                     Avatar = "users/avatar-20250521154845412-fd9c4c.jpg",
                     CustomerLevel = ECustomerLevel.Diamond,
                     PromotionPoints = 1000,
-                    MustChangePassword = !isDevelopment
+                    MustChangePassword = false
                 };
 
                 var result = await _userManager.CreateAsync(adminUser, "Admin@123456");
@@ -200,11 +255,6 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             else
             {
                 users.Add(adminUser);
-            }
-
-            if (!isDevelopment)
-            {
-                return users;
             }
 
             // Create manager user
@@ -394,7 +444,8 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             _logger.LogInformation("Seeding user roles");
 
             // Assign roles to users
-            var adminUser = users.FirstOrDefault(u => u.Email == "admin@Ecommerce.com");
+            var bootstrapEmail = _configuration?["Seed:AdminEmail"];
+            var adminUser = users.FirstOrDefault(u => u.Email == "admin@Ecommerce.com" || (!string.IsNullOrWhiteSpace(bootstrapEmail) && u.Email == bootstrapEmail));
             var managerUser = users.FirstOrDefault(u => u.Email == "manager@Ecommerce.com");
             var staffUser = users.FirstOrDefault(u => u.Email == "staff@Ecommerce.com");
             var customerUser = users.FirstOrDefault(u => u.Email == "customer@example.com");

@@ -31,7 +31,7 @@ async function refreshTokenSilently(): Promise<boolean> {
         await axios.post(
             '/api/auth/refresh-token',
             {},
-            { withCredentials: true }
+            { withCredentials: true, headers: (getCsrfToken() ? { 'X-CSRF-Token': getCsrfToken()! } : {}) }
         )
         logger.debug('Token refresh successful')
 

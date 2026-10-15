@@ -131,6 +131,29 @@ public class TransactionBehaviorTests
         unitOfWork.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_NonTransactionalRequest_SkipsTransactionAndCallsNext()
+    {
+        // Arrange
+        var unitOfWork = new Mock<IUnitOfWork>();
+        var behavior = new TransactionBehavior<TestNonTransactionalRequest, Result<string>>(unitOfWork.Object, Mock.Of<IEnhancedLogger>());
+        var nextCalls = 0;
+
+        // Act
+        var result = await behavior.Handle(new TestNonTransactionalRequest(), () =>
+        {
+            nextCalls++;
+            return Task.FromResult(Result<string>.Failure(ResultError.Unauthorized, "replay detected"));
+        }, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        nextCalls.Should().Be(1);
+        unitOfWork.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(x => x.RollbackTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     public sealed class TestQuery : IQuery<Result<string>>
     {
     }
@@ -140,6 +163,10 @@ public class TransactionBehaviorTests
     }
 
     public sealed class UnmarkedRequest : IRequest<Result<string>>
+    {
+    }
+
+    public sealed class TestNonTransactionalRequest : IRequest<Result<string>>, INonTransactionalRequest
     {
     }
 }

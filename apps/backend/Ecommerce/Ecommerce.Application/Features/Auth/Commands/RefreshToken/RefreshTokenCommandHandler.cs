@@ -5,6 +5,7 @@ using Ecommerce.Domain.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -28,68 +29,75 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
 
         public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(request.AccessToken) || string.IsNullOrEmpty(request.RefreshToken))
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
             {
-                return Result<AuthResponseDto>.BadRequest("Access token and refresh token are required.");
-            }
-
-            if (!_tokenService.ValidateToken(request.AccessToken))
-            {
-                return Result<AuthResponseDto>.BadRequest("Invalid access token.");
-            }
-
-            var userId = _tokenService.GetUserIdFromToken(request.AccessToken);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Result<AuthResponseDto>.BadRequest("Invalid access token.");
-            }
-
-            var user = await _unitOfWork.Users.GetByIdAsync(Guid.Parse(userId));
-            if (user == null)
-            {
-                return Result<AuthResponseDto>.NotFound("User not found.");
+                return Result<AuthResponseDto>.BadRequest("Refresh token is required.");
             }
 
             var incomingHash = _tokenService.HashToken(request.RefreshToken);
-            var matchedToken = user.RefreshTokens.FirstOrDefault(
-                rt => rt.TokenHash == incomingHash || rt.Token == incomingHash);
+
+            var matchedToken = await _unitOfWork.BaseRepository<Domain.Entities.RefreshToken>()
+                .FirstOrDefaultAsync(rt => rt.TokenHash == incomingHash || rt.Token == incomingHash, cancellationToken);
 
             if (matchedToken == null)
             {
                 return Result<AuthResponseDto>.BadRequest("Invalid refresh token.");
             }
 
-            if (matchedToken.IsRevoked)
+            if (!string.IsNullOrWhiteSpace(request.AccessToken))
+            {
+                var principal = _tokenService.GetPrincipalFromToken(request.AccessToken, validateLifetime: false);
+                if (principal == null)
+                {
+                    return Result<AuthResponseDto>.BadRequest("Invalid access token.");
+                }
+
+                var userIdClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var parsedTokenUserId) || parsedTokenUserId != matchedToken.ApplicationUserId)
+                {
+                    return Result<AuthResponseDto>.BadRequest("Access token does not match refresh token.");
+                }
+            }
+
+            var user = await _unitOfWork.Users.GetByIdAsync(matchedToken.ApplicationUserId);
+            if (user == null)
+            {
+                return Result<AuthResponseDto>.NotFound("User not found.");
+            }
+
+            var userToken = user.RefreshTokens.FirstOrDefault(rt => rt.Id == matchedToken.Id) ?? matchedToken;
+
+            if (userToken.IsRevoked)
             {
                 await RevokeAllUserSessionsAsync(user, cancellationToken);
                 return Result<AuthResponseDto>.Unauthorized("Refresh token replay detected. All sessions revoked.");
             }
 
-            if (matchedToken.ExpiryDate < DateTime.UtcNow)
+            if (userToken.ExpiryDate < DateTime.UtcNow)
             {
-                matchedToken.IsRevoked = true;
-                await _unitOfWork.Users.UpdateAsync(user);
+                userToken.IsRevoked = true;
+                _unitOfWork.BaseRepository<Domain.Entities.RefreshToken>().Update(userToken);
                 await _unitOfWork.CompleteAsync(cancellationToken);
                 return Result<AuthResponseDto>.BadRequest("Refresh token expired.");
             }
 
             var currentUserAgentHash = HashUserAgent(request.UserAgent);
-            if (!string.IsNullOrWhiteSpace(matchedToken.UserAgentHash) &&
-                !string.Equals(matchedToken.UserAgentHash, currentUserAgentHash, StringComparison.Ordinal))
+            if (!string.IsNullOrWhiteSpace(userToken.UserAgentHash) &&
+                !string.Equals(userToken.UserAgentHash, currentUserAgentHash, StringComparison.Ordinal))
             {
                 await RevokeAllUserSessionsAsync(user, cancellationToken);
                 return Result<AuthResponseDto>.Unauthorized("Refresh token device mismatch.");
             }
 
             var currentIpSubnet = ExtractIpSubnet(request.IpAddress);
-            if (!string.IsNullOrWhiteSpace(matchedToken.IpSubnet) &&
+            if (!string.IsNullOrWhiteSpace(userToken.IpSubnet) &&
                 !string.IsNullOrWhiteSpace(currentIpSubnet) &&
-                !string.Equals(matchedToken.IpSubnet, currentIpSubnet, StringComparison.Ordinal))
+                !string.Equals(userToken.IpSubnet, currentIpSubnet, StringComparison.Ordinal))
             {
                 _logger.LogWarning(
                     "Refresh token subnet changed for user {UserId}. Previous: {PreviousSubnet}, Current: {CurrentSubnet}",
                     user.Id,
-                    matchedToken.IpSubnet,
+                    userToken.IpSubnet,
                     currentIpSubnet);
             }
 
@@ -101,22 +109,22 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
             var newRawRefreshToken = _tokenService.GenerateRefreshToken();
             var newRefreshTokenHash = _tokenService.HashToken(newRawRefreshToken);
 
-            matchedToken.IsRevoked = true;
+            userToken.IsRevoked = true;
+            _unitOfWork.BaseRepository<Domain.Entities.RefreshToken>().Update(userToken);
 
             user.RefreshTokens.Add(new Domain.Entities.RefreshToken
             {
                 Token = newRefreshTokenHash,
                 TokenHash = newRefreshTokenHash,
-                UserAgentHash = matchedToken.UserAgentHash ?? currentUserAgentHash,
-                IpSubnet = currentIpSubnet ?? matchedToken.IpSubnet,
-                FamilyId = matchedToken.FamilyId == Guid.Empty ? Guid.NewGuid() : matchedToken.FamilyId,
-                ParentTokenId = matchedToken.Id,
+                UserAgentHash = userToken.UserAgentHash ?? currentUserAgentHash,
+                IpSubnet = currentIpSubnet ?? userToken.IpSubnet,
+                FamilyId = userToken.FamilyId == Guid.Empty ? Guid.NewGuid() : userToken.FamilyId,
+                ParentTokenId = userToken.Id,
                 ApplicationUserId = user.Id,
                 ExpiryDate = DateTime.UtcNow.AddDays(7),
                 IsRevoked = false,
             });
 
-            await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.CompleteAsync(cancellationToken);
 
             return Result<AuthResponseDto>.Success(new AuthResponseDto
@@ -136,12 +144,27 @@ namespace Ecommerce.Application.Features.Auth.Commands.RefreshToken
 
         private async Task RevokeAllUserSessionsAsync(Domain.Entities.ApplicationUser user, CancellationToken cancellationToken)
         {
-            foreach (var token in user.RefreshTokens.Where(rt => !rt.IsRevoked))
+            var refreshTokensRepo = _unitOfWork.BaseRepository<Domain.Entities.RefreshToken>();
+            var userTokens = await refreshTokensRepo
+                .GetQueryable(tracking: true)
+                .Where(rt => rt.ApplicationUserId == user.Id && !rt.IsRevoked)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in userTokens)
             {
                 token.IsRevoked = true;
+                refreshTokensRepo.Update(token);
             }
 
-            await _unitOfWork.Users.UpdateAsync(user);
+            if (user.RefreshTokens != null)
+            {
+                foreach (var token in user.RefreshTokens.Where(rt => !rt.IsRevoked))
+                {
+                    token.IsRevoked = true;
+                    refreshTokensRepo.Update(token);
+                }
+            }
+
             await _unitOfWork.CompleteAsync(cancellationToken);
         }
 

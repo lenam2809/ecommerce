@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-interface AuthProfile {
+export interface AuthProfile {
     userId: string;
     email: string;
+    roles?: string[];
+    permissions?: string[];
+}
+
+export const ALLOWED_DASHBOARD_ROLES = ['Admin', 'Manager', 'Staff'];
+
+export function isRoleAllowedForDashboard(profile: AuthProfile | null | undefined): boolean {
+    if (!profile?.userId) return false;
+    const userRoles = Array.isArray(profile.roles) ? profile.roles : [];
+    return userRoles.some((role) => ALLOWED_DASHBOARD_ROLES.includes(role));
 }
 
 const LOGIN_PATH = '/login';
@@ -42,6 +52,14 @@ function buildUnauthorizedRedirect(request: NextRequest, pathname: string): Next
     const url = new URL(LOGIN_PATH, request.url);
     const returnUrl = `${pathname}${request.nextUrl.search}`;
     url.searchParams.set('reason', 'unauthorized');
+    url.searchParams.set('returnUrl', returnUrl);
+    return NextResponse.redirect(url);
+}
+
+function buildForbiddenRedirect(request: NextRequest, pathname: string): NextResponse {
+    const url = new URL(LOGIN_PATH, request.url);
+    const returnUrl = `${pathname}${request.nextUrl.search}`;
+    url.searchParams.set('reason', 'forbidden');
     url.searchParams.set('returnUrl', returnUrl);
     return NextResponse.redirect(url);
 }
@@ -105,12 +123,18 @@ export async function middleware(request: NextRequest) {
     }
 
     const isAuthenticated = Boolean(profile?.userId);
+    const hasAllowedRole = isRoleAllowedForDashboard(profile);
 
-    if (isProtectedPath && !isAuthenticated) {
-        return buildUnauthorizedRedirect(request, pathname);
+    if (isProtectedPath) {
+        if (!isAuthenticated) {
+            return buildUnauthorizedRedirect(request, pathname);
+        }
+        if (!hasAllowedRole) {
+            return buildForbiddenRedirect(request, pathname);
+        }
     }
 
-    if (isLoginPath && isAuthenticated) {
+    if (isLoginPath && isAuthenticated && hasAllowedRole) {
         return NextResponse.redirect(new URL(DEFAULT_AUTHENTICATED_PATH, request.url));
     }
 

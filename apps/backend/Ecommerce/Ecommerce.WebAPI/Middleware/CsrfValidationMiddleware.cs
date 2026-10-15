@@ -37,7 +37,9 @@ namespace Ecommerce.WebAPI.Middleware
             }
 
             // Skip if no auth cookie present (public endpoints)
-            if (!context.Request.Cookies.ContainsKey("access_token"))
+            var hasAuthCookie = context.Request.Cookies.ContainsKey("access_token") ||
+                                context.Request.Cookies.ContainsKey("refresh_token");
+            if (!hasAuthCookie)
             {
                 await _next(context);
                 return;

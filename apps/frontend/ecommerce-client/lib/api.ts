@@ -43,11 +43,17 @@ function notifyRefreshComplete(success: boolean) {
 
 async function refreshTokenSilently(): Promise<boolean> {
   try {
+    const csrfToken = getCsrfToken()
+    const headers: Record<string, string> = {}
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken
+    }
+
     // Cookie is automatically sent with request due to withCredentials
     await axios.post(
       '/api/auth/refresh-token',
       {},
-      { withCredentials: true }
+      { withCredentials: true, headers }
     )
     logger.debug('Token refresh successful')
 
