@@ -1,24 +1,30 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Domain.Entities
 {
     public class CartItem
     {
+        public Guid Id { get; set; }
+
         // Constructor for EF Core
         private CartItem() { }
 
         public CartItem(Guid cartId, Product product, int quantity, string? color, string? size,
-            Guid? productVariantSkuId = null)
+            Guid? productVariantSkuId = null, Guid? id = null)
         {
+            if (id.HasValue && id.Value != Guid.Empty)
+            {
+                Id = id.Value;
+            }
             CartId = cartId;
             ProductId = product.Id;
             Product = product;
             Quantity = quantity;
-            Color = color;
-            Size = size;
+            Color = color?.Trim() ?? string.Empty;
+            Size = size?.Trim() ?? string.Empty;
             ProductVariantSkuId = productVariantSkuId;
-            DateAdded = DateTime.Now;
+            DateAdded = DateTime.UtcNow;
 
             if (!ValidateQuantity(product))
             {
@@ -35,9 +41,9 @@ namespace Ecommerce.Domain.Entities
         [Range(1, 1000, ErrorMessage = "Số lượng sản phẩm phải từ 1-1000")]
         public int Quantity { get; set; }
         
-        public string? Color { get; private set; }
-        public string? Size { get; private set; }
-        public DateTime DateAdded { get; private set; } = DateTime.Now;
+        public string Color { get; private set; } = string.Empty;
+        public string Size { get; private set; } = string.Empty;
+        public DateTime DateAdded { get; private set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Link tới SKU biến thể cụ thể (nullable cho sản phẩm không có variant)

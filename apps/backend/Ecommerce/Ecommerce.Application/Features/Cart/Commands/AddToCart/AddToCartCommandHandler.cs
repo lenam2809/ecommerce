@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Cart.Dto;
 using Ecommerce.Domain.Entities;
@@ -107,6 +107,7 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
                 Items = cart.CartItems.Select(i => new CartItemDto
                 {
                     CartId = i.CartId,
+                    Id = i.Id,
                     ProductId = i.ProductId,
                     Name = i.Product.Name,
                     Price = i.Product.SalePrice ?? i.Product.Price,

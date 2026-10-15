@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Cart.Dto;
 using Ecommerce.Domain.Entities;
@@ -72,7 +72,8 @@ namespace Ecommerce.Application.Features.Cart.Commands.UpdateCartItem
 
             // FORCE UPDATE: Explicitly mark the item as modified to ensure persistence
             // logic finds the item again (it must exist since UpdateQuantity didn't throw)
-            var itemToUpdate = cart.CartItems.FirstOrDefault(i => i.ProductId == request.ItemId);
+            var itemToUpdate = cart.CartItems.FirstOrDefault(i => i.Id == request.ItemId)
+                            ?? cart.CartItems.FirstOrDefault(i => i.ProductId == request.ItemId);
             if (itemToUpdate != null)
             {
                 _unitofwork.BaseRepository<CartItem>().Update(itemToUpdate);
@@ -88,6 +89,7 @@ namespace Ecommerce.Application.Features.Cart.Commands.UpdateCartItem
             {
                 Items = cart!.CartItems.Select(i => new CartItemDto
                 {
+                    Id = i.Id,
                     CartId = i.CartId,
                     ProductId = i.ProductId,
                     Name = i.Product.Name,

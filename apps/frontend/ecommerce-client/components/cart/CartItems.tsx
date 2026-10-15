@@ -33,7 +33,7 @@ const CartItems = ({
             <div className="divide-y divide-line">
                 {items.map((item) => (
                     <CartItem
-                        key={item.productId}
+                        key={item.id || `${item.productId}-${item.color || ''}-${item.size || ''}`}
                         item={item}
                         onUpdateQuantity={onUpdateQuantity}
                         onRemove={onRemoveItem}

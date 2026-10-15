@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Domain.Entities
 {
@@ -40,9 +40,12 @@ namespace Ecommerce.Domain.Entities
 
         public void AddItem(Product product, int quantity, string? color = null, string? size = null)
         {
+            var normColor = color?.Trim() ?? string.Empty;
+            var normSize = size?.Trim() ?? string.Empty;
+
             var existingItem = _cartItems.FirstOrDefault(i => i.ProductId == product.Id
-                && i.Color == color
-                && i.Size == size);
+                && i.Color == normColor
+                && i.Size == normSize);
 
             if (existingItem != null)
             {
@@ -50,21 +53,32 @@ namespace Ecommerce.Domain.Entities
             }
             else
             {
-                _cartItems.Add(new CartItem(this.Id, product, quantity, color, size));
+                _cartItems.Add(new CartItem(this.Id, product, quantity, normColor, normSize));
             }
 
             RecalculateTotal();
         }
 
-        public void UpdateQuantity(Guid productId, int quantity, string? color = null, string? size = null)
+        public void UpdateQuantity(Guid itemIdOrProductId, int quantity, string? color = null, string? size = null)
         {
-            var item = _cartItems.FirstOrDefault(i => i.ProductId == productId
-                && i.Color == color
-                && i.Size == size);
+            CartItem? item;
+            if (color != null || size != null)
+            {
+                var normColor = color?.Trim() ?? string.Empty;
+                var normSize = size?.Trim() ?? string.Empty;
+                item = _cartItems.FirstOrDefault(i => i.ProductId == itemIdOrProductId
+                    && i.Color == normColor
+                    && i.Size == normSize);
+            }
+            else
+            {
+                item = _cartItems.FirstOrDefault(i => i.Id == itemIdOrProductId)
+                    ?? _cartItems.FirstOrDefault(i => i.ProductId == itemIdOrProductId);
+            }
 
             if (item == null)
             {
-                throw new Exception($"Không tìm thấy sản phẩm trong giỏ hàng. ProductId: {productId}, Items count: {_cartItems.Count}");
+                throw new Exception($"Không tìm thấy sản phẩm trong giỏ hàng. Id: {itemIdOrProductId}, Items count: {_cartItems.Count}");
             }
 
             if (quantity <= 0)
@@ -78,11 +92,22 @@ namespace Ecommerce.Domain.Entities
             RecalculateTotal();
         }
 
-        public void RemoveItem(Guid productId, string? color = null, string? size = null)
+        public void RemoveItem(Guid itemIdOrProductId, string? color = null, string? size = null)
         {
-            var item = _cartItems.FirstOrDefault(i => i.ProductId == productId
-                && i.Color == color
-                && i.Size == size);
+            CartItem? item;
+            if (color != null || size != null)
+            {
+                var normColor = color?.Trim() ?? string.Empty;
+                var normSize = size?.Trim() ?? string.Empty;
+                item = _cartItems.FirstOrDefault(i => i.ProductId == itemIdOrProductId
+                    && i.Color == normColor
+                    && i.Size == normSize);
+            }
+            else
+            {
+                item = _cartItems.FirstOrDefault(i => i.Id == itemIdOrProductId)
+                    ?? _cartItems.FirstOrDefault(i => i.ProductId == itemIdOrProductId);
+            }
 
             if (item != null)
             {

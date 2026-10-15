@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Features.Cart.Commands.AddToCart;
+using Ecommerce.Application.Features.Cart.Commands.AddToCart;
 using Ecommerce.Application.Features.Cart.Commands.ApplyPromoCode;
 using Ecommerce.Application.Features.Cart.Commands.ClearCart;
 using Ecommerce.Application.Features.Cart.Commands.RemoveCartItem;

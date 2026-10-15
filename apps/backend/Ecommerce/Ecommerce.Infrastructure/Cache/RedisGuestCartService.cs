@@ -61,23 +61,27 @@ namespace Ecommerce.Infrastructure.Cache
         public async Task<CartDto> AddItemAsync(string guestId, Product product, int quantity, string? color, string? size, CancellationToken cancellationToken = default)
         {
             var cart = await GetCartAsync(guestId, cancellationToken);
+            var normColor = color?.Trim() ?? string.Empty;
+            var normSize = size?.Trim() ?? string.Empty;
+
             var item = cart.Items.FirstOrDefault(i =>
                 i.ProductId == product.Id &&
-                string.Equals(i.Color, color, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(i.Size, size, StringComparison.OrdinalIgnoreCase));
+                string.Equals(i.Color?.Trim() ?? string.Empty, normColor, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(i.Size?.Trim() ?? string.Empty, normSize, StringComparison.OrdinalIgnoreCase));
 
             if (item == null)
             {
                 cart.Items.Add(new CartItemDto
                 {
+                    Id = Guid.NewGuid(),
                     CartId = Guid.Empty,
                     ProductId = product.Id,
                     Name = product.Name,
                     Price = product.SalePrice ?? product.Price,
                     Quantity = quantity,
                     Image = product.Image,
-                    Color = color ?? string.Empty,
-                    Size = size ?? string.Empty
+                    Color = normColor,
+                    Size = normSize
                 });
             }
             else
@@ -92,7 +96,7 @@ namespace Ecommerce.Infrastructure.Cache
         public async Task<CartDto> UpdateItemAsync(string guestId, Guid productId, int quantity, CancellationToken cancellationToken = default)
         {
             var cart = await GetCartAsync(guestId, cancellationToken);
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+            var item = cart.Items.FirstOrDefault(i => i.Id == productId || i.ProductId == productId);
 
             if (item == null)
             {
@@ -115,7 +119,7 @@ namespace Ecommerce.Infrastructure.Cache
         public async Task<CartDto> RemoveItemAsync(string guestId, Guid productId, CancellationToken cancellationToken = default)
         {
             var cart = await GetCartAsync(guestId, cancellationToken);
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+            var item = cart.Items.FirstOrDefault(i => i.Id == productId || i.ProductId == productId);
 
             if (item != null)
             {

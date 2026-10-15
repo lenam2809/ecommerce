@@ -83,7 +83,7 @@ const CartItem = ({
                         <div className="flex items-center border border-line rounded-full h-9 bg-card shadow-2xs">
                             <button
                                 className="w-8 h-full grid place-items-center text-ink-soft hover:text-ink rounded-l-full focus-ring disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}
+                                onClick={() => onUpdateQuantity(item.id || item.productId, item.quantity - 1)}
                                 disabled={isUpdating || item.quantity <= 1}
                                 aria-label="Giảm số lượng"
                             >
@@ -94,7 +94,7 @@ const CartItem = ({
                             </span>
                             <button
                                 className="w-8 h-full grid place-items-center text-ink-soft hover:text-ink rounded-r-full focus-ring disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+                                onClick={() => onUpdateQuantity(item.id || item.productId, item.quantity + 1)}
                                 disabled={isUpdating}
                                 aria-label="Tăng số lượng"
                             >
@@ -111,7 +111,7 @@ const CartItem = ({
                     </span>
                     <button
                         className="grid place-items-center h-8.5 w-8.5 rounded-full text-ink-faint hover:text-brand hover:bg-brand-soft transition-all duration-200 focus-ring"
-                        onClick={() => onRemove(item.productId)}
+                        onClick={() => onRemove(item.id || item.productId)}
                         disabled={isRemoving}
                         aria-label="Xóa sản phẩm"
                         title="Xóa sản phẩm khỏi giỏ hàng"

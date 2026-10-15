@@ -271,33 +271,6 @@ namespace Ecommerce.Infrastructure.Persistence
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.ApplicationUserId);
 
-            builder.Entity<CartItem>(entity =>
-            {
-                entity.HasOne(ci => ci.Cart)
-                      .WithMany(c => c.CartItems)
-                      .HasForeignKey(ci => ci.CartId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(ci => ci.Product)
-                      .WithMany()
-                      .HasForeignKey(ci => ci.ProductId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            builder.Entity<CartItem>(entity =>
-            {
-                entity.HasKey(ci => new { ci.CartId, ci.ProductId });
-
-                entity.HasOne(ci => ci.Cart)
-                      .WithMany(c => c.CartItems)
-                      .HasForeignKey(ci => ci.CartId)
-                      .OnDelete(DeleteBehavior.Cascade); // Keep cascade for Cart
-
-                entity.HasOne(ci => ci.Product)
-                      .WithMany()
-                      .HasForeignKey(ci => ci.ProductId)
-                      .OnDelete(DeleteBehavior.NoAction); // Change to NoAction for Product
-            });
 
             builder.Entity<OrderItem>(entity =>
             {

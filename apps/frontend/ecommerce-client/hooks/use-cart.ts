@@ -68,12 +68,12 @@ export function useCart() {
         const existingItem = old.items.find(
           (item) =>
             item.productId === productId &&
-            item.color === options?.color &&
-            item.size === options?.size
+            (item.color || "") === (options?.color || "") &&
+            (item.size || "") === (options?.size || "")
         )
         if (existingItem) {
           const updateQuantity = (item: CartItem) =>
-            item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item
+            item === existingItem ? { ...item, quantity: item.quantity + quantity } : item
 
           return {
             ...old,
@@ -121,8 +121,9 @@ export function useCart() {
 
       queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
         if (!old) return old
+        const isMatch = (item: CartItem) => item.id ? item.id === itemId : item.productId === itemId
         const updateQuantity = (item: CartItem) =>
-          item.productId === itemId ? { ...item, quantity } : item
+          isMatch(item) ? { ...item, quantity } : item
 
         return {
           ...old,
@@ -161,10 +162,11 @@ export function useCart() {
 
       queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
         if (!old) return old
+        const isMatch = (item: CartItem) => item.id ? item.id === itemId : item.productId === itemId
         return {
           ...old,
-          items: old.items.filter((item) => item.productId !== itemId),
-          cartItems: old.cartItems?.filter((item) => item.productId !== itemId),
+          items: old.items.filter((item) => !isMatch(item)),
+          cartItems: old.cartItems?.filter((item) => !isMatch(item)),
         }
       })
 

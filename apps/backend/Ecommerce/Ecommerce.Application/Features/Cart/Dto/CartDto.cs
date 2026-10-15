@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Domain.Entities;
 using AutoMapper;
 
@@ -19,6 +19,7 @@ namespace Ecommerce.Application.Features.Cart.Dto
 
     public class CartItemDto : IMapFrom<CartItem>
     {
+        public Guid Id { get; set; }
         public Guid CartId { get; set; }
         public Guid ProductId { get; set; }
         public required string Name { get; set; }

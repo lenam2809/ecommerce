@@ -19,19 +19,22 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         private readonly IPublisher _publisher;
         private readonly ICurrentUserService _currentUserService;
         private readonly IOrderCodeGenerator _orderCodeGenerator;
+        private readonly IGuestCartService? _guestCartService;
 
         public CreateOrderCommandHandler(
             IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
             IPublisher publisher,
             ICurrentUserService currentUserService,
-            IOrderCodeGenerator orderCodeGenerator)
+            IOrderCodeGenerator orderCodeGenerator,
+            IGuestCartService? guestCartService = null)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _publisher = publisher;
             _currentUserService = currentUserService;
             _orderCodeGenerator = orderCodeGenerator;
+            _guestCartService = guestCartService;
         }
 
         public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -134,8 +137,35 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
                         order.FinalizeCreation(customerNameForEvent);
 
+                        if (request.ApplicationUserId.HasValue && _unitOfWork.Carts != null)
+                        {
+                            var userCart = await _unitOfWork.Carts.GetQueryable()
+                                .Include(c => c.CartItems)
+                                .FirstOrDefaultAsync(c => c.ApplicationUserId == request.ApplicationUserId.Value, cancellationToken);
+                            if (userCart != null)
+                            {
+                                foreach (var cartItem in userCart.CartItems.ToList())
+                                {
+                                    _unitOfWork.BaseRepository<CartItem>().Delete(cartItem);
+                                }
+                                userCart.Clear();
+                            }
+                        }
+
                         await _unitOfWork.Orders.AddAsync(order, cancellationToken);
                         await _unitOfWork.CompleteAsync(cancellationToken);
+
+                        if (!string.IsNullOrEmpty(_currentUserService.GuestId) && _guestCartService != null)
+                        {
+                            try
+                            {
+                                await _guestCartService.DeleteCartAsync(_currentUserService.GuestId, cancellationToken);
+                            }
+                            catch (Exception ex)
+                            {
+                                await _logger.LogExceptionAsync(ex, "Failed to clear guest cart in Redis after order creation");
+                            }
+                        }
 
                         await _logger.LogAsync(
                             ELogLevel.Information,
@@ -370,21 +400,28 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
         private async Task RestoreDecrementedStockAsync(List<OrderStockItem> decrementedStockItems, CancellationToken cancellationToken)
         {
-            foreach (var stockItem in decrementedStockItems)
+            try
             {
-                if (stockItem.ProductVariantSkuId.HasValue)
+                foreach (var stockItem in decrementedStockItems)
                 {
-                    await _unitOfWork.ProductVariantSkus.RestoreStockAsync(
-                        stockItem.ProductVariantSkuId.Value,
+                    if (stockItem.ProductVariantSkuId.HasValue)
+                    {
+                        await _unitOfWork.ProductVariantSkus.RestoreStockAsync(
+                            stockItem.ProductVariantSkuId.Value,
+                            stockItem.Quantity,
+                            cancellationToken);
+                        continue;
+                    }
+
+                    await _unitOfWork.Products.RestoreStockAsync(
+                        stockItem.ProductId,
                         stockItem.Quantity,
                         cancellationToken);
-                    continue;
                 }
-
-                await _unitOfWork.Products.RestoreStockAsync(
-                    stockItem.ProductId,
-                    stockItem.Quantity,
-                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogExceptionAsync(ex, "Failed to explicitly restore decremented stock; transaction rollback will revert it.");
             }
         }
 

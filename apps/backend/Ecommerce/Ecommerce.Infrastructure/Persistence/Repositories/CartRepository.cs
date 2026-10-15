@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Exceptions;
+using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Infrastructure.Persistence.Repositories.Base;
@@ -96,14 +96,15 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             // It selects the first one matching productId. This is potentially buggy if there are variants.
             // I will use the first item found to match previous behavior, or pass nulls.
             
-            var item = cart.CartItems.FirstOrDefault(i => i.ProductId == itemId);
+            var item = cart.CartItems.FirstOrDefault(i => i.Id == itemId)
+                    ?? cart.CartItems.FirstOrDefault(i => i.ProductId == itemId);
             if (item != null)
             {
-                cart.UpdateQuantity(itemId, quantity, item.Color, item.Size);
+                cart.UpdateQuantity(item.Id, quantity, item.Color, item.Size);
             }
             else 
             {
-                 throw new Exception($"Cart item with Product ID {itemId} not found");
+                 throw new Exception($"Cart item with ID {itemId} not found");
             }
 
             await RecalculateCartTotalsAsync(cart);
@@ -123,14 +124,15 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
                 throw new Exception("Cart not found");
             }
 
-            var item = cart.CartItems.FirstOrDefault(i => i.ProductId == itemId);
+            var item = cart.CartItems.FirstOrDefault(i => i.Id == itemId)
+                    ?? cart.CartItems.FirstOrDefault(i => i.ProductId == itemId);
             if (item != null)
             {
-                cart.RemoveItem(itemId, item.Color, item.Size);
+                cart.RemoveItem(item.Id, item.Color, item.Size);
             }
             else
             {
-                throw new Exception($"Cart item with Product ID {itemId} not found");
+                throw new Exception($"Cart item with ID {itemId} not found");
             }
 
             await RecalculateCartTotalsAsync(cart);

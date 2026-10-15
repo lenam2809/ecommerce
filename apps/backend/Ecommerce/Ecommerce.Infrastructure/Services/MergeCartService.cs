@@ -39,8 +39,8 @@ namespace Ecommerce.Infrastructure.Services
                     {
                         await _unitOfWork.BaseRepository<CartItem>().ExecuteCommandAsync(
                             "UPDATE \"CartItems\" SET \"Quantity\" = \"Quantity\" + {0} " +
-                            "WHERE \"CartId\" = {1} AND \"ProductId\" = {2}",
-                            [guestItem.Quantity, existingItem.CartId, existingItem.ProductId],
+                            "WHERE \"Id\" = {1}",
+                            [guestItem.Quantity, existingItem.Id],
                             cancellationToken);
                     }
                     else
@@ -108,8 +108,8 @@ namespace Ecommerce.Infrastructure.Services
                         // "SET Quantity = Quantity + X" là atomic ở DB level
                         await _unitOfWork.BaseRepository<CartItem>().ExecuteCommandAsync(
                             "UPDATE \"CartItems\" SET \"Quantity\" = \"Quantity\" + {0} " +
-                            "WHERE \"CartId\" = {1} AND \"ProductId\" = {2}",
-                            [guestItem.Quantity, existingItem.CartId, existingItem.ProductId],
+                            "WHERE \"Id\" = {1}",
+                            [guestItem.Quantity, existingItem.Id],
                             cancellationToken);
                     }
                     else

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,13 +11,30 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
         {
             builder.ToTable("CartItems");
 
-            // Khóa chính composite
-            builder.HasKey(ci => new { ci.CartId, ci.ProductId });
+            // Surrogate Primary Key
+            builder.HasKey(ci => ci.Id);
+            builder.Property(ci => ci.Id)
+                   .ValueGeneratedOnAdd();
+
+            // Normalized Color & Size
+            builder.Property(ci => ci.Color)
+                   .IsRequired()
+                   .HasMaxLength(50)
+                   .HasDefaultValue(string.Empty);
+
+            builder.Property(ci => ci.Size)
+                   .IsRequired()
+                   .HasMaxLength(50)
+                   .HasDefaultValue(string.Empty);
 
             // Validation cho số lượng
             builder.Property(ci => ci.Quantity)
                    .IsRequired()
                    .HasDefaultValue(1);
+
+            // Unique index bảo đảm mỗi biến thể chỉ có tối đa một dòng trong mỗi giỏ hàng
+            builder.HasIndex(ci => new { ci.CartId, ci.ProductId, ci.Color, ci.Size })
+                   .IsUnique();
 
             // Cấu hình quan hệ
             builder.HasOne(ci => ci.Cart)
@@ -29,6 +46,11 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .WithMany()
                    .HasForeignKey(ci => ci.ProductId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(ci => ci.ProductVariantSku)
+                   .WithMany()
+                   .HasForeignKey(ci => ci.ProductVariantSkuId)
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

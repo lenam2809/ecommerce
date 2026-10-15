@@ -434,17 +434,25 @@ namespace Ecommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("Ecommerce.Domain.Entities.CartItem", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CartId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Color")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("");
 
                     b.Property<DateTime>("DateAdded")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("ProductVariantSkuId")
                         .HasColumnType("uuid");
@@ -455,13 +463,20 @@ namespace Ecommerce.Infrastructure.Migrations
                         .HasDefaultValue(1);
 
                     b.Property<string>("Size")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("");
 
-                    b.HasKey("CartId", "ProductId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("ProductVariantSkuId");
+
+                    b.HasIndex("CartId", "ProductId", "Color", "Size")
+                        .IsUnique();
 
                     b.ToTable("CartItems", (string)null);
                 });
@@ -3384,12 +3399,13 @@ namespace Ecommerce.Infrastructure.Migrations
                     b.HasOne("Ecommerce.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Ecommerce.Domain.Entities.ProductVariantSku", "ProductVariantSku")
                         .WithMany()
-                        .HasForeignKey("ProductVariantSkuId");
+                        .HasForeignKey("ProductVariantSkuId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Cart");
 
