@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -21,7 +21,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.DeleteOrder
         {
             try
             {
-                var order = await _unitOfWork.Orders.GetByIdAsync(request.Id, cancellationToken);
+                var order = await _unitOfWork.Orders.GetOrderWithItemsAndProductsAsync(request.Id, cancellationToken);
 
                 if (order == null)
                 {
@@ -34,14 +34,22 @@ namespace Ecommerce.Application.Features.Orders.Commands.DeleteOrder
                     return Result<Unit>.BadRequest("Chỉ có thể xóa đơn hàng đang ở trạng thái chờ xử lý");
                 }
 
-                // Restore product stock quantities
+                // Restore product/SKU stock quantities
                 foreach (var item in order.OrderItems)
                 {
-                    var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId, cancellationToken);
-                    if (product != null)
+                    if (item.ProductVariantSkuId.HasValue)
                     {
-                        product.AdjustStock(item.Quantity);
-                        _unitOfWork.Products.Update(product);
+                        await _unitOfWork.ProductVariantSkus.RestoreStockAsync(
+                            item.ProductVariantSkuId.Value,
+                            item.Quantity,
+                            cancellationToken);
+                    }
+                    else
+                    {
+                        await _unitOfWork.Products.RestoreStockAsync(
+                            item.ProductId,
+                            item.Quantity,
+                            cancellationToken);
                     }
                 }
 

@@ -50,6 +50,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 for (var attempt = 1; attempt <= 3; attempt++)
                 {
                     var decrementedStockItems = new List<OrderStockItem>();
+                    string? redeemedPromoCode = null;
 
                     try
                     {
@@ -127,6 +128,8 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             {
                                 return promoRedeemResult;
                             }
+
+                            redeemedPromoCode = promoRedeemContext.PromoCode.Code;
                         }
 
                         order.FinalizeCreation(customerNameForEvent);
@@ -148,6 +151,11 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     }
                     catch (DbUpdateConcurrencyException ex) when (attempt < 3)
                     {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         foreach (var entry in ex.Entries)
                         {
                             await entry.ReloadAsync(cancellationToken);
@@ -157,19 +165,42 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     }
                     catch (DbUpdateConcurrencyException)
                     {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                         return Result<Guid>.BadRequest("Out of stock");
                     }
                     catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex) && attempt < 3)
                     {
                         await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                     }
                     catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
                     {
                         await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                         return Result<Guid>.Conflict("Mã đơn hàng đã tồn tại, vui lòng thử lại.");
+                    }
+                    catch (Exception)
+                    {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
+                        _unitOfWork.ClearTracking();
+                        throw;
                     }
                 }
 
@@ -354,6 +385,23 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     stockItem.ProductId,
                     stockItem.Quantity,
                     cancellationToken);
+            }
+        }
+
+        private async Task RevertPromoCodeRedemptionAsync(string promoCode, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _unitOfWork.BaseRepository<PromoCode>().ExecuteCommandAsync(
+                    "UPDATE \"PromoCodes\" " +
+                    "SET \"TimesUsed\" = CASE WHEN \"TimesUsed\" > 0 THEN \"TimesUsed\" - 1 ELSE 0 END " +
+                    "WHERE \"Code\" = {0}",
+                    [promoCode],
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogExceptionAsync(ex, $"Khong the hoan lai ma giam gia: {promoCode}");
             }
         }
 

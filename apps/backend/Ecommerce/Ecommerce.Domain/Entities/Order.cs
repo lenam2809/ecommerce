@@ -186,6 +186,20 @@ namespace Ecommerce.Domain.Entities
 
         public void UpdateStatus(EOrderStatus newStatus, string? note = null, DateTime? customExpectedDeliveryDate = null)
         {
+            if (Status == newStatus)
+            {
+                if (newStatus == EOrderStatus.Cancelled)
+                {
+                    throw new InvalidStatusTransitionException(Status, newStatus);
+                }
+
+                if (customExpectedDeliveryDate.HasValue)
+                {
+                    ExpectedDeliveryDate = customExpectedDeliveryDate.Value;
+                }
+                return;
+            }
+
             if (!IsValidStatusTransition(Status, newStatus))
             {
                 throw new InvalidStatusTransitionException(Status, newStatus);
@@ -267,7 +281,7 @@ namespace Ecommerce.Domain.Entities
 
         private static bool IsValidStatusTransition(EOrderStatus currentStatus, EOrderStatus newStatus)
         {
-            if (currentStatus == newStatus) return true;
+            if (currentStatus == newStatus) return false;
 
             return (currentStatus, newStatus) switch
             {

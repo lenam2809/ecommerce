@@ -1,9 +1,11 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Orders.EventHandlers
 {
@@ -77,27 +79,57 @@ namespace Ecommerce.Application.Features.Orders.EventHandlers
         private async Task RestoreStockQuantities(Guid orderId, CancellationToken cancellationToken)
         {
             var order = await _unitOfWork.Orders.GetOrderWithItemsAndProductsAsync(orderId, cancellationToken);
-            if (order != null)
+            if (order == null) return;
+
+            // Check if stock was already restored for this order cancellation to ensure idempotency
+            var alreadyRestored = await _unitOfWork.OrderHistories.GetQueryable()
+                .AnyAsync(h => h.OrderId == orderId && h.Notes == "StockRestored", cancellationToken);
+            if (alreadyRestored)
             {
-                foreach (var item in order.OrderItems)
-                {
-                    var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId, cancellationToken);
-                    if (product != null)
-                    {
-                        product.AdjustStock(item.Quantity);
-                        _unitOfWork.Products.Update(product);
-                    }
-                }
-                
                 await _logger.LogAsync(ELogLevel.Information,
-                    "Restored stock for {ItemCount} items in order {OrderId}",
+                    "Stock already restored for order {OrderId}, skipping duplicate restoration",
                     "RestoreOrderStock",
-                    properties: new Dictionary<string, object?>
-                    {
-                        { "ItemCount", order.OrderItems.Count },
-                        { "OrderId", orderId }
-                    });
+                    properties: new Dictionary<string, object?> { { "OrderId", orderId } });
+                return;
             }
+
+            foreach (var item in order.OrderItems)
+            {
+                if (item.ProductVariantSkuId.HasValue)
+                {
+                    await _unitOfWork.ProductVariantSkus.RestoreStockAsync(
+                        item.ProductVariantSkuId.Value,
+                        item.Quantity,
+                        cancellationToken);
+                }
+                else
+                {
+                    await _unitOfWork.Products.RestoreStockAsync(
+                        item.ProductId,
+                        item.Quantity,
+                        cancellationToken);
+                }
+            }
+
+            await _unitOfWork.OrderHistories.AddAsync(new OrderHistory
+            {
+                OrderId = orderId,
+                FromStatus = EOrderStatus.Cancelled,
+                ToStatus = EOrderStatus.Cancelled,
+                Notes = "StockRestored",
+                ChangedBy = "System",
+                ChangeSource = "InventoryRestore",
+                ChangedAt = DateTime.UtcNow
+            }, cancellationToken);
+
+            await _logger.LogAsync(ELogLevel.Information,
+                "Restored stock for {ItemCount} items in order {OrderId}",
+                "RestoreOrderStock",
+                properties: new Dictionary<string, object?>
+                {
+                    { "ItemCount", order.OrderItems.Count },
+                    { "OrderId", orderId }
+                });
         }
     }
 }
