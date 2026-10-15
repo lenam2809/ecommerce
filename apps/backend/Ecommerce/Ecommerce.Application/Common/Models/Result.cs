@@ -1,6 +1,13 @@
-﻿namespace Ecommerce.Application.Common.Models
+namespace Ecommerce.Application.Common.Models
 {
-    public class Result<T>
+    public interface IAppResult
+    {
+        bool IsSuccess { get; }
+        string? Error { get; }
+        ResultError ErrorType { get; }
+    }
+
+    public class Result<T> : IAppResult
     {
         public bool IsSuccess { get; }
         public T Value { get; }

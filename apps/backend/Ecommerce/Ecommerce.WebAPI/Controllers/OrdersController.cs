@@ -97,11 +97,15 @@ namespace Ecommerce.WebAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateOrderCommand command)
         {
-            // Set the user ID from the authenticated user if logged in
+            // 🔒 SECURITY (H4): LUÔN ghi đè bằng danh tính xác thực — KHÔNG tin giá trị
+            // ApplicationUserId do client gửi lên (trước đây `??` giữ nguyên giá trị từ body,
+            // cho phép user A tạo đơn hàng giả mạo mang danh nghĩa user B).
             if (User.Identity?.IsAuthenticated == true)
             {
-                command.ApplicationUserId = command.ApplicationUserId ?? User.GetUserId();
+                command.ApplicationUserId = User.GetUserId();
             }
+            // Guest (chưa đăng nhập): ApplicationUserId = null → đi nhánh guest order.
+            // GuestId sẽ được lấy từ signed cookie server-side (sẽ vá ở H6), không tin body.
 
             var result = await _mediator.Send(command);
 

@@ -1,64 +1,88 @@
 "use client"
 
-import { motion } from "framer-motion"
-import Image from "next/image"
+import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowRight, Copy, Check, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 
+/**
+ * PromotionBanner — Editorial Tech Minimalism
+ * VIP Privilege banner with 1-click coupon copy and high-contrast typography
+ */
 export function PromotionBanner() {
+    const [copied, setCopied] = useState(false)
+    const couponCode = "TECHVIP500"
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(couponCode)
+        setCopied(true)
+        toast.success(`Đã sao chép mã giảm giá ${couponCode}`)
+        setTimeout(() => setCopied(false), 2500)
+    }
+
     return (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-card/80 to-accent/40 mix-blend-multiply z-10" />
-                <div className="absolute inset-0 bg-card/40 backdrop-blur-[2px] z-10" />
-                <Image
-                    src="/placeholder.svg?height=400&width=1200"
-                    alt="Khuyến mãi"
-                    fill
-                    className="object-cover"
+        <section className="container-app py-12 md:py-16">
+            <div className="relative rounded-3xl overflow-hidden bg-ink text-background border border-ink/20 shadow-md">
+                {/* Subtle background ambient light */}
+                <div
+                    className="absolute -top-24 -right-24 w-80 h-80 bg-brand/25 rounded-full blur-3xl pointer-events-none"
+                    aria-hidden="true"
                 />
 
-                <div className="relative z-20 flex flex-col justify-center items-center text-foreground p-8 md:p-16 text-center min-h-[400px]">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                        viewport={{ once: true }}
-                        className="max-w-2xl mx-auto"
-                    >
-                        <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-md text-sm font-semibold tracking-wide mb-6 text-primary-foreground border border-white/20 shadow-sm">
-                            Ưu đãi có hạn
-                        </span>
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight text-white drop-shadow-sm">
-                            Siêu Sale Mùa Hè
-                        </h3>
-                        <p className="text-lg md:text-xl mb-10 text-gray-200 leading-relaxed">
-                            Nhập mã <span className="font-mono font-bold text-white bg-white/20 px-3 py-1 rounded-md mx-1 border border-white/10 shadow-inner">SUMMER50</span> để được giảm 50% cho đơn hàng đầu tiên
-                        </p>
+                <div className="relative px-6 py-12 md:px-16 md:py-16 text-center max-w-3xl mx-auto">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/20 text-brand text-tiny font-bold uppercase tracking-wider mb-5 border border-brand/30">
+                        <Sparkles className="h-3 w-3" />
+                        Đặc Quyền Hội Viên 2026
+                    </span>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Button
-                                size="lg"
-                                className="rounded-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
-                                asChild
-                            >
-                                <Link href="/products" className="flex items-center gap-2">
-                                    Mua sắm ngay <ArrowRight className="w-4 h-4" />
-                                </Link>
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="rounded-full px-8 bg-white/5 border-white/20 text-white hover:bg-white/10 backdrop-blur-md transition-all duration-300"
-                                asChild
-                            >
-                                <Link href="/products?sort=newest">
-                                    Xem hàng mới về
-                                </Link>
-                            </Button>
-                        </div>
-                    </motion.div>
+                    <h3 className="text-h1 font-semibold tracking-tight text-white leading-tight">
+                        Gia nhập Cộng đồng ShopViet Privilege
+                    </h3>
+
+                    <p className="mt-4 text-body text-white/80 leading-relaxed max-w-xl mx-auto">
+                        Nhận ngay voucher độc quyền giảm{" "}
+                        <strong className="text-white font-semibold">500.000₫</strong> cho đơn hàng công nghệ đầu tiên cùng bảo hành VIP tận nhà.
+                    </p>
+
+                    {/* Voucher Pill Box */}
+                    <div className="mt-6 inline-flex items-center gap-2 p-1.5 pl-4 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
+                        <span className="text-tiny text-white/70">Mã voucher:</span>
+                        <span className="font-mono font-bold text-white tracking-wider text-small">
+                            {couponCode}
+                        </span>
+                        <button
+                            onClick={handleCopy}
+                            className="inline-flex items-center gap-1 h-8 px-3 rounded-full bg-white text-ink text-tiny font-semibold hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-brand"
+                            aria-label="Sao chép mã giảm giá"
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="h-3 w-3 text-emerald-600" />
+                                    <span>Đã sao chép</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="h-3 w-3" />
+                                    <span>Sao chép</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
+                        <Link
+                            href="/products"
+                            className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-brand text-white text-small font-semibold hover:bg-brand-hover transition-all focus-ring shadow-sm hover:scale-[1.01]"
+                        >
+                            Mua sắm với ưu đãi <ArrowRight className="h-4 w-4" />
+                        </Link>
+                        <Link
+                            href="/products?sort=bestselling"
+                            className="inline-flex items-center justify-center h-12 px-8 rounded-full border border-white/20 text-white text-small font-semibold hover:bg-white/10 transition-colors focus-ring"
+                        >
+                            Xem sản phẩm bán chạy
+                        </Link>
+                    </div>
                 </div>
             </div>
         </section>

@@ -184,7 +184,11 @@ namespace Ecommerce.Application.Common.Logging
                 Properties = CreateLogProperties(sanitizedProperties)
             };
 
-            LogSerilog(level, messageTemplate, eventName, renderProperties, ex);
+            // 🔒 SECURITY (M3): KHÔNG truyền exception object THÔ cho Serilog nữa — Serilog
+            // được cấu hình WithExceptionDetails() sẽ ghi message/stack trace/Data GỐC
+            // (không qua sanitizer) vào file error-.json. Thông tin exception đã được
+            // sanitize đầy đủ trong các property ExceptionMessage/StackTrace/InnerException ở trên.
+            LogSerilog(level, messageTemplate, eventName, renderProperties);
             await _logRepository.SaveLogAsync(logEntry);
         }
 
@@ -321,7 +325,9 @@ namespace Ecommerce.Application.Common.Logging
             enrichedProperties.TryAdd("TraceFlags", activity?.ActivityTraceFlags.ToString());
             enrichedProperties.TryAdd("RequestId", _httpContextAccessor.HttpContext?.TraceIdentifier);
             enrichedProperties.TryAdd("UserId", userId);
-            enrichedProperties.TryAdd("UserName", userName);
+            // 🔒 SECURITY (M2): UserName được thêm SAU bước SanitizeProperties — phải tự sanitize
+            // giá trị này (GetUserName() có thể fallback về email) trước khi đưa vào log
+            enrichedProperties.TryAdd("UserName", _sanitizer.SanitizePropertyValue("UserName", userName));
             enrichedProperties.TryAdd("ClientIP", clientIp);
             enrichedProperties.TryAdd("IpAddress", clientIp);
             enrichedProperties.TryAdd("UserAgent", userAgent);

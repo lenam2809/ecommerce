@@ -3,8 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function ProductCardSkeleton() {
   return (
     <div className="group relative flex flex-col h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300">
-      {/* Image placeholder with proper aspect ratio */}
-      <div className="relative aspect-square overflow-hidden bg-secondary/20 flex-shrink-0">
+      {/* Image placeholder with proper aspect ratio matching 4:5 */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-secondary/20 flex-shrink-0">
         <Skeleton className="w-full h-full rounded-none" />
       </div>
 

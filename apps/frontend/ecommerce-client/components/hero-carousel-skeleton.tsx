@@ -19,7 +19,7 @@ export function HeroCarouselSkeleton({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
             <div
                 className={cn(
-                    "relative w-full rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl h-[600px] flex flex-col-reverse lg:flex-row",
+                    "relative w-full rounded-3xl overflow-hidden bg-card border border-line h-[600px] flex flex-col-reverse lg:flex-row",
                     className
                 )}
             >

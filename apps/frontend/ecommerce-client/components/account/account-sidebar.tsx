@@ -8,6 +8,9 @@ import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
+/**
+ * AccountSidebar — Editorial Minimal
+ */
 export function AccountSidebar() {
     const { logout } = useAuth()
     const { user: userData, isLoading: isLoadingUser } = useUser()
@@ -46,13 +49,13 @@ export function AccountSidebar() {
         <div className="flex flex-col space-y-6">
             {/* User Profile Summary */}
             <div className="hidden lg:flex items-center gap-4 px-3 mb-2">
-                <Avatar className="h-10 w-10 border border-border/50 shadow-sm">
+                <Avatar className="h-11 w-11 border border-line">
                     <AvatarImage src={userData?.avatar} alt={userData?.email} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">{getUserInitials()}</AvatarFallback>
+                    <AvatarFallback className="bg-brand-soft text-brand font-medium">{getUserInitials()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col overflow-hidden">
-                    <h2 className="font-semibold text-sm text-foreground truncate">{userData?.firstName} {userData?.lastName}</h2>
-                    <p className="text-xs text-muted-foreground truncate">{userData?.email}</p>
+                    <h2 className="font-semibold text-small text-ink truncate">{userData?.firstName} {userData?.lastName}</h2>
+                    <p className="text-tiny text-ink-faint truncate">{userData?.email}</p>
                 </div>
             </div>
 
@@ -67,23 +70,23 @@ export function AccountSidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center px-4 py-2.5 rounded-xl transition-colors duration-200 group font-medium text-sm",
+                                "flex items-center px-4 py-2.5 rounded-xl transition-colors duration-200 group font-medium text-small",
                                 isActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                                    ? "bg-brand-soft text-brand"
+                                    : "text-ink-soft hover:bg-surface hover:text-ink"
                             )}
                         >
-                            <Icon className={cn("h-4 w-4 mr-3 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                            <Icon className={cn("h-4 w-4 mr-3 transition-colors", isActive ? "text-brand" : "text-ink-faint group-hover:text-ink")} />
                             {item.label}
                         </Link>
                     )
                 })}
 
-                <div className="h-px bg-border/50 my-4 mx-3" />
+                <div className="h-px bg-line my-4 mx-3" />
 
                 <button
                     onClick={() => logout()}
-                    className="flex items-center px-4 py-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl transition-colors duration-200 group font-medium text-sm w-full"
+                    className="flex items-center px-4 py-2.5 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-xl transition-colors duration-200 group font-medium text-small w-full"
                 >
                     <LogOut className="h-4 w-4 mr-3" />
                     Đăng xuất
@@ -100,10 +103,10 @@ export function AccountSidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center whitespace-nowrap px-4 py-2 rounded-full border transition-colors text-sm font-medium",
+                                "flex items-center whitespace-nowrap px-4 py-2 rounded-full border transition-colors text-small font-medium",
                                 isActive
-                                    ? "bg-primary/10 border-primary/20 text-primary flex-shrink-0"
-                                    : "bg-background border-border text-muted-foreground hover:text-foreground flex-shrink-0"
+                                    ? "bg-brand-soft border-brand/30 text-brand flex-shrink-0"
+                                    : "bg-background border-line text-ink-soft hover:text-ink flex-shrink-0"
                             )}
                         >
                             <Icon className="h-4 w-4 mr-2" />

@@ -36,6 +36,12 @@ namespace Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntryById
                 var currentUserRole = _currentUserService.UserRoles;
                 var isAdmin = currentUserRole.Contains(EUserRoles.Admin);
 
+                // 🔒 SECURITY (H1): fail-closed — anonymous không được đọc log hệ thống.
+                // (với anonymous, currentUserId = null sẽ "khớp" với logEntry.ApplicationUserId == null)
+                if (!isAdmin && !currentUserId.HasValue)
+                {
+                    return Result<LogEntryDto>.Forbidden("Yêu cầu đăng nhập");
+                }
 
                 var logEntry = await _unitOfWork.LogEntries.GetByIdWithIncludeAsync(request.Id,
                     query => query.Include(l => l.User).Include(l => l.Properties),

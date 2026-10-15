@@ -3,28 +3,22 @@ import ProductCardSkeleton from "@/components/product-card-skeleton"
 
 export default function Loading() {
     return (
-        <div className="container mx-auto py-8">
+        <div className="container-app py-8 md:py-12">
             {/* Header Skeleton */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <Skeleton className="h-8 w-48 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                </div>
-                <div className="flex gap-2">
-                    <Skeleton className="h-10 w-10" />
-                    <Skeleton className="h-10 w-10" />
-                    <Skeleton className="h-10 w-[180px]" />
-                </div>
+            <div className="mb-8">
+                <Skeleton className="h-3 w-24 rounded-full mb-2" />
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-4 w-24" />
             </div>
 
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col md:flex-row gap-8">
                 {/* Filter Skeleton */}
-                <div className="hidden md:block w-64 flex-shrink-0">
+                <div className="hidden md:block w-72 flex-shrink-0">
                     <div className="space-y-6">
                         <Skeleton className="h-8 w-32 mb-4" />
-                        <Skeleton className="h-40 w-full rounded-lg" />
+                        <Skeleton className="h-40 w-full rounded-2xl" />
                         <Skeleton className="h-8 w-32 mb-4" />
-                        <Skeleton className="h-40 w-full rounded-lg" />
+                        <Skeleton className="h-40 w-full rounded-2xl" />
                     </div>
                 </div>
 

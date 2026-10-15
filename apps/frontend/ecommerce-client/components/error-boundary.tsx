@@ -1,7 +1,7 @@
 "use client"
 
 import { logger } from '@/lib/logger'
-import { Component, type ReactNode } from "react"
+import { Component, type ErrorInfo, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCcw } from "lucide-react"
 import Link from "next/link"
@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
         return { hasError: true, error, errorCount: 0 }
     }
 
-    componentDidCatch(error: Error, errorInfo: any) {
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         logger.error("[ErrorBoundary] Error caught:", error, errorInfo)
         // In production, send error to logging service
         // Example: logErrorToService(error, errorInfo)

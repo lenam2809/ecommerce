@@ -163,6 +163,11 @@ namespace Ecommerce.Domain.Entities
             AddDomainEvent(new ReturnRequestCompletedEvent(Id, Code, OrderId, Type, RefundAmount));
         }
 
+        public void MarkStockRestored(string note = "Đã hoàn tồn kho sau kiểm tra chất lượng")
+        {
+            AddStatusHistory(EReturnStatus.Completed, $"[StockRestored] {note}");
+        }
+
         private void AddStatusHistory(EReturnStatus status, string note)
         {
             _statusHistory.Add(new ReturnStatusHistory(this.Id, status, note));
@@ -179,7 +184,7 @@ namespace Ecommerce.Domain.Entities
 
         private static bool IsValidStatusTransition(EReturnStatus current, EReturnStatus next)
         {
-            if (current == next) return true;
+            if (current == next) return false;
 
             return (current, next) switch
             {

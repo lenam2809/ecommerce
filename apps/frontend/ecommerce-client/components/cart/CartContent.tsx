@@ -15,7 +15,7 @@ type CartContentProps = {
     isRemovingCartItem: boolean;
     isClearingCart: boolean;
     isApplyingPromoCode: boolean;
-    promoCodeError?: any;
+    promoCodeError?: unknown;
 };
 
 const CartContent = ({
@@ -41,7 +41,7 @@ const CartContent = ({
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-                <div className="glass-card rounded-xl overflow-hidden">
+                <div className="bg-card rounded-2xl border border-line overflow-hidden">
                     <CartItems
                         items={cart.items}
                         onUpdateQuantity={handleUpdateQuantity}

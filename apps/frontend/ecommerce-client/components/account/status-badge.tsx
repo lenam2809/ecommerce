@@ -35,7 +35,7 @@ export function StatusBadge({ status }: { status: string | number }) {
         case "pending":
         case "0":
             return (
-                <Badge variant="outline" className="bg-gray-500/10 text-gray-700 dark:text-gray-300 border-gray-500/20 shadow-none font-medium whitespace-nowrap">
+                <Badge variant="outline" className="bg-ink-faint/10 text-ink-soft border-ink-faint/20 shadow-none font-medium whitespace-nowrap">
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
                     Chờ xử lý
                 </Badge>
@@ -50,7 +50,7 @@ export function StatusBadge({ status }: { status: string | number }) {
             )
         default:
             return (
-                <Badge variant="outline" className="bg-gray-500/10 text-gray-700 dark:text-gray-300 border-gray-500/20 shadow-none font-medium whitespace-nowrap">
+                <Badge variant="outline" className="bg-ink-faint/10 text-ink-soft border-ink-faint/20 shadow-none font-medium whitespace-nowrap">
                     <Clock className="h-3.5 w-3.5 mr-1.5" />
                     Chờ xử lý
                 </Badge>

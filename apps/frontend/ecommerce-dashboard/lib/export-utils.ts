@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger'
 /**
  * Converts array of objects to CSV string
  */
-export function arrayToCSV(data: Record<string, any>[], headers?: string[]): string {
+export function arrayToCSV(data: Record<string, unknown>[], headers?: string[]): string {
     if (data.length === 0) return ''
 
     // Get headers from first object if not provided
@@ -53,7 +53,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /**
  * Exports data to CSV and downloads the file
  */
-export function exportToCSV<T extends Record<string, any>>(
+export function exportToCSV<T extends Record<string, unknown>>(
     data: T[],
     filename: string,
     headers?: string[]

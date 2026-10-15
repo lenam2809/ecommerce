@@ -125,212 +125,219 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="glass-card p-8 rounded-2xl w-full text-left">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl tech-heading mb-2 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
-                    Đăng ký tài khoản
+        <div className="bg-card border border-line rounded-3xl p-6 sm:p-8 w-full text-left shadow-xs">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand text-[11px] font-bold uppercase tracking-wider mb-3">
+                    <span>ShopViet Membership</span>
+                </div>
+                <h1 className="text-h2 font-bold tracking-tight mb-1.5 text-ink">
+                    Tạo tài khoản mới
                 </h1>
-                <p className="text-muted-foreground text-sm">
-                    Tạo tài khoản để trải nghiệm mua sắm tuyệt vời.
+                <p className="text-ink-soft text-small">
+                    Gia nhập cộng đồng ShopViet để hưởng đặc quyền VIP
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label htmlFor="firstName" className="tech-label ml-1">
-                            Tên
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                        <label htmlFor="lastName" className="text-tiny font-semibold text-ink-soft ml-1">
+                            Họ &amp; Đệm
                         </label>
                         <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                <User className="h-4 w-4" />
-                            </div>
-                            <Input
-                                id="firstName"
-                                type="text"
-                                placeholder="Văn A"
-                                className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.firstName ? "border-red-500 focus:ring-red-500" : ""}`}
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                                disabled={isLoading}
-                            />
-                        </div>
-                        {errors.firstName && <p className="text-xs text-red-500 ml-1">{errors.firstName}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label htmlFor="lastName" className="tech-label ml-1">
-                            Họ
-                        </label>
-                        <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
                                 <User className="h-4 w-4" />
                             </div>
                             <Input
                                 id="lastName"
                                 type="text"
                                 placeholder="Nguyễn"
-                                className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.lastName ? "border-red-500 focus:ring-red-500" : ""}`}
+                                className={`h-11 pl-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.lastName ? "border-red-500 focus:ring-red-500" : ""}`}
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 disabled={isLoading}
                             />
                         </div>
-                        {errors.lastName && <p className="text-xs text-red-500 ml-1">{errors.lastName}</p>}
+                        {errors.lastName && <p className="text-tiny text-destructive ml-2">{errors.lastName}</p>}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label htmlFor="firstName" className="text-tiny font-semibold text-ink-soft ml-1">
+                            Tên
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
+                                <User className="h-4 w-4" />
+                            </div>
+                            <Input
+                                id="firstName"
+                                type="text"
+                                placeholder="Văn A"
+                                className={`h-11 pl-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.firstName ? "border-red-500 focus:ring-red-500" : ""}`}
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                disabled={isLoading}
+                            />
+                        </div>
+                        {errors.firstName && <p className="text-tiny text-destructive ml-2">{errors.firstName}</p>}
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label htmlFor="email" className="tech-label ml-1">
-                        Email
+                <div className="space-y-1.5">
+                    <label htmlFor="email" className="text-tiny font-semibold text-ink-soft ml-1">
+                        Email liên hệ
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
                             <Mail className="h-4 w-4" />
                         </div>
                         <Input
                             id="email"
                             type="email"
                             placeholder="name@example.com"
-                            className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
+                            className={`h-11 pl-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.email ? "border-red-500 focus:ring-red-500" : ""}`}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
-                    {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
+                    {errors.email && <p className="text-tiny text-destructive ml-2">{errors.email}</p>}
                 </div>
 
-                <div className="space-y-2">
-                    <label htmlFor="phone" className="tech-label ml-1">
+                <div className="space-y-1.5">
+                    <label htmlFor="phone" className="text-tiny font-semibold text-ink-soft ml-1">
                         Số điện thoại
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
                             <Phone className="h-4 w-4" />
                         </div>
                         <Input
                             id="phone"
                             type="tel"
-                            placeholder="0912345678"
-                            className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.phoneNumber ? "border-red-500 focus:ring-red-500" : ""}`}
+                            placeholder="0912 xxx xxx"
+                            className={`h-11 pl-10 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.phoneNumber ? "border-red-500 focus:ring-red-500" : ""}`}
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
-                    {errors.phoneNumber && <p className="text-xs text-red-500 ml-1">{errors.phoneNumber}</p>}
+                    {errors.phoneNumber && <p className="text-tiny text-destructive ml-2">{errors.phoneNumber}</p>}
                 </div>
 
-                <div className="space-y-2">
-                    <label htmlFor="password" className="tech-label ml-1">
-                        Mật khẩu
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Lock className="h-4 w-4" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                        <label htmlFor="password" className="text-tiny font-semibold text-ink-soft ml-1">
+                            Mật khẩu
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
+                                <Lock className="h-4 w-4" />
+                            </div>
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                className={`h-11 pl-10 pr-9 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-faint hover:text-ink transition-colors cursor-pointer"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                )}
+                            </button>
                         </div>
-                        <Input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.password ? "border-red-500 focus:ring-red-500" : ""}`}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={isLoading}
-                        />
-                        <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
-                            onClick={() => setShowPassword(!showPassword)}
-                        >
-                            {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                            ) : (
-                                <Eye className="h-4 w-4" />
-                            )}
-                        </button>
+                        {errors.password && <p className="text-tiny text-destructive ml-2">{errors.password}</p>}
                     </div>
-                    {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password}</p>}
-                </div>
 
-                <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="tech-label ml-1">
-                        Xác nhận mật khẩu
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Lock className="h-4 w-4" />
+                    <div className="space-y-1.5">
+                        <label htmlFor="confirmPassword" className="text-tiny font-semibold text-ink-soft ml-1">
+                            Xác nhận mật khẩu
+                        </label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-ink-faint group-focus-within:text-brand transition-colors">
+                                <Lock className="h-4 w-4" />
+                            </div>
+                            <Input
+                                id="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                className={`h-11 pl-10 pr-9 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all ${errors.confirmPassword ? "border-red-500 focus:ring-red-500" : ""}`}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                disabled={isLoading}
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-faint hover:text-ink transition-colors cursor-pointer"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeOff className="h-3.5 w-3.5" />
+                                ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                )}
+                            </button>
                         </div>
-                        <Input
-                            id="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            className={`pl-9 bg-secondary/50 border-transparent focus:border-primary/50 focus:bg-background transition-all duration-300 ${errors.confirmPassword ? "border-red-500 focus:ring-red-500" : ""}`}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            disabled={isLoading}
-                        />
-                        <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                            {showConfirmPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                            ) : (
-                                <Eye className="h-4 w-4" />
-                            )}
-                        </button>
+                        {errors.confirmPassword && <p className="text-tiny text-destructive ml-2">{errors.confirmPassword}</p>}
                     </div>
-                    {errors.confirmPassword && <p className="text-xs text-red-500 ml-1">{errors.confirmPassword}</p>}
                 </div>
 
-                <div className="flex items-start pt-2">
+                <div className="flex items-start pt-1">
                     <div className="flex items-center h-5">
                         <Checkbox
                             id="agree-terms"
                             checked={agreeTerms}
                             onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
                             disabled={isLoading}
-                            className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            className="rounded-md border-line data-[state=checked]:bg-brand data-[state=checked]:border-brand"
                         />
                     </div>
-                    <div className="ml-3 text-sm leading-none">
-                        <label htmlFor="agree-terms" className="text-muted-foreground">
+                    <div className="ml-2.5 text-tiny leading-tight">
+                        <label htmlFor="agree-terms" className="text-ink-soft cursor-pointer">
                             Tôi đồng ý với{" "}
-                            <Link href="/terms" className="font-medium text-primary hover:underline">
+                            <Link href="/terms" className="font-semibold text-brand hover:underline">
                                 Điều khoản
                             </Link>{" "}
                             và{" "}
-                            <Link href="/privacy" className="font-medium text-primary hover:underline">
-                                Chính sách
+                            <Link href="/privacy" className="font-semibold text-brand hover:underline">
+                                Chính sách bảo mật
                             </Link>
                         </label>
                     </div>
                 </div>
-                {errors.agreeTerms && <p className="text-xs text-red-500 ml-1">{errors.agreeTerms}</p>}
+                {errors.agreeTerms && <p className="text-tiny text-destructive ml-2">{errors.agreeTerms}</p>}
 
                 <Button
                     type="submit"
-                    className="w-full btn-glow h-11 text-base font-medium rounded-xl from-blue-600 to-indigo-600 bg-gradient-to-r hover:from-blue-700 hover:to-indigo-700 border-0"
+                    className="w-full h-11 text-small font-semibold rounded-full bg-brand text-white hover:bg-brand-hover shadow-xs hover:shadow-brand-glow transition-all cursor-pointer mt-3"
                     disabled={isLoading}
                 >
                     {isLoading ? (
                         <div className="flex items-center gap-2">
                             <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            <span>Đang xử lý...</span>
+                            <span>Đang tạo tài khoản...</span>
                         </div>
                     ) : (
-                        "Đăng ký"
+                        "Đăng ký tài khoản"
                     )}
                 </Button>
 
-                <div className="text-center mt-6">
-                    <p className="text-sm text-muted-foreground">
+                <div className="text-center mt-6 pt-4 border-t border-line/60">
+                    <p className="text-small text-ink-soft">
                         Đã có tài khoản?{" "}
-                        <Link href="/login" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-                            Đăng nhập
+                        <Link href="/login" className="font-semibold text-brand hover:underline transition-colors">
+                            Đăng nhập ngay
                         </Link>
                     </p>
                 </div>

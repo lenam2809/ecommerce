@@ -32,6 +32,16 @@ export interface HandleApiErrorOptions {
   suppressStatuses?: number[]
 }
 
+interface ApiErrorLike {
+  response?: {
+    status?: unknown
+  }
+  config?: {
+    url?: unknown
+    method?: unknown
+  }
+}
+
 const DEFAULT_PROD_TITLE = "Something went wrong"
 const DEFAULT_PROD_DESCRIPTION = "Something went wrong, please try again later"
 
@@ -53,29 +63,33 @@ function getErrorMessage(error: unknown): string {
   }
 }
 
-function getAxiosStatus(error: any): number | undefined {
-  const status = error?.response?.status
+function asApiErrorLike(error: unknown): ApiErrorLike {
+  return typeof error === "object" && error !== null ? (error as ApiErrorLike) : {}
+}
+
+function getAxiosStatus(error: unknown): number | undefined {
+  const status = asApiErrorLike(error).response?.status
   return typeof status === "number" ? status : undefined
 }
 
-function getAxiosEndpoint(error: any, fallback?: string): string | undefined {
-  const url = error?.config?.url
+function getAxiosEndpoint(error: unknown, fallback?: string): string | undefined {
+  const url = asApiErrorLike(error).config?.url
   return typeof url === "string" ? url : fallback
 }
 
-function getAxiosMethod(error: any): string | undefined {
-  const method = error?.config?.method
+function getAxiosMethod(error: unknown): string | undefined {
+  const method = asApiErrorLike(error).config?.method
   return typeof method === "string" ? method.toUpperCase() : undefined
 }
 
-function getErrorKind(status: number | undefined, error: any, fallbackKind: ApiErrorKind = "unknown"): ApiErrorKind {
+function getErrorKind(status: number | undefined, error: unknown, fallbackKind: ApiErrorKind = "unknown"): ApiErrorKind {
   if (typeof status === "number") {
     if (status >= 400 && status <= 499) return "client"
     if (status >= 500) return "server"
   }
 
   // Axios network errors typically have no `response`
-  const hasAxiosResponse = typeof error?.response !== "undefined"
+  const hasAxiosResponse = typeof asApiErrorLike(error).response !== "undefined"
   if (!hasAxiosResponse) return "network"
 
   return fallbackKind
@@ -129,11 +143,10 @@ export function handleApiError(options: HandleApiErrorOptions) {
     suppressStatuses = [401],
   } = options
 
-  const anyErr = error as any
-  const status = getAxiosStatus(anyErr)
-  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, anyErr, "unknown")
-  const endpoint = getAxiosEndpoint(anyErr, context?.endpoint)
-  const method = getAxiosMethod(anyErr) ?? context?.method
+  const status = getAxiosStatus(error)
+  const kind = isNetworkLike(error) ? "network" : getErrorKind(status, error, "unknown")
+  const endpoint = getAxiosEndpoint(error, context?.endpoint)
+  const method = getAxiosMethod(error) ?? context?.method
   const operation = context?.operation
 
   if (shouldSuppress(status, suppressStatuses)) return

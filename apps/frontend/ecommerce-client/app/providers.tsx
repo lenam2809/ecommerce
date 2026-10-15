@@ -8,6 +8,9 @@ import { AuthProvider } from "@/hooks/use-auth"
 import { SignalRProvider } from "@/hubs/signalr-context"
 import { AnalyticsProvider } from "@/components/analytics-provider"
 
+import { CartProvider } from "@/components/provider/cart-provider"
+import { WishlistProvider } from "@/components/provider/wishlist-provider"
+
 interface ProvidersProps {
   children: ReactNode
 }
@@ -30,10 +33,18 @@ export default function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SignalRProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            <AnalyticsProvider>
-              {children}
-            </AnalyticsProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+          >
+            <CartProvider>
+              <WishlistProvider>
+                <AnalyticsProvider>
+                  {children}
+                </AnalyticsProvider>
+              </WishlistProvider>
+            </CartProvider>
           </ThemeProvider>
         </SignalRProvider>
       </AuthProvider>

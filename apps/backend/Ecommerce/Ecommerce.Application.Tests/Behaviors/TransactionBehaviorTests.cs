@@ -54,6 +54,29 @@ public class TransactionBehaviorTests
     }
 
     [Fact]
+    public async Task Handle_CommandReturnsFailureResult_RollsBackAndReturnsResult()
+    {
+        // Arrange
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.Setup(x => x.ExecuteStrategyAsync(It.IsAny<Func<Task<Result<string>>>>(), It.IsAny<CancellationToken>()))
+            .Returns((Func<Task<Result<string>>> operation, CancellationToken _) => operation());
+        var behavior = new TransactionBehavior<TestCommand, Result<string>>(unitOfWork.Object, Mock.Of<IEnhancedLogger>());
+
+        // Act
+        var result = await behavior.Handle(
+            new TestCommand(),
+            () => Task.FromResult(Result<string>.Failure(ResultError.BadRequest, "Business error")),
+            CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be("Business error");
+        unitOfWork.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(x => x.RollbackTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_CommandThrows_RollsBackAndRethrows()
     {
         // Arrange

@@ -139,6 +139,18 @@ class AuthService {
     }
 
     /**
+     * Kiểm tra cookie auth (httpOnly) đã được backend set chưa.
+     * Endpoint GET /auth/cookie-check (không yêu cầu xác thực) — chỉ kiểm tra
+     * sự hiện diện của cookie; validation thực sự là getCurrentUser().
+     * Dùng ở trang /auth/google-callback sau khi backend redirect về.
+     */
+    public async cookieCheck(): Promise<{ cookiesEnabled: boolean; hasCookie: boolean }> {
+        const { data } = await api.get<{ cookiesEnabled: boolean; hasCookie: boolean }>("/auth/cookie-check")
+
+        return data
+    }
+
+    /**
      * Request password reset email.
      */
     public async forgotPassword(email: string): Promise<{ success: boolean; message?: string }> {

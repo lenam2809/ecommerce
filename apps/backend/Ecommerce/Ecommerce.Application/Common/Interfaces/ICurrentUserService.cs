@@ -1,4 +1,4 @@
-﻿namespace Ecommerce.Application.Common.Interfaces
+namespace Ecommerce.Application.Common.Interfaces
 {
     /// <summary>
     /// Interface cung cấp thông tin và thao tác liên quan đến người dùng hiện tại đang đăng nhập.
@@ -55,7 +55,7 @@
         Task<bool> IsInRoleAsync(string role);
 
         /// <summary>
-        /// Id của khách vãng lai (guest) từ header X-Guest-ID.
+        /// Id của khách vãng lai (guest) từ httpOnly cookie guest_id do server cấp (GuestCartMiddleware).
         /// </summary>
         string? GuestId { get; }
     }

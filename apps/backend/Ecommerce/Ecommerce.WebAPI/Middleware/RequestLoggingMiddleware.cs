@@ -78,7 +78,9 @@ namespace Ecommerce.WebAPI.Middleware
                 { "Route", route },
                 { "StatusCode", statusCode },
                 { "ExecutionTimeMs", stopwatch.ElapsedMilliseconds },
-                { "RequestQueryString", context.Request.QueryString.HasValue ? context.Request.QueryString.Value : null },
+                // 🔒 SECURITY (H1/M1): chỉ log DANH SÁCH KEY của query string,
+                // KHÔNG log giá trị — tránh lộ ?access_token=..., tham số vnp_* của VNPay...
+                { "RequestQueryString", context.Request.QueryString.HasValue ? string.Join(",", context.Request.Query.Keys) : null },
                 { "IsImportantAction", isImportantAction }
             };
 

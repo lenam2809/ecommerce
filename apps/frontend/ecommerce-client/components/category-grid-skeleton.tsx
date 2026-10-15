@@ -8,15 +8,12 @@ export default function CategoryGridSkeleton() {
         .map((_, index) => (
           <div
             key={index}
-            className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm"
+            className="flex flex-col items-center justify-center p-4 bg-card border border-line rounded-2xl"
           >
-            <Skeleton className="h-24 w-24 rounded-full mb-3 dark:bg-gray-700" />
-            <Skeleton className="h-5 w-20 dark:bg-gray-700" />
+            <Skeleton className="h-24 w-24 rounded-full mb-3" />
+            <Skeleton className="h-5 w-20" />
           </div>
         ))}
     </div>
   )
 }
-
-
-

@@ -14,7 +14,7 @@ export class BaseService {
     }
 
     // Phương thức lấy tất cả items
-    async getAll<T>(params?: any): Promise<Result<T[]>> {
+    async getAll<T>(params?: object): Promise<Result<T[]>> {
         try {
             const response: AxiosResponse<Result<T[]>> = await api.get(this.endpoint, { params });
             return response.data;
@@ -121,7 +121,7 @@ export class BaseService {
         }
     }
 
-    async get<T>(urlEndpoint: string, params?: any): Promise<Result<T>> {
+    async get<T>(urlEndpoint: string, params?: object): Promise<Result<T>> {
         try {
             const response: AxiosResponse<Result<T>> = await api.get(urlEndpoint, { params });
             return response.data;
@@ -138,7 +138,7 @@ export class BaseService {
         }
     }
 
-    async post<T>(urlEndpoint: string, data: any): Promise<Result<T>> {
+    async post<T, D = unknown>(urlEndpoint: string, data: D): Promise<Result<T>> {
         try {
             const response: AxiosResponse<Result<T>> = await api.post(urlEndpoint, data);
             return response.data;
@@ -155,7 +155,7 @@ export class BaseService {
         }
     }
 
-    async put<T>(urlEndpoint: string, data: any): Promise<Result<T>> {
+    async put<T, D = unknown>(urlEndpoint: string, data: D): Promise<Result<T>> {
         try {
             const response: AxiosResponse<Result<T>> = await api.put(urlEndpoint, data);
             return response.data;
@@ -172,7 +172,7 @@ export class BaseService {
         }
     }
 
-    async patch<T>(urlEndpoint: string, data?: any): Promise<Result<T>> {
+    async patch<T, D = unknown>(urlEndpoint: string, data?: D): Promise<Result<T>> {
         try {
             const response: AxiosResponse<Result<T>> = await api.patch(urlEndpoint, data);
             return response.data;

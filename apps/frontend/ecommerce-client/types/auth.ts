@@ -25,7 +25,7 @@ export interface RevokeTokenRequest {
 }
 
 export interface AuthState {
-    user: any | null;
+    user: unknown | null;
     accessToken: string | null;
     refreshToken: string | null;
     isAuthenticated: boolean;

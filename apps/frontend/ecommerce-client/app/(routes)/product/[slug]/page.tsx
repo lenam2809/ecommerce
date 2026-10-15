@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Head from "next/head"
 import dynamic from "next/dynamic"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,6 +17,7 @@ import { useCart } from "@/hooks/use-cart"
 import { generateProductSchema } from "@/lib/seo-utils"
 import { analytics } from "@/lib/analytics"
 import { toSafeJsonLd } from "@/lib/sanitize-html-content"
+import { formatPrice } from "@/lib/contants"
 
 import { ProductBreadcrumb } from "@/components/products/product-breadcrumb"
 import { ProductHeader } from "@/components/products/product-header"
@@ -24,19 +25,20 @@ import { ProductPrice } from "@/components/products/product-price"
 import { ProductVariantSelector } from "@/components/products/product-variant-selector"
 import { ProductQuantitySelector } from "@/components/products/product-quantity-selector"
 import { ProductActions } from "@/components/products/product-actions"
-import { ChevronRight } from "lucide-react"
 
-// Lazy load tabs component - user typically doesn't need it immediately
-const ProductTabs = dynamic(() => import("@/components/products/product-tabs").then(m => ({ default: m.ProductTabs })), {
-    loading: () => <div className="h-96 bg-muted/30 rounded-lg animate-pulse" />,
+// Lazy load tabs component
+const ProductTabs = dynamic(() => import("@/components/products/product-tabs").then((m) => ({ default: m.ProductTabs })), {
+    loading: () => <div className="h-96 bg-surface-2/40 rounded-2xl animate-pulse" />,
 })
 
 export default function ProductDetailPage() {
     const params = useParams()
+    const router = useRouter()
     const productSlug = params.slug as string
 
     const [quantity, setQuantity] = useState(1)
     const [selectedColor, setSelectedColor] = useState<string | null>(null)
+    const [selectedSize, setSelectedSize] = useState<string | null>(null)
 
     // Fetch product data
     const { data: product, isLoading, error } = useProductBySlug(productSlug)
@@ -45,10 +47,13 @@ export default function ProductDetailPage() {
     // Cart functionality
     const { addToCart, isAddingToCart } = useCart()
 
-    // Set default color when product data is loaded
+    // Set default color & size when product data is loaded
     useEffect(() => {
         if (product?.variants?.colors && product.variants.colors.length > 0) {
             setSelectedColor(product.variants.colors[0])
+        }
+        if (product?.variants?.sizes && product.variants.sizes.length > 0) {
+            setSelectedSize(product.variants.sizes[0])
         }
     }, [product])
 
@@ -75,28 +80,40 @@ export default function ProductDetailPage() {
                 quantity,
                 options: {
                     color: selectedColor || undefined,
+                    size: selectedSize || undefined,
                 },
             })
-            
+
             // Track Add to Cart Event
             analytics.trackAddToCart({
                 id: product.id,
                 name: product.name,
                 price: product.salePrice || product.price,
-                brand: product.categoryName, // fallback to category if brand is missing
-                category: product.categoryName
+                brand: product.brandSlug || "ShopViet",
+                category: product.categoryName,
             }, quantity)
+        }
+    }
+
+    const handleBuyNow = () => {
+        if (product) {
+            handleAddToCart()
+            router.push("/cart")
         }
     }
 
     if (error) {
         return (
-            <div className="text-center">
-                <h1 className="text-2xl font-bold mb-4">Không tìm thấy sản phẩm</h1>
-                <p className="mb-6">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-                <Button asChild>
-                    <Link href="/products">Quay lại trang sản phẩm</Link>
-                </Button>
+            <div className="container-app py-24 text-center">
+                <div className="max-w-md mx-auto p-8 rounded-3xl bg-card border border-line">
+                    <h1 className="text-h2 font-bold mb-3 text-ink">Không tìm thấy sản phẩm</h1>
+                    <p className="text-ink-soft text-small mb-6">
+                        Sản phẩm này có thể đã được ngừng kinh doanh hoặc đường dẫn không chính xác.
+                    </p>
+                    <Button asChild className="rounded-full bg-brand text-white hover:bg-brand-hover px-6">
+                        <Link href="/products">Quay lại trang sản phẩm</Link>
+                    </Button>
+                </div>
             </div>
         )
     }
@@ -105,6 +122,8 @@ export default function ProductDetailPage() {
         <>
             {product && (
                 <Head>
+                    <title>{`${product.name} - Chính Hãng Giá Tốt | ShopViet`}</title>
+                    <meta name="description" content={product.description || `Mua ${product.name} chính hãng bảo hành 24 tháng tại ShopViet.`} />
                     <script
                         type="application/ld+json"
                         dangerouslySetInnerHTML={{
@@ -115,7 +134,7 @@ export default function ProductDetailPage() {
                                 image: product.mainImage,
                                 rating: product.rating,
                                 reviewCount: product.reviewCount,
-                                brand: "ShopViet", // Brand string or static fallback
+                                brand: "ShopViet",
                                 url: `https://shopviet.com/product/${product.slug}`,
                             }))
                         }}
@@ -123,116 +142,171 @@ export default function ProductDetailPage() {
                 </Head>
             )}
             <ErrorBoundary>
-                <div className="min-h-screen bg-background relative overflow-hidden">
-                    <div className="absolute inset-0 mesh-gradient-subtle opacity-30 pointer-events-none" />
-
-                    <div className="container mx-auto px-4 py-8 relative z-10">
+                <div className="min-h-screen bg-background">
+                    <div className="container-app py-6 md:py-10">
+                        {/* Breadcrumb Navigation */}
                         <ProductBreadcrumb
-                        isLoading={isLoading}
-                        categoryName={product?.categoryName}
-                        productName={product?.name}
-                    />
+                            isLoading={isLoading}
+                            categoryName={product?.categoryName}
+                            categorySlug={product?.categorySlug}
+                            productName={product?.name}
+                        />
 
-                    <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
-                        {/* Product Gallery */}
-                        <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                            {isLoading ? (
-                                <Skeleton className="h-[500px] w-full rounded-2xl" />
-                            ) : (
-                                <ProductGallery images={product?.additionalImages || []} />
-                            )}
+                        {/* Main Product Stage: Gallery (60%) + Details Stack (40%) */}
+                        <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                            {/* Left: Gallery (7 cols on lg) */}
+                            <div className="lg:col-span-7">
+                                {isLoading ? (
+                                    <div className="space-y-4">
+                                        <Skeleton className="aspect-[4/3] sm:aspect-square w-full rounded-3xl" />
+                                        <div className="flex gap-3">
+                                            <Skeleton className="h-20 w-20 rounded-2xl" />
+                                            <Skeleton className="h-20 w-20 rounded-2xl" />
+                                            <Skeleton className="h-20 w-20 rounded-2xl" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <ProductGallery
+                                        images={
+                                            product?.additionalImages && product.additionalImages.length > 0
+                                                ? [product.mainImage, ...product.additionalImages]
+                                                : [product?.mainImage || "/placeholder.svg"]
+                                        }
+                                    />
+                                )}
+                            </div>
+
+                            {/* Right: Product Info & Actions Stack (5 cols on lg) */}
+                            <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-24">
+                                {isLoading ? (
+                                    <div className="space-y-5">
+                                        <Skeleton className="h-4 w-28 rounded-full" />
+                                        <Skeleton className="h-10 w-full rounded-2xl" />
+                                        <Skeleton className="h-20 w-full rounded-2xl" />
+                                        <Skeleton className="h-14 w-full rounded-2xl" />
+                                        <Skeleton className="h-12 w-full rounded-full" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <ProductHeader
+                                            isLoading={false}
+                                            name={product?.name}
+                                            categoryName={product?.categoryName}
+                                            rating={product?.rating}
+                                            reviewCount={product?.reviewCount}
+                                        />
+
+                                        <ProductPrice
+                                            isLoading={false}
+                                            price={product?.price || 0}
+                                            salePrice={product?.salePrice}
+                                        />
+
+                                        <ProductVariantSelector
+                                            isLoading={false}
+                                            variants={product?.variants}
+                                            selectedColor={selectedColor}
+                                            onColorSelect={setSelectedColor}
+                                            selectedSize={selectedSize}
+                                            onSizeSelect={setSelectedSize}
+                                        />
+
+                                        <ProductQuantitySelector
+                                            isLoading={false}
+                                            quantity={quantity}
+                                            stock={product?.stockQuantity}
+                                            onDecrement={decrementQuantity}
+                                            onIncrement={incrementQuantity}
+                                            onQuantityChange={handleQuantityChange}
+                                        />
+
+                                        <ProductActions
+                                            productId={product?.id || ""}
+                                            isLoading={false}
+                                            isAddingToCart={isAddingToCart}
+                                            onAddToCart={handleAddToCart}
+                                            onBuyNow={handleBuyNow}
+                                            productName={product?.name}
+                                            price={product?.salePrice || product?.price}
+                                            categoryName={product?.categoryName}
+                                        />
+                                    </>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Product Info */}
-                        <div className="animate-fade-in space-y-8 glass-card rounded-2xl p-6 md:p-8" style={{ animationDelay: '0.2s' }}>
-                            <ProductHeader
+                        {/* Product Technical Tabs (Specs, Description, Reviews) */}
+                        <div className="mt-16 md:mt-24">
+                            <ProductTabs
                                 isLoading={isLoading}
+                                productId={product?.id}
+                                specifications={product?.specifications}
+                                description={product?.description}
                                 name={product?.name}
-                                rating={product?.rating}
                                 reviewCount={product?.reviewCount}
                             />
+                        </div>
 
-                            <ProductPrice
-                                isLoading={isLoading}
-                                price={product?.price || 0}
-                                salePrice={product?.salePrice}
-                            />
+                        {/* Similar Products Section */}
+                        <div className="mt-16 md:mt-24 pt-12 border-t border-line/60">
+                            <div className="section-heading">
+                                <span className="section-label">Gợi ý dành cho bạn</span>
+                                <h2 className="section-title">Sản phẩm tương tự</h2>
+                                <p className="text-small text-ink-faint mt-1">
+                                    Các thiết bị cùng phân khúc được khách hàng quan tâm nhiều nhất.
+                                </p>
+                            </div>
 
-                            {!isLoading && (
-                                <div className="py-4 border-y border-border/50">
-                                    <p className="text-muted-foreground leading-relaxed">{product?.description}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                                {isLoadingSimilar
+                                    ? Array(4)
+                                          .fill(0)
+                                          .map((_, index) => <ProductCardSkeleton key={index} />)
+                                    : similarProducts
+                                          ?.slice(0, 4)
+                                          .map((item) => <ProductCard key={item.id} product={item} />)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile Sticky Buy Bar (Conversion Optimization) */}
+                    {!isLoading && product && (
+                        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-line shadow-lg">
+                            <div className="container-app flex items-center justify-between gap-3 py-3">
+                                <div className="leading-tight min-w-0">
+                                    {product.salePrice && (
+                                        <p className="text-tiny text-ink-faint line-through truncate">
+                                            {formatPrice(product.price)}
+                                        </p>
+                                    )}
+                                    <p className="text-base font-bold text-ink truncate">
+                                        {formatPrice(product.salePrice || product.price)}
+                                    </p>
                                 </div>
-                            )}
-
-                            <div className="space-y-6">
-                                <ProductVariantSelector
-                                    isLoading={isLoading}
-                                    variants={product?.variants}
-                                    selectedColor={selectedColor}
-                                    onColorSelect={setSelectedColor}
-                                />
-
-                                <ProductQuantitySelector
-                                    isLoading={isLoading}
-                                    quantity={quantity}
-                                    stock={product?.stockQuantity}
-                                    onDecrement={decrementQuantity}
-                                    onIncrement={incrementQuantity}
-                                    onQuantityChange={handleQuantityChange}
-                                />
-
-                                <ProductActions
-                                    productId={product?.id || ""}
-                                    isLoading={isLoading}
-                                    isAddingToCart={isAddingToCart}
-                                    onAddToCart={handleAddToCart}
-                                />
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Button
+                                        onClick={handleAddToCart}
+                                        disabled={isAddingToCart}
+                                        variant="outline"
+                                        className="h-10 px-4 rounded-full border-line text-ink text-tiny font-semibold"
+                                    >
+                                        Thêm giỏ
+                                    </Button>
+                                    <Button
+                                        onClick={handleBuyNow}
+                                        disabled={isAddingToCart}
+                                        className="h-10 px-5 rounded-full bg-brand text-white hover:bg-brand-hover text-tiny font-semibold shadow-xs"
+                                    >
+                                        Mua ngay
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                        <ProductTabs
-                            isLoading={isLoading}
-                            productId={product?.id}
-                            specifications={product?.specifications}
-                            description={product?.description}
-                            name={product?.name}
-                            reviewCount={product?.reviewCount}
-                        />
-                    </div>
-
-                    {/* Similar Products */}
-                    <div className="mt-20 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                        <div className="flex justify-between items-end mb-8">
-                            <div>
-                                <h2 className="tech-heading text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                                    Sản phẩm tương tự
-                                </h2>
-                                <p className="text-muted-foreground mt-2">Có thể bạn cũng sẽ thích</p>
-                            </div>
-                            <Link
-                                href={`/products?category=${product?.categoryName}`}
-                                className="group flex items-center text-primary font-medium hover:text-primary/80 transition-colors"
-                            >
-                                Xem tất cả
-                                <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-                            </Link>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            {isLoadingSimilar
-                                ? Array(4)
-                                    .fill(0)
-                                    .map((_, index) => <ProductCardSkeleton key={index} />)
-                                : similarProducts?.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
-                        </div>
-                    </div>
-                </div>
+                    )}
                 </div>
             </ErrorBoundary>
+            {/* Spacer cho sticky bar mobile */}
+            {!isLoading && product && <div className="lg:hidden h-20" />}
         </>
     )
 }

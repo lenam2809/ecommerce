@@ -19,7 +19,6 @@ import { ProductVariantSelector } from "@/components/products/product-variant-se
 import { ProductQuantitySelector } from "@/components/products/product-quantity-selector"
 import { ProductActions } from "@/components/products/product-actions"
 import { ProductTabs } from "@/components/products/product-tabs"
-import { ChevronRight } from "lucide-react"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -90,19 +89,19 @@ export default function ProductDetailPage() {
         productName={product?.name}
       />
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="container-app py-6 md:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12 items-start">
           {/* Product Gallery */}
-          <div>
+          <div className="lg:col-span-2">
             {isLoading ? (
-              <Skeleton className="h-[500px] w-full rounded-lg" />
+              <Skeleton className="aspect-square w-full rounded-2xl" />
             ) : (
               <ProductGallery images={product?.additionalImages || []} />
             )}
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6">
+          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-24">
             <ProductHeader
               isLoading={isLoading}
               name={product?.name}
@@ -117,9 +116,9 @@ export default function ProductDetailPage() {
             />
 
             {!isLoading && (
-              <div className="mb-6">
-                <p className="text-gray-700">{product?.description}</p>
-              </div>
+              <p className="text-small text-ink-soft leading-relaxed border-y border-line py-4">
+                {product?.description}
+              </p>
             )}
 
             <ProductVariantSelector
@@ -157,15 +156,10 @@ export default function ProductDetailPage() {
         />
 
         {/* Similar Products */}
-        <div className="mt-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Sản phẩm tương tự</h2>
-            <Link
-              href={`/products?category=${product?.categoryName}`}
-              className="text-[#2A5CAA] hover:underline flex items-center"
-            >
-              Xem thêm <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
+        <div className="mt-16 md:mt-24">
+          <div className="section-heading">
+            <p className="section-label">Có thể bạn thích</p>
+            <h2 className="section-title">Sản phẩm tương tự</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">

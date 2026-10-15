@@ -1,4 +1,6 @@
 using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Models;
+using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
 using MediatR;
@@ -36,6 +38,22 @@ namespace Ecommerce.Application.Common.Behaviors
                     await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
                     var response = await next();
+
+                    if (response is IAppResult { IsSuccess: false } appResult)
+                    {
+                        await _logger.LogAsync(
+                            ELogLevel.Warning,
+                            $"Command {typeof(TRequest).Name} returned failure result ({appResult.ErrorType}: {appResult.Error}). Rolling back transaction.",
+                            "TransactionRollback",
+                            properties: new Dictionary<string, object?>
+                            {
+                                { "CommandName", typeof(TRequest).Name },
+                                { "ErrorType", appResult.ErrorType.ToString() },
+                                { "Error", appResult.Error }
+                            });
+                        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                        return response;
+                    }
 
                     await _unitOfWork.CommitTransactionAsync(cancellationToken);
 

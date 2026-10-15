@@ -98,26 +98,31 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="flex w-full flex-col">
-      <div className="mb-6 space-y-2 text-center md:text-left">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Create new password</h1>
-        <p className="text-muted-foreground">
-          Enter a strong new password to secure your account.
+    <div className="bg-card border border-line rounded-3xl p-6 sm:p-8 w-full text-left shadow-xs">
+      <div className="mb-6 text-center">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand text-[11px] font-bold uppercase tracking-wider mb-3">
+          <span>Bảo mật tài khoản</span>
+        </div>
+        <h1 className="text-h2 font-bold tracking-tight text-ink mb-1.5">
+          Tạo mật khẩu mới
+        </h1>
+        <p className="text-ink-soft text-small">
+          Nhập mật khẩu mới an toàn để bảo vệ tài khoản của bạn.
         </p>
       </div>
 
       {successMessage && (
-        <Alert className="mb-6 bg-green-500/15 text-green-600 border-green-500/30">
+        <Alert className="mb-6 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 rounded-2xl">
           <KeyRound className="h-4 w-4" color="currentColor" />
-          <AlertTitle>Password reset complete</AlertTitle>
-          <AlertDescription>{successMessage} Redirecting...</AlertDescription>
+          <AlertTitle className="font-semibold text-small">Thành công</AlertTitle>
+          <AlertDescription className="text-tiny mt-1">{successMessage} Đang chuyển hướng...</AlertDescription>
         </Alert>
       )}
 
       {errorMessage && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{errorMessage}</AlertDescription>
+        <Alert variant="destructive" className="mb-6 rounded-2xl">
+          <AlertTitle className="font-semibold text-small">Lỗi</AlertTitle>
+          <AlertDescription className="text-tiny mt-1">{errorMessage}</AlertDescription>
         </Alert>
       )}
 
@@ -128,18 +133,18 @@ function ResetPasswordContent() {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New password</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-tiny font-semibold text-ink-soft ml-1">Mật khẩu mới</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="********"
+                      placeholder="••••••••"
                       autoComplete="new-password"
-                      className="bg-background/50 h-10"
+                      className="h-11 px-4 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-tiny ml-2" />
                 </FormItem>
               )}
             />
@@ -148,30 +153,34 @@ function ResetPasswordContent() {
               control={form.control}
               name="confirmPassword"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm new password</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-tiny font-semibold text-ink-soft ml-1">Xác nhận mật khẩu mới</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="********"
+                      placeholder="••••••••"
                       autoComplete="new-password"
-                      className="bg-background/50 h-10"
+                      className="h-11 px-4 rounded-full bg-surface-2/40 border-line text-small text-ink placeholder:text-ink-faint focus:border-brand focus:ring-brand/20 transition-all"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-tiny ml-2" />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full h-10 mt-2" disabled={isSubmitting || !requestId}>
+            <Button
+              type="submit"
+              className="w-full h-11 text-small font-semibold rounded-full bg-brand text-white hover:bg-brand-hover shadow-xs hover:shadow-brand-glow transition-all cursor-pointer mt-2"
+              disabled={isSubmitting || !requestId}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  Đang cập nhật...
                 </>
               ) : (
-                "Confirm password"
+                "Xác nhận đổi mật khẩu"
               )}
             </Button>
           </form>

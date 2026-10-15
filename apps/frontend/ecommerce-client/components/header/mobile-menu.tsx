@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Heart, Package, LogOut, ShoppingCart, ChevronDown, LayoutGrid } from "lucide-react"
+import { Heart, Package, LogOut, ShoppingCart, ChevronDown, LayoutGrid, ArrowLeftRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useTopPopularCategories } from "@/hooks/use-categories"
@@ -15,6 +15,7 @@ interface MobileMenuProps {
     logout: () => void
     cartCount?: number
     wishlistCount?: number
+    compareCount?: number
 }
 
 export function MobileMenu({
@@ -23,7 +24,8 @@ export function MobileMenu({
     isAuthenticated,
     logout,
     cartCount = 0,
-    wishlistCount = 0
+    wishlistCount = 0,
+    compareCount = 0
 }: MobileMenuProps) {
     const [isCategoryOpen, setIsCategoryOpen] = useState(false)
     const { data: categories, isLoading } = useTopPopularCategories()
@@ -38,30 +40,43 @@ export function MobileMenu({
             className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border animate-in slide-in-from-top-2 duration-200"
         >
             <nav className="container mx-auto px-4 py-4 flex flex-col space-y-1">
-                {/* Quick Access Badges - Cart & Wishlist */}
-                <div className="flex gap-2 pb-3 mb-1 border-b border-border">
+                {/* Quick Access Badges - Cart, Wishlist, Compare */}
+                <div className="grid grid-cols-3 gap-2 pb-3 mb-1 border-b border-border">
                     <Link href="/cart" className="flex-1" onClick={closeMenu}>
-                        <Button variant="outline" className="w-full justify-between rounded-xl h-11" size="sm">
-                            <span className="flex items-center gap-2 font-medium">
-                                <ShoppingCart className="h-4 w-4" />
-                                Giỏ hàng
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                            <span className="flex items-center gap-1.5 font-medium text-xs">
+                                <ShoppingCart className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Giỏ hàng</span>
                             </span>
                             {cartCount > 0 && (
-                                <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-5 flex items-center justify-center px-1 rounded-full">
+                                <Badge className="bg-primary text-primary-foreground text-[10px] h-4.5 min-w-4.5 flex items-center justify-center p-0 rounded-full">
                                     {cartCount > 99 ? "99+" : cartCount}
                                 </Badge>
                             )}
                         </Button>
                     </Link>
                     <Link href="/wishlist" className="flex-1" onClick={closeMenu}>
-                        <Button variant="outline" className="w-full justify-between rounded-xl h-11" size="sm">
-                            <span className="flex items-center gap-2 font-medium">
-                                <Heart className="h-4 w-4" />
-                                Yêu thích
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                            <span className="flex items-center gap-1.5 font-medium text-xs">
+                                <Heart className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Yêu thích</span>
                             </span>
                             {wishlistCount > 0 && (
-                                <Badge className="bg-primary text-primary-foreground text-xs h-5 min-w-5 flex items-center justify-center px-1 rounded-full">
+                                <Badge className="bg-primary text-primary-foreground text-[10px] h-4.5 min-w-4.5 flex items-center justify-center p-0 rounded-full">
                                     {wishlistCount > 99 ? "99+" : wishlistCount}
+                                </Badge>
+                            )}
+                        </Button>
+                    </Link>
+                    <Link href="/compare" className="flex-1" onClick={closeMenu}>
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                            <span className="flex items-center gap-1.5 font-medium text-xs">
+                                <ArrowLeftRight className="h-4 w-4 shrink-0" />
+                                <span className="truncate">So sánh</span>
+                            </span>
+                            {compareCount > 0 && (
+                                <Badge className="bg-ink text-background text-[10px] h-4.5 min-w-4.5 flex items-center justify-center p-0 rounded-full">
+                                    {compareCount}
                                 </Badge>
                             )}
                         </Button>

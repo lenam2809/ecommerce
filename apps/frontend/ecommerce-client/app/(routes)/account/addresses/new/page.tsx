@@ -15,9 +15,9 @@ export default function NewAddressPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container-app py-6 md:py-10">
             <div className="mb-6">
-                <Button asChild variant="ghost">
+                <Button asChild variant="ghost" className="rounded-full text-ink-soft hover:text-brand">
                     <Link href="/account/addresses" className="flex items-center gap-2">
                         <ArrowLeft className="h-4 w-4" />
                         Quay lại danh sách địa chỉ
@@ -25,7 +25,10 @@ export default function NewAddressPage() {
                 </Button>
             </div>
 
-            <h1 className="text-2xl font-bold mb-6">Thêm địa chỉ mới</h1>
+            <div className="section-heading">
+                <p className="section-label">Địa chỉ</p>
+                <h1 className="section-title">Thêm địa chỉ mới</h1>
+            </div>
 
             <AddressForm
                 onSubmit={handleSubmit}

@@ -5,13 +5,16 @@ using Ecommerce.Application.Features.AuditLogs.Queries.GetLogEntryById;
 using Ecommerce.Domain.Enums;
 using Ecommerce.WebAPI.Extensions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize] // Yêu cầu người dùng phải đăng nhập
+    // 🔒 SECURITY (H1): chỉ Admin được truy cập log — trước đây [Authorize] bị comment khiến
+    // anonymous có thể đọc toàn bộ system log (ApplicationUserId == null khớp với user chưa đăng nhập).
+    [Authorize(Roles = EUserRoles.Admin)]
     public class LogsController : ControllerBase
     {
         private readonly IMediator _mediator;

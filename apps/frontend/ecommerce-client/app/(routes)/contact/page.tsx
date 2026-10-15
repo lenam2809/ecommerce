@@ -56,10 +56,10 @@ export default function ContactPage() {
     // Hiển thị trạng thái đang tải
     if (isLoading) {
         return (
-            <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[50vh]">
+            <div className="container-app py-12 flex justify-center items-center min-h-[50vh]">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Đang tải thông tin liên hệ...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
+                    <p className="text-ink-soft">Đang tải thông tin liên hệ...</p>
                 </div>
             </div>
         )
@@ -68,10 +68,10 @@ export default function ContactPage() {
     // Hiển thị trạng thái lỗi
     if (error) {
         return (
-            <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[50vh]">
+            <div className="container-app py-12 flex justify-center items-center min-h-[50vh]">
                 <div className="text-center">
-                    <p className="text-red-500 mb-4">{error}</p>
-                    <Button onClick={() => window.location.reload()}>Thử Lại</Button>
+                    <p className="text-destructive mb-4">{error}</p>
+                    <Button onClick={() => window.location.reload()} className="rounded-full bg-brand text-white hover:bg-brand-hover h-11 px-6 text-small font-semibold">Thử Lại</Button>
                 </div>
             </div>
         )
@@ -79,20 +79,21 @@ export default function ContactPage() {
 
     // Hiển thị trang liên hệ với dữ liệu đã tải
     return (
-        <div className="container mx-auto px-4 py-12">
+        <div className="container-app py-10 md:py-16">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mb-12">
-                <Link href="/" className="hover:text-foreground transition-colors">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-tiny text-ink-faint mb-12">
+                <Link href="/" className="hover:text-brand transition-colors">
                     Trang Chủ
                 </Link>
-                <ChevronRight className="h-4 w-4" />
-                <span className="font-medium text-foreground">Liên Hệ</span>
-            </div>
+                <ChevronRight className="h-3 w-3" />
+                <span className="font-medium text-ink-soft">Liên Hệ</span>
+            </nav>
 
             {/* Hero Section */}
             <div className="text-center mb-16">
-                <h1 className="text-5xl tech-heading mb-6 tracking-tight">Liên Hệ Với Chúng Tôi</h1>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                <p className="section-label mb-3">Liên hệ</p>
+                <h1 className="text-display font-semibold tracking-tight text-ink mb-6">Liên Hệ Với Chúng Tôi</h1>
+                <p className="text-body text-ink-soft max-w-2xl mx-auto leading-relaxed">
                     Bạn có câu hỏi về sản phẩm hoặc dịch vụ của chúng tôi? Chúng tôi luôn sẵn sàng hỗ trợ và rất mong được nghe từ
                     bạn.
                 </p>
@@ -100,48 +101,49 @@ export default function ContactPage() {
 
             {/* Contact Information Cards */}
             {contactInfo && (
-                <div className="grid gap-8 md:grid-cols-3 mb-16">
-                    <div className="glass-card p-8 rounded-3xl text-center hover:bg-secondary/20 transition-colors group">
-                        <div className="bg-primary/10 p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <Phone className="h-8 w-8 text-primary" />
+                <div className="grid gap-4 md:gap-6 md:grid-cols-3 mb-16">
+                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
+                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
+                            <Phone className="h-8 w-8 text-brand" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Điện Thoại</h3>
-                        <p className="text-muted-foreground mb-4 text-sm">{contactInfo.phone.hoursOrDescription}</p>
-                        <a href={`tel:${contactInfo.phone.numberOrAddress.replace(/\s+/g, "")}`} className="text-xl font-semibold text-primary hover:underline">
+                        <h3 className="text-h3 font-semibold text-ink mb-2">Điện Thoại</h3>
+                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.phone.hoursOrDescription}</p>
+                        <a href={`tel:${contactInfo.phone.numberOrAddress.replace(/\s+/g, "")}`} className="text-h3 font-semibold text-brand hover:underline">
                             {contactInfo.phone.numberOrAddress}
                         </a>
                     </div>
 
-                    <div className="glass-card p-8 rounded-3xl text-center hover:bg-secondary/20 transition-colors group">
-                        <div className="bg-primary/10 p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <Mail className="h-8 w-8 text-primary" />
+                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
+                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
+                            <Mail className="h-8 w-8 text-brand" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Email</h3>
-                        <p className="text-muted-foreground mb-4 text-sm">{contactInfo.email.hoursOrDescription}</p>
-                        <a href={`mailto:${contactInfo.email.numberOrAddress}`} className="text-xl font-semibold text-primary hover:underline">
+                        <h3 className="text-h3 font-semibold text-ink mb-2">Email</h3>
+                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.email.hoursOrDescription}</p>
+                        <a href={`mailto:${contactInfo.email.numberOrAddress}`} className="text-h3 font-semibold text-brand hover:underline break-all">
                             {contactInfo.email.numberOrAddress}
                         </a>
                     </div>
 
-                    <div className="glass-card p-8 rounded-3xl text-center hover:bg-secondary/20 transition-colors group">
-                        <div className="bg-primary/10 p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <MapPin className="h-8 w-8 text-primary" />
+                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
+                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
+                            <MapPin className="h-8 w-8 text-brand" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Văn Phòng</h3>
-                        <p className="text-muted-foreground mb-4 text-sm">{contactInfo.office.hoursOrDescription}</p>
-                        <address className="not-italic text-lg font-medium whitespace-pre-line">{contactInfo.office.numberOrAddress}</address>
+                        <h3 className="text-h3 font-semibold text-ink mb-2">Văn Phòng</h3>
+                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.office.hoursOrDescription}</p>
+                        <address className="not-italic text-body font-medium text-ink whitespace-pre-line">{contactInfo.office.numberOrAddress}</address>
                     </div>
                 </div>
             )}
 
             {/* Contact Form and Map */}
-            <div className="grid gap-12 lg:grid-cols-2 mb-16">
-                <div className="glass-card p-8 rounded-3xl">
-                    <h2 className="text-3xl tech-heading mb-8">Gửi Tin Nhắn Cho Chúng Tôi</h2>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-10 lg:grid-cols-2 mb-16">
+                <div className="bg-card border border-line rounded-3xl p-6 md:p-8">
+                    <p className="section-label mb-1">Nhắn tin</p>
+                    <h2 className="text-h1 font-semibold tracking-tight text-ink mb-8">Gửi Tin Nhắn Cho Chúng Tôi</h2>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid gap-5 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="name" className="tech-label">Họ Tên</Label>
+                                <Label htmlFor="name" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Họ Tên</Label>
                                 <Input
                                     id="name"
                                     name="name"
@@ -149,11 +151,11 @@ export default function ContactPage() {
                                     onChange={handleChange}
                                     placeholder="Nguyễn Văn A"
                                     required
-                                    className="h-12 bg-secondary/30 border-transparent focus:border-primary/50"
+                                    className="h-12 bg-surface border-line focus:border-brand/60"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email" className="tech-label">Email</Label>
+                                <Label htmlFor="email" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Email</Label>
                                 <Input
                                     id="email"
                                     name="email"
@@ -162,12 +164,12 @@ export default function ContactPage() {
                                     onChange={handleChange}
                                     placeholder="nguyenvana@example.com"
                                     required
-                                    className="h-12 bg-secondary/30 border-transparent focus:border-primary/50"
+                                    className="h-12 bg-surface border-line focus:border-brand/60"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="subject" className="tech-label">Tiêu Đề</Label>
+                            <Label htmlFor="subject" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Tiêu Đề</Label>
                             <Input
                                 id="subject"
                                 name="subject"
@@ -175,11 +177,11 @@ export default function ContactPage() {
                                 onChange={handleChange}
                                 placeholder="Chúng tôi có thể giúp gì cho bạn?"
                                 required
-                                className="h-12 bg-secondary/30 border-transparent focus:border-primary/50"
+                                className="h-12 bg-surface border-line focus:border-brand/60"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="message" className="tech-label">Nội Dung</Label>
+                            <Label htmlFor="message" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Nội Dung</Label>
                             <Textarea
                                 id="message"
                                 name="message"
@@ -188,16 +190,16 @@ export default function ContactPage() {
                                 placeholder="Nội dung tin nhắn của bạn..."
                                 rows={6}
                                 required
-                                className="resize-none bg-secondary/30 border-transparent focus:border-primary/50"
+                                className="resize-none bg-surface border-line focus:border-brand/60"
                             />
                         </div>
-                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-full btn-glow rounded-xl h-12 text-base">
+                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-full rounded-full bg-brand text-white hover:bg-brand-hover h-12 text-small font-semibold">
                             {isSubmitting ? "Đang Gửi..." : "Gửi Tin Nhắn"}
                         </Button>
                     </form>
                 </div>
                 <div className="h-full min-h-[400px]">
-                    <div className="h-full rounded-3xl overflow-hidden glass-card border-0 shadow-lg relative">
+                    <div className="h-full rounded-3xl overflow-hidden border border-line relative bg-surface">
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1862.4285288592966!2d105.79340843922351!3d20.998366263847014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acba7ddb0f43%3A0xe7d7c05f85f830a!2zNDggUC4gVOG7kSBI4buvdSwgVHJ1bmcgVsSDbiwgTmFtIFThu6sgTGnDqm0sIEjDoCBO4buZaSAxMDAwMCwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1743667684381!5m2!1svi!2s"
                             width="100%"
@@ -217,11 +219,12 @@ export default function ContactPage() {
             {/* Social Media */}
             {contactInfo && (
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl tech-heading mb-6">Kết Nối Với Chúng Tôi</h2>
-                    <p className="text-muted-foreground mb-10 max-w-2xl mx-auto">
+                    <p className="section-label mb-2">Mạng xã hội</p>
+                    <h2 className="section-title mb-6">Kết Nối Với Chúng Tôi</h2>
+                    <p className="text-ink-soft mb-10 max-w-2xl mx-auto">
                         Theo dõi chúng tôi trên mạng xã hội để cập nhật các sản phẩm mới nhất, khuyến mãi và tin tức.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-8">
+                    <div className="flex flex-wrap justify-center gap-5">
                         {contactInfo.social.map((platform, index) => {
                             let Icon = Facebook
                             if (platform.name === "Twitter") Icon = Twitter
@@ -233,7 +236,7 @@ export default function ContactPage() {
                                 <div key={index} className="relative group">
                                     <a
                                         href={platform.url}
-                                        className={`flex items-center justify-center p-4 rounded-full bg-background shadow-lg transition-all duration-300 transform hover:scale-110 hover:shadow-xl ring-1 ring-black/5 dark:ring-white/10`}
+                                        className={`flex items-center justify-center h-14 w-14 rounded-full bg-card border border-line shadow-sm transition-all duration-300 transform hover:scale-110`}
                                         style={{
                                             color: platform.name === "Instagram" ? "#E1306C"
                                                 : platform.name === "Twitter" ? "#1DA1F2" :
@@ -245,12 +248,7 @@ export default function ContactPage() {
                                         rel="noopener noreferrer"
                                         aria-label={platform.name}
                                     >
-                                        <Icon
-                                            className="h-8 w-8 transition-all duration-300"
-                                            style={{
-                                                filter: platform.name === "Instagram" ? "drop-shadow(0 0 3px rgba(0, 0, 0, 0.2))" : "none",
-                                            }}
-                                        />
+                                        <Icon className="h-6 w-6" />
                                     </a>
                                 </div>
                             )
@@ -261,13 +259,16 @@ export default function ContactPage() {
 
             {/* FAQ Section */}
             {contactInfo && (
-                <div className="glass-card p-12 rounded-3xl bg-secondary/5">
-                    <h2 className="text-3xl tech-heading mb-8 text-center">Câu Hỏi Thường Gặp</h2>
-                    <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+                <div className="bg-surface border border-line rounded-3xl p-10 md:p-14">
+                    <div className="section-heading !mb-10 text-center">
+                        <p className="section-label">Hỗ trợ</p>
+                        <h2 className="section-title">Câu Hỏi Thường Gặp</h2>
+                    </div>
+                    <div className="grid gap-4 md:gap-6 md:grid-cols-2 max-w-5xl mx-auto">
                         {contactInfo.faqs.map((faq, index) => (
-                            <div key={index} className="space-y-3 p-6 rounded-2xl bg-background/50 border border-white/5 hover:bg-background transition-colors">
-                                <h3 className="font-bold text-lg text-primary">{faq.question}</h3>
-                                <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                            <div key={index} className="space-y-2 p-6 rounded-2xl bg-card border border-line hover:border-ink/30 transition-colors">
+                                <h3 className="font-semibold text-h3 text-ink">{faq.question}</h3>
+                                <p className="text-ink-soft leading-relaxed">{faq.answer}</p>
                             </div>
                         ))}
                     </div>
@@ -276,4 +277,3 @@ export default function ContactPage() {
         </div>
     )
 }
-

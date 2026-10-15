@@ -145,7 +145,24 @@ internal sealed class VnPayLibrary
     {
         var responseData = GetResponseData();
         var checksum = HmacSha512(secretKey, responseData);
-        return checksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
+
+        // 🔒 SECURITY (M6): so sánh constant-time (FixedTimeEquals) thay cho String.Equals —
+        // tránh timing side-channel trên endpoint callback VNPay mở công khai (vnpay/ipn, vnpay/return).
+        if (string.IsNullOrEmpty(inputHash) || inputHash.Length != checksum.Length)
+        {
+            return false;
+        }
+
+        try
+        {
+            return CryptographicOperations.FixedTimeEquals(
+                Convert.FromHexString(checksum),
+                Convert.FromHexString(inputHash));
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private string GetResponseData()

@@ -30,7 +30,7 @@ const CartItems = ({
     return (
         <div>
             <CartItemsHeader />
-            <div className="divide-y">
+            <div className="divide-y divide-line">
                 {items.map((item) => (
                     <CartItem
                         key={item.productId}

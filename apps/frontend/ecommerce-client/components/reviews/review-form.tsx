@@ -26,13 +26,13 @@ export function ReviewForm({ onSubmit, isAuthenticated, onLoginRequest }: Review
 
     if (!isAuthenticated) {
         return (
-            <div className="mb-10 p-8 glass-card-subtle rounded-2xl border border-dashed border-border flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Star className="h-6 w-6 text-primary" />
+            <div className="mb-10 p-8 bg-card border border-dashed border-line rounded-2xl flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-full bg-brand-soft flex items-center justify-center mb-4">
+                    <Star className="h-6 w-6 text-brand" />
                 </div>
-                <h3 className="text-lg font-bold mb-2">Bạn đã sử dụng sản phẩm này?</h3>
-                <p className="text-muted-foreground mb-6 max-w-md">Hãy chia sẻ trải nghiệm của bạn để giúp những người khác đưa ra quyết định mua hàng tốt hơn.</p>
-                <Button onClick={onLoginRequest} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shadow-lg shadow-primary/20">
+                <h3 className="text-h3 font-semibold text-ink mb-2">Bạn đã sử dụng sản phẩm này?</h3>
+                <p className="text-ink-soft mb-6 max-w-md">Hãy chia sẻ trải nghiệm của bạn để giúp những người khác đưa ra quyết định mua hàng tốt hơn.</p>
+                <Button onClick={onLoginRequest} className="bg-brand text-white hover:bg-brand-hover rounded-full px-8 h-11 text-small font-semibold">
                     Đăng nhập để đánh giá
                 </Button>
             </div>
@@ -40,14 +40,14 @@ export function ReviewForm({ onSubmit, isAuthenticated, onLoginRequest }: Review
     }
 
     return (
-        <form onSubmit={handleSubmit} className="mb-10 p-6 md:p-8 glass-card rounded-2xl border border-white/10">
-            <h3 className="tech-heading text-lg font-bold mb-6 flex items-center gap-2">
-                <span className="w-1 h-6 bg-primary rounded-full"></span>
+        <form onSubmit={handleSubmit} className="mb-10 p-6 md:p-8 bg-card border border-line rounded-2xl">
+            <h3 className="text-h3 font-semibold text-ink mb-6 flex items-center gap-2">
+                <span className="w-1 h-6 bg-brand rounded-full"></span>
                 Gửi đánh giá của bạn
             </h3>
 
             <div className="mb-6">
-                <label className="block mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">Mức độ hài lòng</label>
+                <label className="block mb-3 text-small font-medium text-ink-faint uppercase tracking-wider">Mức độ hài lòng</label>
                 <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -68,7 +68,7 @@ export function ReviewForm({ onSubmit, isAuthenticated, onLoginRequest }: Review
             </div>
 
             <div className="mb-6">
-                <label htmlFor="review-text" className="block mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                <label htmlFor="review-text" className="block mb-3 text-small font-medium text-ink-faint uppercase tracking-wider">
                     Nội dung đánh giá
                 </label>
                 <Textarea
@@ -77,13 +77,13 @@ export function ReviewForm({ onSubmit, isAuthenticated, onLoginRequest }: Review
                     rows={4}
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    className="w-full bg-secondary/30 border-white/10 focus:border-primary/50 focus:ring-primary/20 resize-none min-h-[120px] rounded-xl text-base"
+                    className="w-full bg-surface border-line focus:border-brand/50 focus:ring-brand/20 resize-none min-h-[120px] rounded-xl text-base"
                 />
             </div>
 
             <Button
                 type="submit"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 h-12 rounded-xl px-8 font-medium glow-on-hover transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none"
+                className="bg-brand text-white hover:bg-brand-hover h-12 rounded-full px-8 text-small font-semibold transition-colors disabled:opacity-50"
                 disabled={!selectedRating || !reviewText.trim()}
             >
                 Gửi đánh giá

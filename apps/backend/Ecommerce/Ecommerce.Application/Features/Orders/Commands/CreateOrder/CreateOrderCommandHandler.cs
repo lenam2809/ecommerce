@@ -38,9 +38,19 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         {
             try
             {
+                // 🔒 SECURITY (H4): defense-in-depth — kể cả khi controller sót, handler
+                // vẫn LUÔN ghi đè bằng danh tính đã xác thực, không dùng giá trị client gửi.
+                if (_currentUserService.UserId.HasValue)
+                {
+                    request.ApplicationUserId = _currentUserService.UserId.Value;
+                }
+                // Guest: UserId = null → giữ ApplicationUserId = null → đi nhánh guest order
+                // (guestId sẽ được lấy từ signed cookie server-side — sẽ vá ở H6).
+
                 for (var attempt = 1; attempt <= 3; attempt++)
                 {
                     var decrementedStockItems = new List<OrderStockItem>();
+                    string? redeemedPromoCode = null;
 
                     try
                     {
@@ -118,6 +128,8 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             {
                                 return promoRedeemResult;
                             }
+
+                            redeemedPromoCode = promoRedeemContext.PromoCode.Code;
                         }
 
                         order.FinalizeCreation(customerNameForEvent);
@@ -139,6 +151,11 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     }
                     catch (DbUpdateConcurrencyException ex) when (attempt < 3)
                     {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         foreach (var entry in ex.Entries)
                         {
                             await entry.ReloadAsync(cancellationToken);
@@ -148,19 +165,42 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     }
                     catch (DbUpdateConcurrencyException)
                     {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                         return Result<Guid>.BadRequest("Out of stock");
                     }
                     catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex) && attempt < 3)
                     {
                         await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                     }
                     catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
                     {
                         await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
                         _unitOfWork.ClearTracking();
                         return Result<Guid>.Conflict("Mã đơn hàng đã tồn tại, vui lòng thử lại.");
+                    }
+                    catch (Exception)
+                    {
+                        await RestoreDecrementedStockAsync(decrementedStockItems, cancellationToken);
+                        if (redeemedPromoCode != null)
+                        {
+                            await RevertPromoCodeRedemptionAsync(redeemedPromoCode, cancellationToken);
+                        }
+                        _unitOfWork.ClearTracking();
+                        throw;
                     }
                 }
 
@@ -214,7 +254,9 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 null,
                 request.DeliveryInstructions,
                 request.ExpectedDeliveryDate,
-                string.IsNullOrWhiteSpace(request.GuestId) ? _currentUserService.GuestId : request.GuestId.Trim(),
+                // 🔒 SECURITY (H6): KHÔNG dùng GuestId từ body nữa — lấy từ cookie guest_id
+                // do server cấp (qua _currentUserService.GuestId)
+                _currentUserService.GuestId,
                 guestOrderCode);
 
             return CreateOrderContext.WithOrder(guestOrder, guestName);
@@ -343,6 +385,23 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     stockItem.ProductId,
                     stockItem.Quantity,
                     cancellationToken);
+            }
+        }
+
+        private async Task RevertPromoCodeRedemptionAsync(string promoCode, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _unitOfWork.BaseRepository<PromoCode>().ExecuteCommandAsync(
+                    "UPDATE \"PromoCodes\" " +
+                    "SET \"TimesUsed\" = CASE WHEN \"TimesUsed\" > 0 THEN \"TimesUsed\" - 1 ELSE 0 END " +
+                    "WHERE \"Code\" = {0}",
+                    [promoCode],
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogExceptionAsync(ex, $"Khong the hoan lai ma giam gia: {promoCode}");
             }
         }
 

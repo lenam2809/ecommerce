@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using System.Security.Claims;
 
 namespace Ecommerce.WebAPI.Middleware
@@ -16,8 +16,11 @@ namespace Ecommerce.WebAPI.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // Chỉ kiểm tra cho các request đã authenticate
-            if (context.User.Identity.IsAuthenticated)
+            // Chỉ kiểm tra cho các request đã authenticate.
+            // LUÔN cho phép logout chạy qua — chủ tài khoản bị khóa vẫn phải đăng xuất/revoke
+            // session được (tránh kẹt cookie phía client).
+            var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
+            if (context.User.Identity.IsAuthenticated && !path.EndsWith("/auth/logout", StringComparison.OrdinalIgnoreCase))
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {

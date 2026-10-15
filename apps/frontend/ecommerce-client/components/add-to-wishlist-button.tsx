@@ -72,8 +72,8 @@ export default function AddToWishlistButton({
             className={cn(
                 "h-8 w-8 rounded-full transition-all duration-300 shadow-sm",
                 inWishlist
-                    ? "text-red-500 hover:text-red-600"
-                    : "text-gray-600 dark:text-gray-300 hover:bg-pink-500 hover:text-white dark:hover:bg-pink-600",
+                    ? "text-brand hover:text-brand-hover"
+                    : "text-ink-soft hover:bg-brand hover:text-white",
                 isAnimating && "scale-110",
                 className,
             )}

@@ -59,7 +59,11 @@ export default function AddToComparison({ product }: AddToComparisonProps) {
         <Button
             variant={isInComparison ? "default" : "outline"}
             size="icon"
-            className={isInComparison ? "bg-[#2A5CAA] text-white" : "text-[#2A5CAA] border-[#2A5CAA]"}
+            className={
+                isInComparison
+                    ? "bg-brand text-white hover:bg-brand-hover"
+                    : "text-brand border-brand/40 hover:bg-brand-soft"
+            }
             onClick={toggleComparison}
             title={isInComparison ? "Xóa khỏi so sánh" : "Thêm vào so sánh"}
         >

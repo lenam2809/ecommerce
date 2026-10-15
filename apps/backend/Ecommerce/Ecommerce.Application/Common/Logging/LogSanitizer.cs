@@ -30,6 +30,17 @@ namespace Ecommerce.Application.Common.Logging
             @"\b(?:\d[ -]*?){13,19}\b",
             RegexOptions.Compiled);
 
+        // 🔒 SECURITY (M5): query param dạng ?token= / &code= / api_key= ... mà các regex
+        // cũ (chỉ bắt Bearer/JWT/password) bỏ sót — group 1 giữ lại prefix (tên param + dấu =)
+        private static readonly Regex QueryParamSecretRegex = new(
+            @"(?i)((?:^|[\?&\s])(?:access[_-]?token|refresh[_-]?token|token|code|api[_-]?key|secret|key)\s*=\s*)[^&\s""']+",
+            RegexOptions.Compiled);
+
+        // 🔒 SECURITY (M5): refresh token dạng base64/hex ngẫu nhiên (không bắt đầu bằng eyJ)
+        private static readonly Regex RawTokenValueRegex = new(
+            @"(?i)(refresh[_-]?token\s*[:=]\s*)[A-Za-z0-9+/=_-]{16,}",
+            RegexOptions.Compiled);
+
         public string Sanitize(string? input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -41,6 +52,8 @@ namespace Ecommerce.Application.Common.Logging
             sanitized = BearerTokenRegex.Replace(sanitized, "Bearer [REDACTED_TOKEN]");
             sanitized = JwtRegex.Replace(sanitized, "[REDACTED_JWT]");
             sanitized = PasswordRegex.Replace(sanitized, "$1$2[REDACTED_PASSWORD]$4");
+            sanitized = QueryParamSecretRegex.Replace(sanitized, "$1[REDACTED_PARAM]");
+            sanitized = RawTokenValueRegex.Replace(sanitized, "$1[REDACTED_TOKEN]");
             sanitized = EmailRegex.Replace(sanitized, "[REDACTED_EMAIL]");
             sanitized = VietnamPhoneRegex.Replace(sanitized, "[REDACTED_PHONE]");
             sanitized = CreditCardRegex.Replace(

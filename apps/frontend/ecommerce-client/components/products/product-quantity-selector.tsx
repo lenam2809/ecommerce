@@ -10,6 +10,9 @@ interface ProductQuantitySelectorProps {
     onQuantityChange: (value: number) => void
 }
 
+/**
+ * ProductQuantitySelector — stepper bo tròn, touch-friendly
+ */
 export function ProductQuantitySelector({
     isLoading,
     quantity,
@@ -20,13 +23,9 @@ export function ProductQuantitySelector({
 }: ProductQuantitySelectorProps) {
     if (isLoading) {
         return (
-            <div className="mb-6">
-                <Skeleton className="h-8 w-40 mb-2" />
-                <div className="flex items-center">
-                    <Skeleton className="h-10 w-32" />
-                    <Skeleton className="h-10 w-16 mx-2" />
-                    <Skeleton className="h-10 w-32" />
-                </div>
+            <div className="space-y-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-11 w-40 rounded-full" />
             </div>
         )
     }
@@ -39,13 +38,14 @@ export function ProductQuantitySelector({
     }
 
     return (
-        <div className="mb-6">
-            <h3 className="font-medium mb-2">Số lượng</h3>
-            <div className="flex items-center">
+        <div className="flex items-center gap-4">
+            <span className="text-small font-medium text-ink">Số lượng</span>
+            <div className="flex items-center border border-line rounded-full h-11">
                 <button
-                    className="w-10 h-10 rounded-l border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                    className="w-11 h-full grid place-items-center text-ink-soft hover:text-ink disabled:opacity-40 focus-ring rounded-l-full"
                     onClick={onDecrement}
                     disabled={quantity <= 1}
+                    aria-label="Giảm số lượng"
                 >
                     <Minus className="h-4 w-4" />
                 </button>
@@ -55,17 +55,21 @@ export function ProductQuantitySelector({
                     max={stock}
                     value={quantity}
                     onChange={handleChange}
-                    className="w-16 h-10 border-t border-b border-gray-300 text-center [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
+                    aria-label="Số lượng"
+                    className="w-14 h-10 text-center bg-transparent text-small font-semibold text-ink outline-none [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
                 />
                 <button
-                    className="w-10 h-10 rounded-r border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                    className="w-11 h-full grid place-items-center text-ink-soft hover:text-ink disabled:opacity-40 focus-ring rounded-r-full"
                     onClick={onIncrement}
                     disabled={!!stock && quantity >= stock}
+                    aria-label="Tăng số lượng"
                 >
                     <Plus className="h-4 w-4" />
                 </button>
-                <span className="ml-4 text-sm text-gray-500">Còn {stock} sản phẩm</span>
             </div>
+            {stock !== undefined && (
+                <span className="text-tiny text-ink-faint">{stock} sản phẩm có sẵn</span>
+            )}
         </div>
     )
 }

@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import ProductReviews from "@/components/product-reviews"
 import { SpecGrid } from "./spec-card"
+import { FileText, Sliders, MessageSquare } from "lucide-react"
 
 interface ProductTabsProps {
     isLoading: boolean
@@ -12,6 +13,10 @@ interface ProductTabsProps {
     reviewCount?: number
 }
 
+/**
+ * ProductTabs — Editorial Tech Minimalism
+ * Tabs with underline active state, icon indicators, and clean spacing
+ */
 export function ProductTabs({
     isLoading,
     productId,
@@ -21,59 +26,54 @@ export function ProductTabs({
 }: ProductTabsProps) {
     if (isLoading) {
         return (
-            <div className="mt-16 space-y-4">
-                <Skeleton className="h-14 w-full rounded-2xl" />
-                <Skeleton className="h-96 w-full rounded-3xl" />
+            <div className="space-y-4">
+                <Skeleton className="h-12 w-full max-w-md rounded-xl" />
+                <Skeleton className="h-64 w-full rounded-2xl" />
             </div>
         )
     }
 
     return (
-        <div className="mt-16 sm:mt-24">
-            <Tabs defaultValue="description" className="w-full">
-                <div className="flex justify-center mb-8 sm:mb-12">
-                    <TabsList className="bg-secondary/20 border border-border/50 p-1.5 rounded-2xl shadow-sm glass-card overflow-x-auto overflow-y-hidden max-w-full justify-start sm:justify-center">
-                        <TabsTrigger
-                            value="description"
-                            className="px-6 py-3 rounded-xl tech-heading text-sm sm:text-base data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all whitespace-nowrap"
-                        >
-                            Mô tả chi tiết
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="specifications"
-                            className="px-6 py-3 rounded-xl tech-heading text-sm sm:text-base data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all whitespace-nowrap"
-                        >
-                            Thông số kỹ thuật
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="reviews"
-                            className="px-6 py-3 rounded-xl tech-heading text-sm sm:text-base data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all whitespace-nowrap"
-                        >
-                            Đánh giá ({reviewCount})
-                        </TabsTrigger>
-                    </TabsList>
-                </div>
-                
-                <TabsContent value="description" className="animate-in fade-in-50 duration-500">
-                    <div className="glass-card rounded-3xl p-6 sm:p-10 border-border/50 shadow-sm max-w-4xl mx-auto">
-                        <h3 className="tech-heading text-2xl mb-6 flex items-center gap-3">
-                            <span className="h-6 w-1 rounded-full bg-primary/80"></span>
-                            Tính năng nổi bật
-                        </h3>
-                        <div className="prose prose-invert max-w-none prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:text-[15px] sm:prose-p:text-base">
-                            <p>{description}</p>
-                        </div>
-                    </div>
-                </TabsContent>
+        <Tabs defaultValue="specifications" className="w-full">
+            <TabsList className="flex w-full justify-start gap-6 sm:gap-10 overflow-x-auto border-b border-line bg-transparent h-auto p-0 rounded-none scrollbar-hide">
+                <TabsTrigger
+                    value="specifications"
+                    className="shrink-0 pb-3.5 pt-1 rounded-none border-b-2 border-transparent data-[state=active]:border-brand data-[state=active]:text-brand data-[state=active]:shadow-none text-small font-semibold text-ink-soft hover:text-ink transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                    <Sliders className="h-4 w-4" />
+                    <span>Thông số kỹ thuật</span>
+                </TabsTrigger>
 
-                <TabsContent value="specifications" className="animate-in fade-in-50 duration-500 max-w-5xl mx-auto">
-                    <SpecGrid specifications={specifications || []} />
-                </TabsContent>
-                
-                <TabsContent value="reviews" className="animate-in fade-in-50 duration-500">
-                    <ProductReviews productId={productId} />
-                </TabsContent>
-            </Tabs>
-        </div>
+                <TabsTrigger
+                    value="description"
+                    className="shrink-0 pb-3.5 pt-1 rounded-none border-b-2 border-transparent data-[state=active]:border-brand data-[state=active]:text-brand data-[state=active]:shadow-none text-small font-semibold text-ink-soft hover:text-ink transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                    <FileText className="h-4 w-4" />
+                    <span>Mô tả chi tiết</span>
+                </TabsTrigger>
+
+                <TabsTrigger
+                    value="reviews"
+                    className="shrink-0 pb-3.5 pt-1 rounded-none border-b-2 border-transparent data-[state=active]:border-brand data-[state=active]:text-brand data-[state=active]:shadow-none text-small font-semibold text-ink-soft hover:text-ink transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Đánh giá ({reviewCount})</span>
+                </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="specifications" className="pt-8 focus-visible:outline-none">
+                <SpecGrid specifications={specifications || []} />
+            </TabsContent>
+
+            <TabsContent value="description" className="pt-8 max-w-3xl focus-visible:outline-none">
+                <div className="prose prose-zinc dark:prose-invert max-w-none text-body text-ink-soft leading-relaxed space-y-4">
+                    <p>{description || "Sản phẩm công nghệ cao cấp chính hãng được phân phối và bảo hành bởi ShopViet."}</p>
+                </div>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="pt-8 focus-visible:outline-none">
+                <ProductReviews productId={productId} />
+            </TabsContent>
+        </Tabs>
     )
 }

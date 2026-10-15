@@ -49,22 +49,22 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
     if (isLoadingUser) {
         return (
             <div className="flex justify-center items-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-brand" />
             </div>
         )
     }
 
     return (
-        <div className="flex flex-col h-full bg-background rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+        <div className="flex flex-col h-full bg-card">
             {/* Tab header */}
-            <div className="p-6 bg-secondary/20 border-b border-border/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="p-6 bg-surface border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h3 className="text-xl font-bold text-foreground">Hồ sơ của tôi</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Quản lý các thông tin cơ bản về bạn.</p>
+                    <h3 className="text-h3 font-semibold text-ink">Hồ sơ của tôi</h3>
+                    <p className="text-small text-ink-soft mt-1">Quản lý các thông tin cơ bản về bạn.</p>
                 </div>
-                <Button 
-                    variant={isEditing ? "outline" : "default"} 
-                    className="rounded-xl font-medium transition-all duration-300"
+                <Button
+                    variant={isEditing ? "outline" : "default"}
+                    className="rounded-full h-10 px-6 text-small font-medium transition-colors"
                     onClick={() => {
                         if (isEditing) form.reset() // Reset form to default values when cancelling
                         setIsEditing(!isEditing)
@@ -86,8 +86,8 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                 {!isEditing ? (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {/* Summary Block */}
-                        <div className="flex items-center gap-6 pb-8 border-b border-border/50">
-                            <div className="h-24 w-24 rounded-full border border-border/50 overflow-hidden relative shadow-sm">
+                        <div className="flex items-center gap-6 pb-8 border-b border-line">
+                            <div className="h-24 w-24 rounded-full border border-line overflow-hidden relative">
                                 <Image
                                     src={userData.avatar || "/placeholder.svg"}
                                     alt={userData.email}
@@ -96,30 +96,30 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                 />
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-xl font-bold text-foreground">{userData.firstName} {userData.lastName}</h3>
-                                <p className="text-muted-foreground text-sm flex items-center gap-2">
+                                <h3 className="text-h3 font-semibold text-ink">{userData.firstName} {userData.lastName}</h3>
+                                <p className="text-ink-soft text-small flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active Standard Account
                                 </p>
                             </div>
                         </div>
 
                         {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Họ và tên</p>
-                                <p className="text-base text-foreground font-medium bg-secondary/20 px-4 py-2.5 rounded-xl border border-border/50">
+                                <p className="text-small font-medium text-ink-faint mb-1">Họ và tên</p>
+                                <p className="text-body text-ink font-medium bg-surface px-4 py-2.5 rounded-xl border border-line">
                                     {userData.firstName} {userData.lastName}
                                 </p>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Email</p>
-                                <p className="text-base text-foreground font-medium bg-secondary/20 px-4 py-2.5 rounded-xl border border-border/50">
+                                <p className="text-small font-medium text-ink-faint mb-1">Email</p>
+                                <p className="text-body text-ink font-medium bg-surface px-4 py-2.5 rounded-xl border border-line">
                                     {userData.email}
                                 </p>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Số điện thoại</p>
-                                <p className="text-base text-foreground font-medium bg-secondary/20 px-4 py-2.5 rounded-xl border border-border/50">
+                                <p className="text-small font-medium text-ink-faint mb-1">Số điện thoại</p>
+                                <p className="text-body text-ink font-medium bg-surface px-4 py-2.5 rounded-xl border border-line">
                                     {userData.phoneNumber || "Chưa cập nhật"}
                                 </p>
                             </div>
@@ -135,9 +135,9 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                         name="firstName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-muted-foreground">Tên</FormLabel>
+                                                <FormLabel className="text-tiny font-semibold text-ink-soft">Tên</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 rounded-xl border-border bg-background focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-colors" placeholder="Nhập tên" {...field} />
+                                                    <Input className="h-11 rounded-full border-line bg-surface-2/40 px-4 text-small text-ink focus-visible:ring-brand/20 focus-visible:border-brand transition-colors" placeholder="Nhập tên" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -149,9 +149,9 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                         name="lastName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-muted-foreground">Họ</FormLabel>
+                                                <FormLabel className="text-tiny font-semibold text-ink-soft">Họ</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 rounded-xl border-border bg-background focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-colors" placeholder="Nhập họ" {...field} />
+                                                    <Input className="h-11 rounded-full border-line bg-surface-2/40 px-4 text-small text-ink focus-visible:ring-brand/20 focus-visible:border-brand transition-colors" placeholder="Nhập họ" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -159,9 +159,9 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                     />
 
                                     <FormItem>
-                                        <FormLabel className="text-muted-foreground">Email (Không thể thay đổi)</FormLabel>
+                                        <FormLabel className="text-tiny font-semibold text-ink-soft">Email (Cố định)</FormLabel>
                                         <FormControl>
-                                            <Input className="h-12 rounded-xl border-border bg-secondary/40 text-muted-foreground cursor-not-allowed" value={userData.email} disabled />
+                                            <Input className="h-11 rounded-full border-line bg-surface-2/70 px-4 text-small text-ink-faint cursor-not-allowed" value={userData.email} disabled />
                                         </FormControl>
                                     </FormItem>
 
@@ -170,9 +170,9 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                         name="phoneNumber"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-muted-foreground">Số điện thoại</FormLabel>
+                                                <FormLabel className="text-tiny font-semibold text-ink-soft">Số điện thoại</FormLabel>
                                                 <FormControl>
-                                                    <Input className="h-12 rounded-xl border-border bg-background focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-colors" placeholder="Nhập số điện thoại" {...field} />
+                                                    <Input className="h-11 rounded-full border-line bg-surface-2/40 px-4 text-small text-ink focus-visible:ring-brand/20 focus-visible:border-brand transition-colors" placeholder="Nhập số điện thoại" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -191,10 +191,10 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
 
                                             return (
                                                 <FormItem className="col-span-1 md:col-span-2 mt-4">
-                                                    <FormLabel className="text-muted-foreground">Ảnh đại diện</FormLabel>
-                                                    <div className="flex items-center gap-6 p-4 rounded-2xl border border-dashed border-border/60 bg-secondary/10">
+                                                    <FormLabel className="text-ink-soft">Ảnh đại diện</FormLabel>
+                                                    <div className="flex items-center gap-6 p-4 rounded-2xl border border-dashed border-line bg-surface">
                                                         <div className="relative">
-                                                            <div className="h-24 w-24 rounded-full overflow-hidden border border-border/50 shadow-sm">
+                                                            <div className="h-24 w-24 rounded-full overflow-hidden border border-line">
                                                                 <Image
                                                                     src={previewUrl}
                                                                     alt={userData.fullName || "Avatar"}
@@ -226,7 +226,7 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                                                     variant="outline"
                                                                     size="sm"
                                                                     asChild
-                                                                    className="w-fit rounded-xl font-medium"
+                                                                    className="w-fit rounded-full border-line text-ink font-medium"
                                                                 >
                                                                     <label className="cursor-pointer">
                                                                         <input
@@ -247,14 +247,14 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                                                         type="button"
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="w-fit text-destructive hover:text-destructive/80 rounded-xl"
+                                                                        className="w-fit text-destructive hover:text-destructive/80 rounded-full"
                                                                         onClick={() => field.onChange(undefined)}
                                                                     >
                                                                         Xóa
                                                                     </Button>
                                                                 )}
                                                             </div>
-                                                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                                            <p className="text-tiny text-ink-faint flex items-center gap-1.5">
                                                                 <AlertCircle className="h-3 w-3" />
                                                                 Định dạng: JPG, PNG (Tối đa 2MB)
                                                             </p>
@@ -267,10 +267,10 @@ export function ProfileTab({ userData, isLoadingUser, isUpdatingUser, handleSubm
                                     />
                                 </div>
 
-                                <div className="pt-4 border-t border-border/50 flex justify-end">
+                                <div className="pt-4 border-t border-line flex justify-end">
                                     <Button
                                         type="submit"
-                                        className="rounded-xl px-8 h-11 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-300"
+                                        className="rounded-full px-8 h-11 text-small font-semibold bg-brand text-white hover:bg-brand-hover transition-colors"
                                         disabled={isUpdatingUser}
                                     >
                                         {isUpdatingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
