@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Interfaces;
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Brands.Queries.GetOptionProducts;
 using Ecommerce.Application.Features.Products.Commands.CreateProduct;
@@ -198,7 +198,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("export-template")]
-        //[Authorize(Policy = EPermissions.EditProduct)]
+        [Authorize(Policy = EPermissions.CreateProduct)]
         public async Task<IActionResult> ExportTemplate([FromQuery] ExportProductsTemplateCommand command)
         {
             var result = await _mediator.Send(command);

@@ -13,7 +13,6 @@ using System.Linq.Expressions;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
 {
-    [Authorize(Policy = EPermissions.ViewProducts)]
     public class GetPagedProductsQueryHandler : IRequestHandler<GetPagedProductsQuery, Result<PaginatedList<ProductDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

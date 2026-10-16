@@ -9,7 +9,7 @@ namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class UserActivitiesController : ControllerBase
     {
         private readonly IMediator _mediator;

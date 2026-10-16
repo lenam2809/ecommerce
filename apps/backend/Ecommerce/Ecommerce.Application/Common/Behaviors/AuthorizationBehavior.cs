@@ -4,6 +4,7 @@ using Ecommerce.Application.Policies;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace Ecommerce.Application.Common.Behaviors
@@ -11,6 +12,8 @@ namespace Ecommerce.Application.Common.Behaviors
     public class AuthorizationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
             where TRequest : IRequest<TResponse>
     {
+        private static readonly ConcurrentDictionary<Type, IReadOnlyList<AuthorizeAttribute>> _attributeCache = new();
+
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICurrentUserService _currentUserService;
 
@@ -22,7 +25,27 @@ namespace Ecommerce.Application.Common.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            var authorizeAttributes = request.GetType().GetCustomAttributes<AuthorizeAttribute>();
+            var requestType = request.GetType();
+            if (requestType.GetCustomAttributes<AllowAnonymousAttribute>().Any())
+            {
+                return await next();
+            }
+
+            var authorizeAttributes = _attributeCache.GetOrAdd(requestType, type =>
+            {
+                var attributes = new List<AuthorizeAttribute>(type.GetCustomAttributes<AuthorizeAttribute>());
+
+                // Nếu request không khai báo attribute, tìm attribute trên Handler tương ứng
+                var handlerType = type.Assembly.GetTypes()
+                    .FirstOrDefault(t => !t.IsAbstract && !t.IsInterface && typeof(IRequestHandler<TRequest, TResponse>).IsAssignableFrom(t));
+
+                if (handlerType != null && !handlerType.GetCustomAttributes<AllowAnonymousAttribute>().Any())
+                {
+                    attributes.AddRange(handlerType.GetCustomAttributes<AuthorizeAttribute>());
+                }
+
+                return attributes;
+            });
 
             if (authorizeAttributes.Any())
             {

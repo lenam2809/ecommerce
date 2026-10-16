@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
@@ -19,12 +19,12 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueByMonth
         {
             try
             {
-                var year = request.Year ?? DateTime.Now.Year;
+                var year = request.Year ?? DateTime.UtcNow.Year;
                 var monthsCount = request.MonthsCount ?? 12;
 
                 // Tạo danh sách các tháng cần lấy
                 var monthsList = new List<(int Month, int Year)>();
-                var currentDate = new DateTime(year, 12, 1); // Bắt đầu từ tháng 12
+                var currentDate = new DateTime(year, 12, 1, 0, 0, 0, DateTimeKind.Utc); // Bắt đầu từ tháng 12
 
                 for (int i = 0; i < monthsCount; i++)
                 {
@@ -39,27 +39,22 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueByMonth
 
                 foreach (var (month, yearItem) in monthsList)
                 {
-                    var startDate = new DateTime(yearItem, month, 1);
-                    var endDate = startDate.AddMonths(1).AddDays(-1);
+                    var startDate = new DateTime(yearItem, month, 1, 0, 0, 0, DateTimeKind.Utc);
+                    var nextMonthDate = startDate.AddMonths(1);
 
-                    var monthlyRevenue = await _unitOfWork.Orders
-                        .GetAllWithIncludeAsync(
-                            query => query
-                                .Include(o => o.OrderItems)
-                                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate
-                                       && o.Status == Domain.Enums.EOrderStatus.Completed),
-                            cancellationToken)
-                        .ContinueWith(task => task.Result
-                            .SelectMany(o => o.OrderItems)
-                            .Sum(oi => oi.Quantity * oi.UnitPrice),
-                            cancellationToken);
+                    var itemTotals = await _unitOfWork.Orders.GetQueryable()
+                        .Where(o => o.OrderDate >= startDate && o.OrderDate < nextMonthDate
+                               && o.Status == Domain.Enums.EOrderStatus.Completed)
+                        .SelectMany(o => o.OrderItems)
+                        .Select(oi => oi.Quantity * oi.UnitPrice)
+                        .ToListAsync(cancellationToken);
 
-                    var total = monthlyRevenue;
+                    var monthlyRevenue = itemTotals.Sum();
 
                     results.Add(new RevenueByMonthDto
                     {
                         Name = $"Tháng {month}",
-                        Total = total,
+                        Total = monthlyRevenue,
                         Month = month,
                         Year = yearItem
                     });

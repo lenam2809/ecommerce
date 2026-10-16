@@ -97,10 +97,28 @@ namespace Ecommerce.Infrastructure.Services
 
         public Task<bool> DeleteFileAsync(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (string.IsNullOrWhiteSpace(filePath))
                 return Task.FromResult(false);
 
-            var fullPath = Path.Combine(_env.WebRootPath, filePath.TrimStart('/'));
+            var baseRoot = string.IsNullOrWhiteSpace(_env.WebRootPath)
+                ? Path.Combine(_env.ContentRootPath, "wwwroot")
+                : _env.WebRootPath;
+
+            var normalizedRoot = Path.GetFullPath(baseRoot);
+            if (!normalizedRoot.EndsWith(Path.DirectorySeparatorChar.ToString()) &&
+                !normalizedRoot.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+            {
+                normalizedRoot += Path.DirectorySeparatorChar;
+            }
+
+            var cleanRelative = filePath.TrimStart('/', '\\');
+            var fullPath = Path.GetFullPath(Path.Combine(baseRoot, cleanRelative));
+
+            // Chặn path traversal ra ngoài wwwroot
+            if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(false);
+            }
 
             if (File.Exists(fullPath))
             {

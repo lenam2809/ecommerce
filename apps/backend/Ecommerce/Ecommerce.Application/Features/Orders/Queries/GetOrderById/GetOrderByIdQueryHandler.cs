@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Exceptions;
+using Ecommerce.Application.Common.Exceptions;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Orders.Dto;
@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Orders.Queries.GetOrderById
 {
-    [Authorize(Policy = EPermissions.ViewOrders)]
     public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Result<OrderDto>>
     {
         private readonly IUnitOfWork _unitOfWork;

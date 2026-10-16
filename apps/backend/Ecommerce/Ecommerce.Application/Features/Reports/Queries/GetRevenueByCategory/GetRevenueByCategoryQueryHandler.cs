@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
@@ -20,37 +20,32 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueByCategory
             try
             {
                 // Thiết lập thời gian mặc định nếu không có
-                var startDate = request.StartDate ?? DateTime.Now.AddYears(-1);
-                var endDate = request.EndDate ?? DateTime.Now;
+                var startDate = request.StartDate ?? DateTime.UtcNow.AddYears(-1);
+                var endDate = request.EndDate ?? DateTime.UtcNow;
 
-                // Truy vấn doanh thu theo danh mục từ các đơn hàng
-                var categoryRevenues = await _unitOfWork.Orders
-                    .GetAllWithIncludeAsync(
-                        query => query
-                            .Include(o => o.OrderItems)
-                                .ThenInclude(oi => oi.Product)
-                                    .ThenInclude(p => p.Category)
-                            .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate
-                                   && o.Status == Domain.Enums.EOrderStatus.Completed),
-                        cancellationToken)
-                    .ContinueWith(task => task.Result
-                        .SelectMany(o => o.OrderItems)
-                        .GroupBy(oi => new
-                        {
-                            CategoryId = oi.Product.CategoryId,
-                            CategoryName = oi.Product.Category.Name
-                        })
-                        .Select(g => new RevenueByCategoryDto
-                        {
-                            Name = g.Key.CategoryName,
-                            Value = g.Sum(oi => oi.Quantity * oi.UnitPrice)
-                        })
-                        .OrderByDescending(r => r.Value)
-                        .Take(request.TopN ?? 10)
-                        .ToList(),
-                        cancellationToken);
+                // Truy vấn doanh thu theo danh mục với projection tinh gọn, tránh tải toàn bộ entity graph vào RAM
+                var rawItems = await _unitOfWork.Orders.GetQueryable()
+                    .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate
+                           && o.Status == Domain.Enums.EOrderStatus.Completed)
+                    .SelectMany(o => o.OrderItems)
+                    .Where(oi => oi.Product != null && oi.Product.Category != null)
+                    .Select(oi => new
+                    {
+                        CategoryName = oi.Product.Category.Name,
+                        Amount = oi.Quantity * oi.UnitPrice
+                    })
+                    .ToListAsync(cancellationToken);
 
-                var results = categoryRevenues;
+                var results = rawItems
+                    .GroupBy(x => x.CategoryName)
+                    .Select(g => new RevenueByCategoryDto
+                    {
+                        Name = g.Key,
+                        Value = g.Sum(x => x.Amount)
+                    })
+                    .OrderByDescending(r => r.Value)
+                    .Take(request.TopN ?? 10)
+                    .ToList();
 
                 // Tính phần trăm
                 var totalRevenue = results.Sum(r => r.Value);

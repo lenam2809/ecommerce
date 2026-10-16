@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
@@ -19,45 +19,47 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueOverview
         {
             try
             {
-                var endDate = request.EndDate ?? DateTime.Now;
+                var endDate = request.EndDate ?? DateTime.UtcNow;
                 var startDate = request.StartDate ?? endDate.AddMonths(-12);
 
-                var todayStart = DateTime.Today;
-                var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
-                var monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                var now = DateTime.UtcNow;
+                var todayStart = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+                var weekStart = todayStart.AddDays(-(int)todayStart.DayOfWeek);
+                var monthStart = new DateTime(todayStart.Year, todayStart.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
-                var orders = await _unitOfWork.Orders
-                    .GetAllWithIncludeAsync(
-                        query => query
-                            .Where(o => o.OrderDate >= startDate
-                            && o.OrderDate <= endDate
-                            && o.Status == Domain.Enums.EOrderStatus.Completed)
-                            .Include(o => o.OrderItems),
-                        cancellationToken);
+                var orders = await _unitOfWork.Orders.GetQueryable()
+                    .Where(o => o.OrderDate >= startDate
+                           && o.OrderDate <= endDate
+                           && o.Status == Domain.Enums.EOrderStatus.Completed)
+                    .Select(o => new
+                    {
+                        o.OrderDate,
+                        Total = o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice)
+                    })
+                    .ToListAsync(cancellationToken);
 
-                var totalRevenue = orders.Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                var totalRevenue = orders.Sum(o => o.Total);
                 var thisMonthRevenue = orders
                     .Where(o => o.OrderDate >= monthStart)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Sum(o => o.Total);
                 var thisWeekRevenue = orders
                     .Where(o => o.OrderDate >= weekStart)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Sum(o => o.Total);
                 var todayRevenue = orders
                     .Where(o => o.OrderDate >= todayStart)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Sum(o => o.Total);
 
                 var previousMonthStart = monthStart.AddMonths(-1);
-                var previousMonthEnd = monthStart.AddDays(-1);
                 var previousMonthRevenue = orders
-                    .Where(o => o.OrderDate >= previousMonthStart && o.OrderDate <= previousMonthEnd)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Where(o => o.OrderDate >= previousMonthStart && o.OrderDate < monthStart)
+                    .Sum(o => o.Total);
                 var previousWeekStart = weekStart.AddDays(-7);
                 var previousWeekRevenue = orders
                     .Where(o => o.OrderDate >= previousWeekStart && o.OrderDate < weekStart)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Sum(o => o.Total);
                 var previousDayRevenue = orders
                     .Where(o => o.OrderDate >= todayStart.AddDays(-1) && o.OrderDate < todayStart)
-                    .Sum(o => o.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice));
+                    .Sum(o => o.Total);
 
                 var result = new RevenueOverviewDto
                 {

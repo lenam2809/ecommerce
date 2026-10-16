@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetProducts
 {
-    [Authorize(Policy = EPermissions.ViewProducts)]
     public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<List<ProductDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;

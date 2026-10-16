@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Models;
+using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Reports.Dto;
 using Ecommerce.Domain.Interfaces;
 using MediatR;
@@ -20,7 +20,7 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueTrend
             try
             {
                 var weeksCount = request.WeeksCount ?? 12;
-                var endDate = request.EndDate ?? DateTime.Now;
+                var endDate = request.EndDate ?? DateTime.UtcNow;
                 var startDate = request.StartDate ?? endDate.AddDays(-7 * weeksCount);
 
                 var results = new List<RevenueTrendDto>();
@@ -31,23 +31,17 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueTrend
 
                 while (currentWeekStart <= endDate && weekNumber <= weeksCount)
                 {
-                    var weekEnd = currentWeekStart.AddDays(6);
-                    if (weekEnd > endDate)
-                        weekEnd = endDate;
+                    var nextWeekStart = currentWeekStart.AddDays(7);
+                    var effectiveEnd = nextWeekStart <= endDate ? nextWeekStart : endDate;
 
-                    var revenue = await _unitOfWork.Orders
-                        .GetAllWithIncludeAsync(
-                            query => query
-                                .Include(o => o.OrderItems)
-                                .Where(o => o.OrderDate >= currentWeekStart && o.OrderDate <= weekEnd
-                                       && o.Status == Domain.Enums.EOrderStatus.Completed),
-                            cancellationToken)
-                        .ContinueWith(task => task.Result
-                            .SelectMany(o => o.OrderItems)
-                            .Sum(oi => oi.Quantity * oi.UnitPrice),
-                            cancellationToken);
+                    var items = await _unitOfWork.Orders.GetQueryable()
+                        .Where(o => o.OrderDate >= currentWeekStart && o.OrderDate < effectiveEnd
+                               && o.Status == Domain.Enums.EOrderStatus.Completed)
+                        .SelectMany(o => o.OrderItems)
+                        .Select(oi => oi.Quantity * oi.UnitPrice)
+                        .ToListAsync(cancellationToken);
 
-                    //var revenue = weeklyRevenue;
+                    var revenue = items.Sum();
 
                     results.Add(new RevenueTrendDto
                     {
@@ -56,7 +50,7 @@ namespace Ecommerce.Application.Features.Reports.Queries.GetRevenueTrend
                         Week = weekNumber,
                         Year = currentWeekStart.Year,
                         StartDate = currentWeekStart,
-                        EndDate = weekEnd
+                        EndDate = effectiveEnd
                     });
 
                     currentWeekStart = currentWeekStart.AddDays(7);
