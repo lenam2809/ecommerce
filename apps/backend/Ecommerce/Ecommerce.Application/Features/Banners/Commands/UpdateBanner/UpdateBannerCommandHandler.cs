@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Banners.Queries.GetBannerById;
@@ -49,7 +50,8 @@ namespace Ecommerce.Application.Features.Banners.Commands.UpdateBanner
                     // Lưu hình ảnh mới
                     string mainImagePath = await _fileStorageService.SaveFileAsync(
                         request.Image,
-                        "banners");
+                        "banners",
+                        SlugHelper.GenerateSlug(request.Title));
 
                     banner.ImageUrl = mainImagePath;
                 }

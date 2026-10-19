@@ -16,10 +16,12 @@ export function UserMenu({ user, isAuthenticated, logout, getUserInitials }: Use
     return isAuthenticated ? (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="group relative rounded-full h-9 w-9 p-0 ring-offset-background transition-all hover:ring-2 hover:ring-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                    <Avatar className="h-full w-full border border-black/10 dark:border-white/10 group-hover:border-primary/50 transition-colors shadow-sm">
-                        <AvatarImage src={user?.avatar} alt={user?.email} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">{getUserInitials()}</AvatarFallback>
+                <Button variant="ghost" size="icon" className="group relative rounded-full h-10 w-10 p-0 ring-offset-background transition-all hover:ring-2 hover:ring-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shrink-0">
+                    <Avatar className="h-10 w-10 border border-black/10 dark:border-white/10 group-hover:border-primary/50 transition-colors shadow-sm">
+                        <AvatarImage src={user?.avatar} alt={user?.email} className="object-cover" />
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs tracking-wider flex items-center justify-center select-none">
+                            {getUserInitials()}
+                        </AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
@@ -28,12 +30,14 @@ export function UserMenu({ user, isAuthenticated, logout, getUserInitials }: Use
                 sideOffset={8}
                 className="w-72 bg-popover border-line backdrop-blur-xl shadow-2xl rounded-2xl p-2 z-50"
             >
-                <div className="flex items-center justify-start gap-4 p-3 mb-2 rounded-xl bg-surface">
-                    <Avatar className="h-10 w-10 border border-line">
-                        <AvatarImage src={user?.avatar} alt={user?.email} />
-                        <AvatarFallback className="bg-brand-soft text-brand font-semibold">{getUserInitials()}</AvatarFallback>
+                <div className="flex items-center justify-start gap-3.5 p-3 mb-2 rounded-xl bg-surface">
+                    <Avatar className="h-10 w-10 border border-line shrink-0">
+                        <AvatarImage src={user?.avatar} alt={user?.email} className="object-cover" />
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs tracking-wider flex items-center justify-center select-none">
+                            {getUserInitials()}
+                        </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col overflow-hidden">
+                    <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-small truncate text-ink">{user?.firstName} {user?.lastName}</span>
                         <span className="text-tiny text-ink-faint truncate">{user?.email}</span>
                     </div>
@@ -72,7 +76,7 @@ export function UserMenu({ user, isAuthenticated, logout, getUserInitials }: Use
     ) : (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-surface-2 transition-colors border border-transparent">
+                <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-surface-2 transition-colors border border-transparent">
                     <User2 className="h-5 w-5 text-ink-soft" />
                 </Button>
             </DropdownMenuTrigger>

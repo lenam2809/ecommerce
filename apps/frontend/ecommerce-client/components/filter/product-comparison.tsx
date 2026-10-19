@@ -8,6 +8,7 @@ import { X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { formatPrice } from "@/lib/contants"
+import { formatImageUrl } from "@/lib/utils"
 import { Product } from "@/types/product"
 
 export default function ProductComparison() {
@@ -89,7 +90,7 @@ export default function ProductComparison() {
                                             <div className="flex flex-col items-center">
                                                 <div className="relative w-24 h-24 mb-2">
                                                     <Image
-                                                        src={product.mainImage || "/placeholder.svg"}
+                                                        src={formatImageUrl(product.mainImage)}
                                                         alt={product.name}
                                                         fill
                                                         className="object-contain"

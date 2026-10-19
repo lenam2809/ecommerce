@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Brands.Queries.GetBrandById;
@@ -62,7 +62,8 @@ namespace Ecommerce.Application.Features.Brands.Commands.UpdateBrand
                     // Lưu hình ảnh mới
                     string imagePath = await _fileStorageService.SaveFileAsync(
                         request.Logo,
-                        "brands");
+                        "brands",
+                        $"{brand.Slug}-logo");
 
 
                     brand.LogoUrl = imagePath;

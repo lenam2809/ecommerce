@@ -62,7 +62,7 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 string mainImageUrl = existingProduct.Image;
                 if (request.MainImage != null)
                 {
-                    mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products");
+                    mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products", $"{SlugHelper.GenerateSlug(request.Name)}-main");
                     // Lưu ý: Có thể cân nhắc xóa ảnh cũ trên storage ở đây nếu cần
                 }
 
@@ -116,7 +116,7 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 {
                     foreach (var file in request.AdditionalImages)
                     {
-                        var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery");
+                        var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery", $"{SlugHelper.GenerateSlug(request.Name)}-gallery");
                         existingProduct.AddImage(imageUrl);
                     }
                 }

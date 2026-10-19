@@ -10,6 +10,7 @@ import { ArrowLeft, Star, AlertCircle, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { formatPrice } from "@/lib/contants"
+import { formatImageUrl } from "@/lib/utils"
 import AddToCartButton from "@/components/add-to-cart-button"
 import { Product } from "@/types/product"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -168,7 +169,7 @@ function CompareContent() {
                                         <div className="flex flex-col items-center group text-center pt-2">
                                             <Link href={`/product/${product.slug || product.id}`} className="relative w-36 h-36 mb-4 rounded-2xl overflow-hidden bg-surface-2/40 border border-line transition-transform duration-200 group-hover:scale-105">
                                                 <Image
-                                                    src={product.mainImage || "/placeholder.svg"}
+                                                    src={formatImageUrl(product.mainImage)}
                                                     alt={product.name}
                                                     fill
                                                     sizes="144px"

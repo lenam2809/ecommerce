@@ -112,6 +112,23 @@ apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings*.json
 
 # .NET
 .dotnet-home/
+[Bb]in/
+[Oo]bj/
+
+# Local uploads (Rule 8: Local dev uses uploads/ - do not commit images to git)
+apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads/*
+!apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads/.gitkeep
+
 
 # Documentation
-docs/
+docs/*
+!docs/*.md
+docs/architecture-backend.md
+docs/architecture-overview.md
+docs/authentication_proposal.md
+docs/backend-frontend-deep-dive.md
+docs/caching-strategy.md
+docs/elasticsearch-setup.md
+docs/security-audit.md
+docs/shopviet_architecture_improvement_report.md
+docs/ui-ux-redesign.md

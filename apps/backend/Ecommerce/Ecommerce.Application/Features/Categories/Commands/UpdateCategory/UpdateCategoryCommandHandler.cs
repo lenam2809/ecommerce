@@ -1,4 +1,5 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Categories.Queries.GetCategoryById;
@@ -55,7 +56,8 @@ namespace Ecommerce.Application.Features.Categories.Commands.UpdateCategory
                 {
                     string imagePath = await _fileStorageService.SaveFileAsync(
                         request.Image,
-                        "categories");
+                        "categories",
+                        SlugHelper.GenerateSlug(category.Name));
 
                     if (!string.IsNullOrEmpty(category.Image))
                     {

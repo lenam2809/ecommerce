@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Ecommerce.Infrastructure.Persistence.Seed
 {
-    public class ApplicationDbContextSeed
+    public partial class ApplicationDbContextSeed
     {
         private readonly ILogger<ApplicationDbContextSeed> _logger;
         private readonly ApplicationDbContext _context;
@@ -73,6 +73,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await SeedBrandsAsync();
                 await SeedCategoriesAsync();
                 await SeedProductsAsync();
+                await SeedFeaturedCategoriesDataAsync();
                 await SeedProductSpecificationsAsync();
                 await SeedReviewsAsync();
                 await SeedProductVariantsAsync();
@@ -498,67 +499,182 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
         {
             _logger.LogInformation("Seeding brands");
 
-            if (!await _context.Brands.AnyAsync())
+            var allBrands = new List<Brand>
             {
-                var brands = new List<Brand>
+                new Brand
                 {
-                    new Brand
-                    {
-                        Code = "Apple",
-                        Name = "Apple",
-                        Description = "Nhà sản xuất điện thoại và máy tính hàng đầu thế giới",
-                        Slug = "apple",
-                        LogoUrl = "brands/apple.jpg"
-                    },
-                    new Brand
-                    {
-                        Code = "HONOR",
-                        Name = "HONOR",
-                        Description = "Thương hiệu điện thoại thông minh của Trung Quốc",
-                        Slug = "honor",
-                        LogoUrl = "brands/honor.jpg"
-                    },
-                    new Brand
-                    {
-                        Code = "Other",
-                        Name = "Hãng Khác",
-                        Description = "Các thương hiệu điện thoại khác",
-                        Slug = "hang-khac",
-                        LogoUrl = "brands/other.jpg"
-                    },
-                    new Brand
-                    {
-                        Code = "OPPO",
-                        Name = "OPPO",
-                        Description = "Thương hiệu điện thoại thông minh nổi tiếng châu Á",
-                        Slug = "oppo",
-                        LogoUrl = "brands/oppo.jpg"
-                    },
-                    new Brand
-                    {
-                        Code = "Samsung",
-                        Name = "Samsung",
-                        Description = "Thương hiệu điện tử hàng đầu Hàn Quốc",
-                        Slug = "samsung",
-                        LogoUrl = "brands/samsung.jpg"
-                    },
-                    new Brand
-                    {
-                        Code = "Xiaomi",
-                        Name = "Xiaomi",
-                        Description = "Thương hiệu điện thoại Trung Quốc nổi tiếng",
-                        Slug = "xiaomi",
-                        LogoUrl = "brands/xiaomi.jpg"
-                    },
-                };
+                    Code = "Apple",
+                    Name = "Apple",
+                    Description = "Nhà sản xuất điện thoại và máy tính hàng đầu thế giới",
+                    Slug = "apple",
+                    LogoUrl = "brands/apple.jpg"
+                },
+                new Brand
+                {
+                    Code = "HONOR",
+                    Name = "HONOR",
+                    Description = "Thương hiệu điện thoại thông minh của Trung Quốc",
+                    Slug = "honor",
+                    LogoUrl = "brands/honor.jpg"
+                },
+                new Brand
+                {
+                    Code = "Other",
+                    Name = "Hãng Khác",
+                    Description = "Các thương hiệu công nghệ khác",
+                    Slug = "hang-khac",
+                    LogoUrl = "brands/other.jpg"
+                },
+                new Brand
+                {
+                    Code = "OPPO",
+                    Name = "OPPO",
+                    Description = "Thương hiệu điện thoại thông minh nổi tiếng châu Á",
+                    Slug = "oppo",
+                    LogoUrl = "brands/oppo.jpg"
+                },
+                new Brand
+                {
+                    Code = "Samsung",
+                    Name = "Samsung",
+                    Description = "Thương hiệu điện tử hàng đầu Hàn Quốc",
+                    Slug = "samsung",
+                    LogoUrl = "brands/samsung.jpg"
+                },
+                new Brand
+                {
+                    Code = "Xiaomi",
+                    Name = "Xiaomi",
+                    Description = "Thương hiệu thiết bị công nghệ và điện thoại thông minh",
+                    Slug = "xiaomi",
+                    LogoUrl = "brands/xiaomi.jpg"
+                },
+                new Brand
+                {
+                    Code = "Sony",
+                    Name = "Sony",
+                    Description = "Thương hiệu âm thanh và giải trí hàng đầu Nhật Bản",
+                    Slug = "sony",
+                    LogoUrl = "brands/sony.jpg"
+                },
+                new Brand
+                {
+                    Code = "Marshall",
+                    Name = "Marshall",
+                    Description = "Huyền thoại âm thanh phong cách Rock & Roll cổ điển từ Anh Quốc",
+                    Slug = "marshall",
+                    LogoUrl = "brands/marshall.jpg"
+                },
+                new Brand
+                {
+                    Code = "JBL",
+                    Name = "JBL",
+                    Description = "Thương hiệu loa và thiết bị âm thanh sôi động từ Hoa Kỳ",
+                    Slug = "jbl",
+                    LogoUrl = "brands/jbl.jpg"
+                },
+                new Brand
+                {
+                    Code = "Bose",
+                    Name = "Bose",
+                    Description = "Đỉnh cao âm thanh chống ồn cao cấp từ Hoa Kỳ",
+                    Slug = "bose",
+                    LogoUrl = "brands/bose.jpg"
+                },
+                new Brand
+                {
+                    Code = "Garmin",
+                    Name = "Garmin",
+                    Description = "Đồng hồ định vị và thiết bị thể thao chuyên nghiệp thế giới",
+                    Slug = "garmin",
+                    LogoUrl = "brands/garmin.jpg"
+                },
+                new Brand
+                {
+                    Code = "ASUS",
+                    Name = "ASUS",
+                    Description = "Hãng máy tính và laptop gaming hàng đầu thế giới",
+                    Slug = "asus",
+                    LogoUrl = "brands/asus.jpg"
+                },
+                new Brand
+                {
+                    Code = "Dell",
+                    Name = "Dell",
+                    Description = "Dòng laptop doanh nhân và đồ họa cao cấp thế giới",
+                    Slug = "dell",
+                    LogoUrl = "brands/dell.jpg"
+                },
+                new Brand
+                {
+                    Code = "Lenovo",
+                    Name = "Lenovo",
+                    Description = "Dòng máy tính ThinkPad và Yoga bền bỉ hàng đầu",
+                    Slug = "lenovo",
+                    LogoUrl = "brands/lenovo.jpg"
+                },
+                new Brand
+                {
+                    Code = "Aqara",
+                    Name = "Aqara",
+                    Description = "Giải pháp và thiết bị nhà thông minh chuẩn Matter toàn cầu",
+                    Slug = "aqara",
+                    LogoUrl = "brands/aqara.jpg"
+                },
+                new Brand
+                {
+                    Code = "PhilipsHue",
+                    Name = "Philips Hue",
+                    Description = "Hệ sinh thái chiếu sáng thông minh cao cấp nhất thế giới",
+                    Slug = "philips-hue",
+                    LogoUrl = "brands/philips-hue.jpg"
+                },
+                new Brand
+                {
+                    Code = "Anker",
+                    Name = "Anker",
+                    Description = "Thương hiệu củ sạc, cáp sạc và phụ kiện công nghệ số 1",
+                    Slug = "anker",
+                    LogoUrl = "brands/anker.jpg"
+                },
+                new Brand
+                {
+                    Code = "Belkin",
+                    Name = "Belkin",
+                    Description = "Phụ kiện cao cấp chuẩn chứng nhận Apple MFi và MagSafe",
+                    Slug = "belkin",
+                    LogoUrl = "brands/belkin.jpg"
+                },
+                new Brand
+                {
+                    Code = "Ugreen",
+                    Name = "Ugreen",
+                    Description = "Giải pháp kết nối, sạc nhanh và phụ kiện kỹ thuật số chất lượng cao",
+                    Slug = "ugreen",
+                    LogoUrl = "brands/ugreen.jpg"
+                },
+                new Brand
+                {
+                    Code = "Logitech",
+                    Name = "Logitech",
+                    Description = "Chuột, bàn phím và phụ kiện công thái học văn phòng chuyên nghiệp",
+                    Slug = "logitech",
+                    LogoUrl = "brands/logitech.jpg"
+                }
+            };
 
-                await _context.Brands.AddRangeAsync(brands);
+            var existingBrandCodes = await _context.Brands.Select(b => b.Code).ToListAsync();
+            var brandsToAdd = allBrands.Where(b => !existingBrandCodes.Contains(b.Code)).ToList();
+
+            if (brandsToAdd.Any())
+            {
+                await _context.Brands.AddRangeAsync(brandsToAdd);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Seeded {BrandCount} brands", brands.Count);
+                _logger.LogInformation("Seeded {BrandCount} new brands", brandsToAdd.Count);
             }
             else
             {
-                _logger.LogInformation("Brands already exist. Skipping seeding.");
+                _logger.LogInformation("All brands already exist. Skipping seeding.");
             }
         }
 
@@ -566,59 +682,78 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
         {
             _logger.LogInformation("Seeding categories");
 
-            if (!await _context.Categories.AnyAsync())
+            var allCategories = new List<Category>
             {
-                var categories = new List<Category>
+                new Category
                 {
-                    new Category
-                    {
-                        Code = "DTDĐ",
-                        Name = "Điện Thoại Di Động",
-                        Description = "Các dòng điện thoại thông minh hiện đại",
-                        Slug = "dien-thoai-di-dong",
-                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/dien-thoai-di-dong.jpg"
-                    },
-                    new Category
-                    {
-                        Code = "Laptop",
-                        Name = "Laptop",
-                        Description = "Máy tính xách tay và máy tính di động",
-                        Slug = "laptop",
-                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/laptop.jpg"
-                    },
-                    new Category
-                    {
-                        Code = "MTB",
-                        Name = "Máy Tính Bảng",
-                        Description = "Thiết bị máy tính di động màn hình lớn",
-                        Slug = "may-tinh-bang",
-                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/may-tinh-bang.jpg"
-                    },
-                    new Category
-                    {
-                        Code = "PKCN",
-                        Name = "Phụ Kiện Công Nghệ",
-                        Description = "Phụ kiện điện tử và công nghệ",
-                        Slug = "phu-kien-cong-nghe",
-                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/phu-kien-cong-nghe.jpg"
-                    },
-                    new Category
-                    {
-                        Code = "MS",
-                        Name = "Âm Thanh",
-                        Description = "Tai nghe, loa và thiết bị âm thanh",
-                        Slug = "am-thanh",
-                        Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/am-thanh.jpg"
-                    }
-                };
+                    Code = "DTDĐ",
+                    Name = "Điện Thoại Di Động",
+                    Description = "Các phiên bản điện thoại thông minh cao cấp tích hợp AI tiên tiến",
+                    Slug = "dien-thoai-di-dong",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/dien-thoai-di-dong.jpg"
+                },
+                new Category
+                {
+                    Code = "Laptop",
+                    Name = "Laptop & Tablet",
+                    Description = "Sức mạnh kiến trúc mới cho nhà sáng tạo nội dung và lập trình",
+                    Slug = "laptop",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/laptop.jpg"
+                },
+                new Category
+                {
+                    Code = "MTB",
+                    Name = "Máy Tính Bảng",
+                    Description = "Thiết bị máy tính di động màn hình lớn",
+                    Slug = "may-tinh-bang",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/may-tinh-bang.jpg"
+                },
+                new Category
+                {
+                    Code = "PKCN",
+                    Name = "Phụ Kiện Cao Cấp",
+                    Description = "Hệ sinh thái phụ kiện MagSafe, sạc nhanh và ngoại vi tinh tế",
+                    Slug = "phu-kien-cong-nghe",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/phu-kien-cong-nghe.jpg"
+                },
+                new Category
+                {
+                    Code = "MS",
+                    Name = "Âm Thanh Đỉnh Cao",
+                    Description = "Tai nghe chống ồn chủ động, loa Hi-Fi và hệ thống giải trí âm thanh",
+                    Slug = "am-thanh",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/am-thanh.jpg"
+                },
+                new Category
+                {
+                    Code = "SMARTHOME",
+                    Name = "Nhà Thông Minh",
+                    Description = "Hệ sinh thái điều khiển ánh sáng, an ninh và cảm biến thông minh chuẩn Matter",
+                    Slug = "nha-thong-minh",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/nha-thong-minh.jpg"
+                },
+                new Category
+                {
+                    Code = "WEARABLE",
+                    Name = "Thiết Bị Đeo Thông Minh",
+                    Description = "Đồng hồ thể thao chuyên nghiệp và thiết bị theo dõi sức khỏe thời gian thực",
+                    Slug = "thiet-bi-deo-thong-minh",
+                    Image = "https://nwwsveiehdmsgwgujalu.supabase.co/storage/v1/object/public/ecommerce-images/categories/thiet-bi-deo-thong-minh.jpg"
+                }
+            };
 
-                await _context.Categories.AddRangeAsync(categories);
+            var existingCategoryCodes = await _context.Categories.Select(c => c.Code).ToListAsync();
+            var categoriesToAdd = allCategories.Where(c => !existingCategoryCodes.Contains(c.Code)).ToList();
+
+            if (categoriesToAdd.Any())
+            {
+                await _context.Categories.AddRangeAsync(categoriesToAdd);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Seeded {CategoryCount} categories", categories.Count);
+                _logger.LogInformation("Seeded {CategoryCount} new categories", categoriesToAdd.Count);
             }
             else
             {
-                _logger.LogInformation("Categories already exist. Skipping seeding.");
+                _logger.LogInformation("All categories already exist. Skipping seeding.");
             }
         }
 

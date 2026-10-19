@@ -37,7 +37,7 @@ export function DesktopNav() {
                             {category.name}
                             <span
                                 className={cn(
-                                    "absolute bottom-0 left-0 w-full h-[2px] bg-brand rounded-full transform origin-left transition-transform duration-200",
+                                    "absolute bottom-0 left-0 w-full h-[2px] bg-primary rounded-full transform origin-left transition-transform duration-200",
                                     isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                                 )}
                             />
@@ -59,7 +59,7 @@ export function DesktopNav() {
                 Tất cả sản phẩm
                 <span
                     className={cn(
-                        "absolute bottom-0 left-0 w-full h-[2px] bg-brand rounded-full transform origin-left transition-transform duration-200",
+                        "absolute bottom-0 left-0 w-full h-[2px] bg-primary rounded-full transform origin-left transition-transform duration-200",
                         pathname === "/products" ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                     )}
                 />

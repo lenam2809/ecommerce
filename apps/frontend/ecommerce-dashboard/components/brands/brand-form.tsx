@@ -15,7 +15,7 @@ import { ImagesUploadSection } from './form-sections/images-upload';
 
 export function BrandForm() {
     const router = useRouter();
-    const { mutate: createBrand } = useCreateBrand();
+    const { mutate: createBrand, isPending } = useCreateBrand();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,13 +35,18 @@ export function BrandForm() {
     const handleSubmit = async (values: CreateBrandDto) => {
         setIsSubmitting(true);
         try {
-            createBrand(values);
+            createBrand(values, {
+                onSettled: () => {
+                    setIsSubmitting(false);
+                }
+            });
         } catch (error) {
             logger.error('Error submitting brand:', error);
-        } finally {
             setIsSubmitting(false);
         }
     };
+
+    const isBusy = isSubmitting || isPending;
 
     return (
         <Form {...form}>
@@ -56,14 +61,14 @@ export function BrandForm() {
                         type="button"
                         variant="outline"
                         onClick={() => router.back()}
-                        disabled={isSubmitting}
+                        disabled={isBusy}
                     >
                         Hủy
                     </Button>
 
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Thêm mới
+                    <Button type="submit" disabled={isBusy}>
+                        {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isBusy ? 'Đang thêm mới...' : 'Thêm mới'}
                     </Button>
                 </div>
             </form>

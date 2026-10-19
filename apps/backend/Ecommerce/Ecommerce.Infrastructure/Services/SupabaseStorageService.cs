@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Configs;
+using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -33,13 +34,13 @@ namespace Ecommerce.Infrastructure.Services
         // ─────────────────────────────────────────────
         //  SAVE
         // ─────────────────────────────────────────────
-        public async Task<string> SaveFileAsync(IFormFile file, string folderName)
+        public async Task<string> SaveFileAsync(IFormFile file, string folderName, string? customSlug = null)
         {
             if (file == null || file.Length == 0) return string.Empty;
 
             if (string.IsNullOrWhiteSpace(folderName)) folderName = "default";
 
-            var fileName   = GetUniqueFileName(file.FileName);
+            var fileName   = GetUniqueFileName(file.FileName, customSlug);
 
             // 🔒 SECURITY (M10): whitelist extension (xem AllowedExtensions)
             var extension = Path.GetExtension(fileName);
@@ -131,14 +132,34 @@ namespace Ecommerce.Infrastructure.Services
         // ─────────────────────────────────────────────
         //  HELPERS
         // ─────────────────────────────────────────────
-        private static string GetUniqueFileName(string fileName)
+        private static string GetUniqueFileName(string fileName, string? customSlug = null)
         {
-            var ts   = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-            var guid = Guid.NewGuid().ToString("N")[..6];
-            var ext  = Path.GetExtension(fileName);
-            var name = Path.GetFileNameWithoutExtension(fileName)
-                           .Replace(" ", "-").ToLower();
-            return $"{name}-{ts}-{guid}{ext}";
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            string baseSlug;
+
+            if (!string.IsNullOrWhiteSpace(customSlug))
+            {
+                baseSlug = SlugHelper.GenerateSlug(customSlug);
+            }
+            else
+            {
+                var rawName = Path.GetFileNameWithoutExtension(fileName);
+                baseSlug = SlugHelper.GenerateSlug(rawName);
+            }
+
+            if (string.IsNullOrWhiteSpace(baseSlug) || Guid.TryParse(baseSlug, out _))
+            {
+                baseSlug = "image";
+            }
+
+            if (baseSlug.Length > 80)
+            {
+                baseSlug = baseSlug[..80].TrimEnd('-');
+            }
+
+            var ts = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var shortHash = Guid.NewGuid().ToString("N")[..4];
+            return $"{baseSlug}-{ts}-{shortHash}{ext}";
         }
 
         private static bool IsImageFile(IFormFile file)

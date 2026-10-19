@@ -10,7 +10,7 @@ import { Eye, EyeOff, Lock, Mail, Phone, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getApiErrorMessage } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
 
 export default function RegisterPage() {
@@ -115,9 +115,10 @@ export default function RegisterPage() {
 
             // Redirect to login page
             router.push("/login")
-        } catch {
+        } catch (err: unknown) {
+            const description = getApiErrorMessage(err, "Có lỗi xảy ra khi đăng ký tài khoản. Vui lòng thử lại sau.")
             AppToaster.error("Đăng ký thất bại", {
-                description: "Có lỗi xảy ra khi đăng ký tài khoản. Vui lòng thử lại sau.",
+                description,
             })
         } finally {
             setIsLoading(false)

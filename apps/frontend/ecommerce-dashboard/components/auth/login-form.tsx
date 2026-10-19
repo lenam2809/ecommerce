@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getApiErrorMessage } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
@@ -74,7 +74,7 @@ export function LoginForm() {
     } catch (error) {
       toast({
         title: "Thất bại",
-        description: "Email hoặc mật khẩu không hợp lệ. Vui lòng thử lại." + error,
+        description: getApiErrorMessage(error, "Email hoặc mật khẩu không hợp lệ. Vui lòng thử lại."),
         variant: "destructive",
       })
     } finally {

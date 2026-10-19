@@ -17,6 +17,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { formatPrice } from "@/lib/contants"
+import { formatImageUrl } from "@/lib/utils"
 import AddToCartButton from "../add-to-cart-button"
 
 interface WishlistItemProps {
@@ -38,6 +39,7 @@ interface WishlistItemProps {
  */
 export default function WishlistItem({ product, onRemove }: WishlistItemProps) {
     const [open, setOpen] = useState(false)
+    const [imgSrc, setImgSrc] = useState(() => formatImageUrl(product.imageUrl))
 
     return (
         <div className="group relative flex flex-col h-full bg-card rounded-2xl border border-line overflow-hidden transition-colors duration-200 hover:border-ink/30">
@@ -85,11 +87,12 @@ export default function WishlistItem({ product, onRemove }: WishlistItemProps) {
                 aria-label={product.productName}
             >
                 <Image
-                    src={product.imageUrl || "/placeholder.svg"}
+                    src={imgSrc}
                     alt={product.productName}
                     fill
                     sizes="(max-width: 640px) 50vw, 25vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={() => setImgSrc("/placeholder.svg")}
                 />
             </Link>
 

@@ -23,9 +23,41 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const getApiErrorMessage = (error: unknown, fallback: string): string => {
-    const maybeError = error as { response?: { data?: { message?: string } } }
-    return maybeError.response?.data?.message || fallback
+export const getApiErrorMessage = (error: unknown, fallback: string): string => {
+    if (typeof error === "string") return error
+    if (error && typeof error === "object") {
+        const axiosErr = error as {
+            response?: {
+                data?: {
+                    message?: string
+                    error?: string
+                    errors?: Record<string, string[]> | string[]
+                    title?: string
+                }
+            }
+            message?: string
+        }
+        const data = axiosErr.response?.data
+        if (data?.error) return data.error
+        if (data?.message) return data.message
+        if (data?.title) return data.title
+        if (data?.errors) {
+            if (Array.isArray(data.errors) && data.errors.length > 0) {
+                return data.errors[0]
+            }
+            if (typeof data.errors === "object") {
+                const firstVal = Object.values(data.errors)[0]
+                if (Array.isArray(firstVal) && firstVal.length > 0) {
+                    return firstVal[0]
+                }
+                if (typeof firstVal === "string") {
+                    return firstVal
+                }
+            }
+        }
+        if (axiosErr.message) return axiosErr.message
+    }
+    return fallback
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -80,11 +112,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(nextUser)
                 clearGuestId()
             } else {
-                setError("Login failed. Please check your credentials.")
+                const failureMessage = data.message || "Email hoặc mật khẩu không chính xác"
+                setError(failureMessage)
+                throw new Error(failureMessage)
             }
         } catch (err: unknown) {
-            const errorMessage = getApiErrorMessage(err, "Login failed. Please check your credentials.")
+            const errorMessage = getApiErrorMessage(err, "Email hoặc mật khẩu không chính xác")
             setError(errorMessage)
+            throw err
         } finally {
             setLoading(false)
         }
@@ -102,11 +137,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setError(null)
 
         try {
-            await authService.register(registerData)
+            const data = await authService.register(registerData)
+            if (!data.success) {
+                const failureMessage = data.message || "Đăng ký thất bại. Vui lòng thử lại sau."
+                setError(failureMessage)
+                throw new Error(failureMessage)
+            }
             router.push("/login")
         } catch (err: unknown) {
-            const errorMessage = getApiErrorMessage(err, "Registration failed. Please try again.")
+            const errorMessage = getApiErrorMessage(err, "Đăng ký thất bại. Vui lòng thử lại sau.")
             setError(errorMessage)
+            throw err
         } finally {
             setLoading(false)
         }

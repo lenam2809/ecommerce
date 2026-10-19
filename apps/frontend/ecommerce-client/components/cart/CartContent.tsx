@@ -41,7 +41,7 @@ const CartContent = ({
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-                <div className="bg-card rounded-2xl border border-line overflow-hidden">
+                <div className="bg-card dark:bg-[#111827] rounded-2xl border border-border/80 dark:border-white/10 overflow-hidden shadow-xs">
                     <CartItems
                         items={cart.items}
                         onUpdateQuantity={handleUpdateQuantity}

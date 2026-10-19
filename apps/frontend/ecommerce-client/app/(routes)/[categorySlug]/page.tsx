@@ -3,14 +3,21 @@
 import React from "react"
 import ProductListing from "@/components/product-listing"
 
-export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
-    const { category } = React.use(params) // Unwrap params with React.use()
+interface CategoryPageProps {
+    params: Promise<{
+        categorySlug?: string
+        category?: string
+    }>
+}
+
+export default function CategoryPage({ params }: CategoryPageProps) {
+    const resolvedParams = React.use(params)
+    const categorySlug = resolvedParams.categorySlug || resolvedParams.category || ""
 
     return (
         <ProductListing
-            categorySlug={category}
+            categorySlug={categorySlug}
             backLink={{ href: "/products", label: "Quay lại danh mục" }}
-            pageTitle={`Danh mục: ${category}`}
         />
     )
 }

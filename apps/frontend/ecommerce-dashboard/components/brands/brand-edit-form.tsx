@@ -21,7 +21,7 @@ interface BrandFormProps {
 
 export function EditBrandForm({ brand, isDetail = false }: BrandFormProps) {
     const router = useRouter();
-    const { mutate: updateBrand } = useUpdateBrand();
+    const { mutate: updateBrand, isPending } = useUpdateBrand();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,13 +62,18 @@ export function EditBrandForm({ brand, isDetail = false }: BrandFormProps) {
         setIsSubmitting(true);
 
         try {
-            updateBrand(values as UpdateBrandDto);
+            updateBrand(values as UpdateBrandDto, {
+                onSettled: () => {
+                    setIsSubmitting(false);
+                }
+            });
         } catch (error) {
             logger.error('Error submitting brand:', error);
-        } finally {
             setIsSubmitting(false);
         }
     };
+
+    const isBusy = isSubmitting || isPending;
 
     return (
         <Form {...form}>
@@ -83,14 +88,14 @@ export function EditBrandForm({ brand, isDetail = false }: BrandFormProps) {
                         type="button"
                         variant="outline"
                         onClick={() => router.back()}
-                        disabled={isSubmitting}
+                        disabled={isBusy}
                     >
                         Hủy
                     </Button>
                     {!isDetail && (
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Cập nhật
+                        <Button type="submit" disabled={isBusy}>
+                            {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isBusy ? 'Đang cập nhật...' : 'Cập nhật'}
                         </Button>
                     )}
                 </div>

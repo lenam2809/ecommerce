@@ -32,8 +32,8 @@ public class CreateProductCommandHandlerTests
             .ReturnsAsync(1);
 
         _fileStorageService
-            .Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
-            .ReturnsAsync((IFormFile _, string folder) => $"{folder}/uploaded.png");
+            .Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .ReturnsAsync((IFormFile _, string folder, string? _) => $"{folder}/uploaded.png");
 
         _handler = new CreateProductCommandHandler(
             _unitOfWork.Object,
@@ -80,8 +80,8 @@ public class CreateProductCommandHandlerTests
         capturedProduct.Variants.Colors.Should().ContainSingle(c => c.Color == "Black");
         capturedProduct.Variants.Sizes.Should().ContainSingle(s => s.Size == "256GB");
 
-        _fileStorageService.Verify(x => x.SaveFileAsync(command.MainImage, "products"), Times.Once);
-        _fileStorageService.Verify(x => x.SaveFileAsync(command.AdditionalImages[0], "products/gallery"), Times.Once);
+        _fileStorageService.Verify(x => x.SaveFileAsync(command.MainImage, "products", It.IsAny<string?>()), Times.Once);
+        _fileStorageService.Verify(x => x.SaveFileAsync(command.AdditionalImages[0], "products/gallery", It.IsAny<string?>()), Times.Once);
         _productRepository.Verify(x => x.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWork.Verify(x => x.CompleteAsync(It.IsAny<CancellationToken>()), Times.Once);
         _cacheInvalidationService.Verify(x => x.InvalidateProductCache(productId), Times.Once);
@@ -123,7 +123,7 @@ public class CreateProductCommandHandlerTests
         // Arrange
         var command = CreateValidCommand();
         _fileStorageService
-            .Setup(x => x.SaveFileAsync(command.MainImage, "products"))
+            .Setup(x => x.SaveFileAsync(command.MainImage, "products", It.IsAny<string?>()))
             .ThrowsAsync(new InvalidOperationException("Storage unavailable"));
 
         // Act

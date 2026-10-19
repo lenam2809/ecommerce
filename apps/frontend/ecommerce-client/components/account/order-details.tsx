@@ -9,6 +9,7 @@ import { StatusBadge } from "./status-badge"
 import { OrderDetailsSkeleton } from "./order-details-skeleton"
 import { Check } from "lucide-react"
 import Image from "next/image"
+import { formatImageUrl } from "@/lib/utils"
 
 /**
  * OrderDetails — Editorial Tech Minimalism
@@ -117,7 +118,7 @@ export function OrderDetails({ order, isLoading }: { order: Order | undefined, i
                                             <div className="relative w-16 h-16 bg-surface rounded-xl overflow-hidden flex-shrink-0 border border-line">
                                                 {item.image ? (
                                                     <Image
-                                                        src={item.image || "/placeholder.svg"}
+                                                        src={formatImageUrl(item.image)}
                                                         alt={item.name}
                                                         fill
                                                         className="object-cover"

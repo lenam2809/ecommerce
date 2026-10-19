@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
@@ -45,7 +45,8 @@ namespace Ecommerce.Application.Features.Brands.Commands.CreateBrand
                 {
                     string imagePath = await _fileStorageService.SaveFileAsync(
                         request.Logo,
-                        "brands");
+                        "brands",
+                        $"{brand.Slug}-logo");
 
                     brand.LogoUrl = imagePath;
                 }

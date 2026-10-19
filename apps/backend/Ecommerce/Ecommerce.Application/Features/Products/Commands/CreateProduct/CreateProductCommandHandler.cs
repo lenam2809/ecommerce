@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
@@ -42,13 +42,14 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         public async Task<Result<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             // Upload Main Image
-            string mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products");
+            var productSlug = SlugHelper.GenerateSlug(request.Name);
+            string mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products", $"{productSlug}-main");
 
             // Sử dụng Factory Method của Domain Entity
             var product = Product.Create(
                 request.Code,
                 request.Name,
-                SlugHelper.GenerateSlug(request.Name),
+                productSlug,
                 request.Sku,
                 request.Price,
                 request.SalePrice,
@@ -64,7 +65,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
             {
                 foreach (var file in request.AdditionalImages)
                 {
-                    var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery");
+                    var imageUrl = await _fileStorageService.SaveFileAsync(file, "products/gallery", $"{productSlug}-gallery");
                     product.AddImage(imageUrl);
                 }
             }

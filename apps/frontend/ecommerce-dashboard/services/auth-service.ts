@@ -6,7 +6,9 @@ import { sessionSync } from "@/lib/session-sync"
 
 export interface AuthResponse {
     success: boolean
-    data: {
+    message?: string
+    error?: string
+    data?: {
         accessToken?: string
         refreshToken?: string
         userId: string
@@ -97,7 +99,7 @@ class AuthService {
         return data
     }
 
-    public async register(registerData: RegisterRequest): Promise<{ success: boolean; data?: unknown }> {
+    public async register(registerData: RegisterRequest): Promise<{ success: boolean; data?: unknown; message?: string; error?: string }> {
         const { data } = await api.post("/auth/register", registerData)
         return data
     }

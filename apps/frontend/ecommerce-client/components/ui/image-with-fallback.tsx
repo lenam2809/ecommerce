@@ -3,6 +3,7 @@
 import Image, { ImageProps } from 'next/image'
 import { Package, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
+import { formatImageUrl } from '@/lib/utils'
 
 export function ImageWithFallback({
     src,
@@ -10,6 +11,7 @@ export function ImageWithFallback({
     className,
     ...props
 }: ImageProps) {
+    const safeSrc = typeof src === 'string' ? formatImageUrl(src) : src
     const [error, setError] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [, setRetryCount] = useState(0)
@@ -43,7 +45,7 @@ export function ImageWithFallback({
                 <div className={`absolute inset-0 bg-gradient-to-br from-muted via-muted/50 to-muted animate-pulse ${className}`} />
             )}
             <Image
-                src={src}
+                src={safeSrc}
                 alt={alt}
                 className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 onLoadingComplete={() => setIsLoading(false)}

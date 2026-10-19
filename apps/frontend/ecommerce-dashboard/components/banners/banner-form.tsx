@@ -15,7 +15,7 @@ import { ImageUploadSection } from './form-sections/image-upload';
 
 export function BannerForm() {
     const router = useRouter();
-    const { mutate: createBanner } = useCreateBanner();
+    const { mutate: createBanner, isPending } = useCreateBanner();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,13 +35,18 @@ export function BannerForm() {
         setIsSubmitting(true);
 
         try {
-            createBanner(values);
+            createBanner(values, {
+                onSettled: () => {
+                    setIsSubmitting(false);
+                }
+            });
         } catch (error) {
             logger.error('Error submitting banner:', error);
-        } finally {
             setIsSubmitting(false);
         }
     };
+
+    const isBusy = isSubmitting || isPending;
 
     return (
         <Form {...form}>
@@ -58,14 +63,14 @@ export function BannerForm() {
                         type="button"
                         variant="outline"
                         onClick={() => router.back()}
-                        disabled={isSubmitting}
+                        disabled={isBusy}
                     >
                         Hủy
                     </Button>
 
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Thêm mới
+                    <Button type="submit" disabled={isBusy}>
+                        {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isBusy ? 'Đang thêm mới...' : 'Thêm mới'}
                     </Button>
                 </div>
             </form>

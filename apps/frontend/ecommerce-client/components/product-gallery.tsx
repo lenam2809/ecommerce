@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react"
+import { formatImageUrl } from "@/lib/utils"
 
 interface ProductGalleryProps {
   images: string[]
@@ -15,7 +16,10 @@ interface ProductGalleryProps {
 export default function ProductGallery({ images }: ProductGalleryProps) {
   const [currentImage, setCurrentImage] = useState(0)
 
-  const safeImages = images && images.length > 0 ? images : ["/placeholder.svg"]
+  const safeImages =
+    images && images.length > 0
+      ? images.map((img) => formatImageUrl(img))
+      : ["/placeholder.svg"]
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev === safeImages.length - 1 ? 0 : prev + 1))

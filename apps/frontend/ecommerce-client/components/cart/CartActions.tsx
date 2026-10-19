@@ -22,12 +22,12 @@ const CartActions = ({ onClearCart, isClearingCart }: CartActionsProps) => {
 
             <Button
                 variant="outline"
-                className="rounded-full border-line text-ink-soft hover:text-brand hover:border-brand hover:bg-brand-soft transition-colors duration-150 flex items-center"
+                className="rounded-full border-white/10 text-ink-faint hover:text-status-danger hover:border-status-danger/40 hover:bg-status-danger-soft transition-colors duration-150 flex items-center"
                 onClick={onClearCart}
                 disabled={isClearingCart}
             >
                 <Trash className="h-4 w-4 mr-2" />
-                {isClearingCart ? "Đang xóa..." : "Xóa giỏ hàng"}
+                {isClearingCart ? "Đang xóa..." : "Xóa tất cả"}
             </Button>
         </div>
     );

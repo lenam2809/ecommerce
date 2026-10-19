@@ -3,21 +3,34 @@ import { useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import cartService from "@/services/cart-service"
 import { AppToaster } from "@/components/toast/app-toaster"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getApiErrorMessage } from "@/hooks/use-auth"
 import type { Cart, CartItem } from "@/types/cart"
 
-type OptimisticCart = Cart & {
-  cartItems?: CartItem[]
+const DEFAULT_CART: Cart = {
+  items: [],
+  subtotal: 0,
+  shippingCost: 0,
+  discount: 0,
+  total: 0,
 }
 
-type ApiMessageError = {
-  response?: { data?: { message?: string } }
-  message?: string
-}
+function normalizeCart(data: unknown): Cart {
+  if (!data || typeof data !== "object") return DEFAULT_CART
 
-const getApiErrorMessage = (error: unknown, fallback: string) => {
-  const maybeError = error as ApiMessageError
-  return maybeError.response?.data?.message || maybeError.message || fallback
+  // Support both direct Cart and wrapped Result<Cart> ({ success: true, data: Cart })
+  const candidate = (
+    "data" in data && data.data && typeof data.data === "object"
+      ? (data as { data: unknown }).data
+      : data
+  ) as Partial<Cart>
+
+  return {
+    items: Array.isArray(candidate.items) ? candidate.items : [],
+    subtotal: typeof candidate.subtotal === "number" ? candidate.subtotal : 0,
+    shippingCost: typeof candidate.shippingCost === "number" ? candidate.shippingCost : 0,
+    discount: typeof candidate.discount === "number" ? candidate.discount : 0,
+    total: typeof candidate.total === "number" ? candidate.total : 0,
+  }
 }
 
 export function useCart() {
@@ -26,22 +39,18 @@ export function useCart() {
 
   // Get cart
   const {
-    data: cart,
+    data: cart = DEFAULT_CART,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<Cart>({
     queryKey: ["cart"],
-    queryFn: () => cartService.getCart(),
-    staleTime: 1000 * 30,
-    select: (data) => {
-      return data.data
+    queryFn: async () => {
+      const response = await cartService.getCart()
+      return normalizeCart(response?.data)
     },
+    staleTime: 1000 * 30,
     throwOnError: false,
   })
-
-  // B5 FIX: Dùng onMutate + cancelQueries + optimistic updates thay vì chỉ invalidateQueries
-  // Trước: invalidateQueries sau onSuccess => race condition khi click nhiều lần
-  // Sau: update UI tức thì, rollback nếu server lỗi
 
   // Add to cart
   const addToCartMutation = useMutation({
@@ -60,29 +69,26 @@ export function useCart() {
       await queryClient.cancelQueries({ queryKey: ["cart"] })
 
       // Snapshot giá trị hiện tại để rollback nếu cần
-      const previousCart = queryClient.getQueryData<OptimisticCart>(["cart"])
+      const previousCart = queryClient.getQueryData<Cart>(["cart"])
+      const currentCart = normalizeCart(previousCart)
 
-      // Optimistic update: thêm item tạm vào UI
-      queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
-        if (!old) return old
-        const existingItem = old.items.find(
-          (item) =>
-            item.productId === productId &&
-            (item.color || "") === (options?.color || "") &&
-            (item.size || "") === (options?.size || "")
-        )
-        if (existingItem) {
-          const updateQuantity = (item: CartItem) =>
-            item === existingItem ? { ...item, quantity: item.quantity + quantity } : item
+      // Optimistic update: nếu item đã tồn tại trong giỏ thì tăng quantity
+      const existingItem = currentCart.items.find(
+        (item) =>
+          item.productId === productId &&
+          (item.color || "") === (options?.color || "") &&
+          (item.size || "") === (options?.size || "")
+      )
 
-          return {
-            ...old,
-            items: old.items.map(updateQuantity),
-            cartItems: old.cartItems?.map(updateQuantity),
-          }
-        }
-        return old // Không đủ thông tin để add optimistically => giữ nguyên
-      })
+      if (existingItem) {
+        const updateQuantity = (item: CartItem) =>
+          item === existingItem ? { ...item, quantity: item.quantity + quantity } : item
+
+        queryClient.setQueryData<Cart>(["cart"], {
+          ...currentCart,
+          items: currentCart.items.map(updateQuantity),
+        })
+      }
 
       return { previousCart }
     },
@@ -98,7 +104,10 @@ export function useCart() {
       })
     },
 
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(["cart"], normalizeCart(response.data))
+      }
       AppToaster.success("Thêm vào giỏ hàng thành công", {
         description: "Sản phẩm đã được thêm vào giỏ hàng của bạn.",
       })
@@ -117,31 +126,34 @@ export function useCart() {
 
     onMutate: async ({ itemId, quantity }) => {
       await queryClient.cancelQueries({ queryKey: ["cart"] })
-      const previousCart = queryClient.getQueryData<OptimisticCart>(["cart"])
+      const previousCart = queryClient.getQueryData<Cart>(["cart"])
+      const currentCart = normalizeCart(previousCart)
 
-      queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
-        if (!old) return old
-        const isMatch = (item: CartItem) => item.id ? item.id === itemId : item.productId === itemId
-        const updateQuantity = (item: CartItem) =>
-          isMatch(item) ? { ...item, quantity } : item
+      const isMatch = (item: CartItem) => (item.id ? item.id === itemId : item.productId === itemId)
+      const updateQuantity = (item: CartItem) => (isMatch(item) ? { ...item, quantity } : item)
 
-        return {
-          ...old,
-          items: old.items.map(updateQuantity),
-          cartItems: old.cartItems?.map(updateQuantity),
-        }
+      queryClient.setQueryData<Cart>(["cart"], {
+        ...currentCart,
+        items: currentCart.items.map(updateQuantity),
       })
 
       return { previousCart }
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (err, _variables, context) => {
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(["cart"], context.previousCart)
       }
+      const errorMessage = getApiErrorMessage(err, "Không thể cập nhật số lượng sản phẩm")
+      AppToaster.error("Lỗi cập nhật giỏ hàng", {
+        description: errorMessage,
+      })
     },
 
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(["cart"], normalizeCart(response.data))
+      }
       AppToaster.success("Cập nhật giỏ hàng thành công", {
         description: "Số lượng sản phẩm đã được cập nhật.",
       })
@@ -158,28 +170,33 @@ export function useCart() {
 
     onMutate: async (itemId) => {
       await queryClient.cancelQueries({ queryKey: ["cart"] })
-      const previousCart = queryClient.getQueryData<OptimisticCart>(["cart"])
+      const previousCart = queryClient.getQueryData<Cart>(["cart"])
+      const currentCart = normalizeCart(previousCart)
 
-      queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
-        if (!old) return old
-        const isMatch = (item: CartItem) => item.id ? item.id === itemId : item.productId === itemId
-        return {
-          ...old,
-          items: old.items.filter((item) => !isMatch(item)),
-          cartItems: old.cartItems?.filter((item) => !isMatch(item)),
-        }
+      const isMatch = (item: CartItem) => (item.id ? item.id === itemId : item.productId === itemId)
+
+      queryClient.setQueryData<Cart>(["cart"], {
+        ...currentCart,
+        items: currentCart.items.filter((item) => !isMatch(item)),
       })
 
       return { previousCart }
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (err, _variables, context) => {
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(["cart"], context.previousCart)
       }
+      const errorMessage = getApiErrorMessage(err, "Không thể xóa sản phẩm khỏi giỏ hàng")
+      AppToaster.error("Lỗi xóa sản phẩm", {
+        description: errorMessage,
+      })
     },
 
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(["cart"], normalizeCart(response.data))
+      }
       AppToaster.success("Xóa sản phẩm thành công", {
         description: "Sản phẩm đã được xóa khỏi giỏ hàng.",
       })
@@ -196,23 +213,27 @@ export function useCart() {
 
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["cart"] })
-      const previousCart = queryClient.getQueryData<OptimisticCart>(["cart"])
+      const previousCart = queryClient.getQueryData<Cart>(["cart"])
 
-      queryClient.setQueryData<OptimisticCart | undefined>(["cart"], (old) => {
-        if (!old) return old
-        return { ...old, items: [], cartItems: old.cartItems ? [] : undefined }
-      })
+      queryClient.setQueryData<Cart>(["cart"], DEFAULT_CART)
 
       return { previousCart }
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (err, _variables, context) => {
       if (context?.previousCart !== undefined) {
         queryClient.setQueryData(["cart"], context.previousCart)
       }
+      const errorMessage = getApiErrorMessage(err, "Không thể xóa giỏ hàng")
+      AppToaster.error("Lỗi xóa giỏ hàng", {
+        description: errorMessage,
+      })
     },
 
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(["cart"], normalizeCart(response.data))
+      }
       AppToaster.success("Xóa giỏ hàng thành công", {
         description: "Giỏ hàng của bạn đã được xóa.",
       })
@@ -226,7 +247,10 @@ export function useCart() {
   // Apply promo code (không cần optimistic update vì cần server tính toán discount)
   const applyPromoCodeMutation = useMutation({
     mutationFn: (code: string) => cartService.applyPromoCode(code),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response?.data) {
+        queryClient.setQueryData(["cart"], normalizeCart(response.data))
+      }
       queryClient.invalidateQueries({ queryKey: ["cart"] })
       AppToaster.success("Áp dụng mã giảm giá thành công", {
         description: "Mã giảm giá đã được áp dụng.",

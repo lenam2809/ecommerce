@@ -59,7 +59,7 @@ export default function Home() {
             <Button
               variant="outline"
               asChild
-              className="rounded-full px-6 border-line text-ink hover:bg-surface w-fit h-11 focus-ring"
+              className="rounded-full px-6 border-border/80 dark:border-white/15 bg-card dark:bg-[#111827] text-foreground hover:bg-slate-100 dark:hover:bg-[#182234] w-fit h-11 focus-ring font-semibold"
             >
               <Link href="/products?sort=bestselling" className="inline-flex items-center gap-2">
                 <span>Xem tất cả</span>
@@ -81,10 +81,10 @@ export default function Home() {
           <div className="mt-12 text-center">
             <Button
               asChild
-              className="rounded-full px-8 h-12 bg-ink text-background hover:bg-brand hover:text-white transition-all shadow-sm focus-ring font-medium text-small"
+              className="rounded-full px-8 h-12 bg-[#e11d48] text-white hover:bg-[#be123c] transition-all shadow-md hover:shadow-lg focus-ring font-semibold text-sm"
             >
               <Link href="/products" className="inline-flex items-center gap-2">
-                Khám phá toàn bộ 500+ sản phẩm
+                <span>Khám phá toàn bộ 500+ sản phẩm</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

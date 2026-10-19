@@ -105,13 +105,16 @@ export class BaseService {
 
     // Phương thức xóa item
     async delete<T>(id: string): Promise<Result<T>> {
+        const cleanEndpoint = this.endpoint.replace(/\/+$/, '');
+        const cleanId = (id || '').replace(/^\/+/, '');
+        const url = cleanId ? `${cleanEndpoint}/${cleanId}` : cleanEndpoint;
         try {
-            const response: AxiosResponse<Result<T>> = await api.delete(`${this.endpoint}/${id}`);
+            const response: AxiosResponse<Result<T>> = await api.delete(url);
             return response.data;
         } catch (error) {
             handleApiError({
                 error,
-                context: { endpoint: `${this.endpoint}/${id}`, operation: 'delete' },
+                context: { endpoint: url, operation: 'delete' },
                 devTitle: 'Lỗi khi xóa',
                 notify: ({ title, description, id }) => {
                     AppToaster.error(title, { description, id })

@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Plus_Jakarta_Sans } from "next/font/google"
 import "./globals.css"
 import Providers from "./providers"
 import { ToastProvider } from "@/components/toast/toast-provider"
@@ -10,10 +10,10 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { generateOrganizationSchema } from "@/lib/seo-utils"
 import { toSafeJsonLd } from "@/lib/sanitize-html-content"
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-plus-jakarta-sans",
 })
 
 export const metadata: Metadata = {
@@ -76,7 +76,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: toSafeJsonLd(orgSchema) }}
         />
       </head>
-      <body className={`${inter.variable} font-sans bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground`}>
+      <body className={`${plusJakartaSans.variable} font-sans bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         <GuestIdInitializer />
         <ErrorBoundary>
           <Providers>

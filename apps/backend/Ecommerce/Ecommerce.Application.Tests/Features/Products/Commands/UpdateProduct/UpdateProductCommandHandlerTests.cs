@@ -35,8 +35,8 @@ public class UpdateProductCommandHandlerTests
             .ReturnsAsync(1);
 
         _fileStorageService
-            .Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>()))
-            .ReturnsAsync((IFormFile _, string folder) => $"{folder}/uploaded.png");
+            .Setup(x => x.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<string?>()))
+            .ReturnsAsync((IFormFile _, string folder, string? _) => $"{folder}/uploaded.png");
 
         _handler = new UpdateProductCommandHandler(
             _unitOfWork.Object,

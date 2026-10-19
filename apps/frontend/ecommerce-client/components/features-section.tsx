@@ -6,47 +6,47 @@ const features = [
     {
         icon: Truck,
         title: "Giao Siêu Tốc 2H",
-        description: "Miễn phí vận chuyển từ 2.000.000₫",
+        description: "Miễn phí đơn từ 500.000₫",
     },
     {
         icon: RefreshCw,
         title: "Đổi Trả 30 Ngày",
-        description: "1 đổi 1 tận nơi nếu có lỗi kỹ thuật",
+        description: "1 đổi 1 tận nơi khi lỗi kỹ thuật",
     },
     {
         icon: ShieldCheck,
         title: "100% Chính Hãng",
-        description: "Cam kết hoàn 200% nếu hàng giả",
+        description: "Ủy quyền Apple & hoàn tiền 200%",
     },
     {
         icon: HeadphonesIcon,
-        title: "Hỗ Trợ Chuyên Gia 24/7",
-        description: "Tư vấn cấu hình & giải pháp trọn đời",
+        title: "Chuyên Gia 24/7",
+        description: "Hotline miễn cước 1800 6868",
     },
 ]
 
 /**
- * FeaturesSection — Editorial Tech Minimalism
- * 4-column elevated USP grid with ruby red accent icons and subtle hover border
+ * FeaturesSection — Editorial Tech Minimalism (SSoT 2026)
+ * 4-column elevated USP grid with Electric Blue tech icons and balanced typography
  */
 export function FeaturesSection() {
     return (
         <section className="py-8 md:py-12">
             <div className="container-app">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-card p-6 md:p-8 rounded-3xl border border-line shadow-sm dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 bg-card dark:bg-[#111827] p-5 md:p-6 rounded-3xl border border-border/80 dark:border-white/[0.08] shadow-xs dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                     {features.map((feature) => (
                         <div
                             key={feature.title}
-                            className="flex items-start gap-4 p-2 transition-all duration-200 group"
+                            className="flex items-center gap-3.5 px-2 py-1.5 transition-all duration-200 group"
                         >
-                            <span className="grid place-items-center h-12 w-12 shrink-0 rounded-full bg-brand-soft text-brand group-hover:scale-105 transition-transform duration-200">
+                            <span className="grid place-items-center h-11 w-11 shrink-0 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-200">
                                 <feature.icon className="h-5 w-5" />
                             </span>
                             <div className="min-w-0">
-                                <h3 className="text-small font-semibold text-ink tracking-tight group-hover:text-brand transition-colors">
+                                <h3 className="text-sm font-semibold text-foreground tracking-tight leading-snug whitespace-nowrap group-hover:text-primary transition-colors">
                                     {feature.title}
                                 </h3>
-                                <p className="text-tiny text-ink-faint mt-1 leading-relaxed">
+                                <p className="text-xs text-muted-foreground mt-0.5 leading-snug whitespace-nowrap">
                                     {feature.description}
                                 </p>
                             </div>

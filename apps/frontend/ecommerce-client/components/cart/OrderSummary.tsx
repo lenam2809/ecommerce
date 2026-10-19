@@ -49,8 +49,8 @@ const OrderSummary = ({
     const isFreeShipping = shippingCost === 0 || subtotal >= 500000
 
     return (
-        <aside className="bg-card rounded-3xl border border-line overflow-hidden sticky top-28 shadow-xs">
-            <div className="p-5 border-b border-line/60 flex items-center justify-between">
+        <aside className="bg-card dark:bg-[#111827] rounded-3xl border border-border/80 dark:border-white/10 overflow-hidden sticky top-28 shadow-lg">
+            <div className="p-5 border-b border-border/60 dark:border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <ShoppingBag className="h-5 w-5 text-brand" />
                     <h3 className="text-small font-semibold text-ink">Tóm tắt đơn hàng</h3>
@@ -65,18 +65,18 @@ const OrderSummary = ({
                 <div className="space-y-3 text-small">
                     <div className="flex justify-between items-center">
                         <span className="text-ink-soft">Tạm tính</span>
-                        <span className="font-semibold text-ink">{formatPrice(subtotal)}</span>
+                        <span className="font-semibold text-ink tabular-nums">{formatPrice(subtotal)}</span>
                     </div>
 
                     <div className="flex justify-between items-center">
                         <span className="text-ink-soft">Phí vận chuyển</span>
                         <span className="font-medium">
                             {isFreeShipping ? (
-                                <span className="text-brand font-semibold px-2 py-0.5 rounded-full bg-brand-soft text-tiny">
+                                <span className="text-status-success font-semibold px-2.5 py-0.5 rounded-full bg-status-success-soft text-tiny">
                                     Miễn phí
                                 </span>
                             ) : (
-                                <span className="text-ink">{formatPrice(shippingCost || 30000)}</span>
+                                <span className="text-ink tabular-nums">{formatPrice(shippingCost || 30000)}</span>
                             )}
                         </span>
                     </div>
@@ -86,18 +86,18 @@ const OrderSummary = ({
                             <span className="flex items-center gap-1 font-medium">
                                 <Tag className="w-3.5 h-3.5" /> Giảm giá voucher
                             </span>
-                            <span className="font-bold">-{formatPrice(discount)}</span>
+                            <span className="font-bold tabular-nums">-{formatPrice(discount)}</span>
                         </div>
                     )}
                 </div>
 
-                <div className="h-px bg-line/60" />
+                <div className="h-px bg-white/8" />
 
                 {/* Total */}
                 <div className="flex justify-between items-baseline">
                     <span className="text-base font-semibold text-ink">Tổng cộng</span>
                     <div className="text-right">
-                        <span className="block text-2xl font-bold text-brand tracking-tight">
+                        <span className="block text-2xl font-bold text-brand tracking-tight tabular-nums">
                             {formatPrice(total)}
                         </span>
                         <span className="text-tiny text-ink-faint mt-0.5 block">
@@ -107,7 +107,7 @@ const OrderSummary = ({
                 </div>
 
                 {/* Promo Code Box */}
-                <div className="bg-surface-2/60 rounded-2xl border border-line/70 p-3.5 space-y-2.5">
+                <div className="bg-[#181c24] rounded-2xl border border-white/8 p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between">
                         <h4 className="text-tiny font-semibold text-ink flex items-center gap-1.5 uppercase tracking-wider">
                             <Tag className="h-3.5 w-3.5 text-brand" />
@@ -131,29 +131,29 @@ const OrderSummary = ({
                             placeholder="Nhập mã ưu đãi..."
                             value={promoCode}
                             onChange={(e) => setPromoCode(e.target.value)}
-                            className="h-10 rounded-full border-line bg-background text-tiny text-ink placeholder:text-ink-faint focus-visible:ring-brand/40"
+                            className="h-10 rounded-full border-white/10 bg-[#0b0f17] text-tiny text-ink placeholder:text-ink-faint focus-visible:ring-brand/40"
                             disabled={isApplyingPromoCode}
                         />
                         <Button
                             variant="outline"
                             onClick={handleApplyPromoCode}
                             disabled={!promoCode.trim() || isApplyingPromoCode}
-                            className="h-10 px-5 rounded-full border-line text-ink hover:bg-surface text-tiny font-semibold shrink-0"
+                            className="h-10 px-5 rounded-full border-white/10 text-ink hover:bg-white/5 text-tiny font-semibold shrink-0"
                         >
                             {isApplyingPromoCode ? "..." : "Áp dụng"}
                         </Button>
                     </div>
 
                     {discount > 0 && (
-                        <p className="text-tiny text-brand font-medium flex items-center gap-1.5 bg-brand-soft px-3 py-1.5 rounded-full">
-                            <Check className="h-3 w-3" />
+                        <p className="text-tiny text-status-success font-medium flex items-center gap-1.5 bg-status-success-soft px-3 py-1.5 rounded-full">
+                            <Check className="h-3.5 w-3.5" />
                             Đã áp dụng mã giảm giá thành công!
                         </p>
                     )}
 
                     {Boolean(promoCodeError) && (
-                        <p className="text-tiny text-destructive flex items-center bg-destructive/5 px-3 py-1.5 rounded-full">
-                            <span className="h-1.5 w-1.5 rounded-full bg-destructive mr-2 shrink-0" />
+                        <p className="text-tiny text-status-danger flex items-center gap-1.5 bg-status-danger-soft px-3 py-1.5 rounded-full">
+                            <span className="h-1.5 w-1.5 rounded-full bg-status-danger mr-1 shrink-0" />
                             {getPromoCodeErrorMessage(promoCodeError)}
                         </p>
                     )}
@@ -162,7 +162,7 @@ const OrderSummary = ({
                 {/* Checkout CTA Button */}
                 <div className="space-y-4 pt-1">
                     <Button
-                        className="w-full h-12 rounded-full bg-brand text-white hover:bg-brand-hover text-small font-semibold transition-all shadow-sm hover:shadow-md focus-ring"
+                        className="w-full h-12 rounded-xl bg-brand text-white hover:bg-brand-hover text-small font-semibold transition-all shadow-md hover:shadow-brand/30 active:scale-[0.98]"
                         asChild
                     >
                         <Link href="/checkout" className="flex items-center justify-center gap-2">

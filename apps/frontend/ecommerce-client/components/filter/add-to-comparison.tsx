@@ -5,12 +5,14 @@ import { SplitSquareVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Product } from "@/types/product"
 import { AppToaster } from "@/components/toast/app-toaster"
+import { cn } from "@/lib/utils"
 
 interface AddToComparisonProps {
     product: Product
+    className?: string
 }
 
-export default function AddToComparison({ product }: AddToComparisonProps) {
+export default function AddToComparison({ product, className }: AddToComparisonProps) {
     const [isInComparison, setIsInComparison] = useState(false)
 
     // Check if product is already in comparison
@@ -59,11 +61,13 @@ export default function AddToComparison({ product }: AddToComparisonProps) {
         <Button
             variant={isInComparison ? "default" : "outline"}
             size="icon"
-            className={
+            className={cn(
+                "transition-all duration-200",
                 isInComparison
-                    ? "bg-brand text-white hover:bg-brand-hover"
-                    : "text-brand border-brand/40 hover:bg-brand-soft"
-            }
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "text-primary border-primary/30 hover:bg-primary/10",
+                className
+            )}
             onClick={toggleComparison}
             title={isInComparison ? "Xóa khỏi so sánh" : "Thêm vào so sánh"}
         >

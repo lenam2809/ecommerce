@@ -13,10 +13,12 @@ interface AddToCartButtonProps {
     productName?: string;
     price?: number;
     category?: string;
+    iconOnly?: boolean;
+    children?: React.ReactNode;
 }
 
 const AddToCartButton: React.FC<AddToCartButtonProps> = ({ 
-    productId, stockQuantity, title, className, productName, price, category 
+    productId, stockQuantity, title, className, productName, price, category, iconOnly, children
 }) => {
     const { addToCart, isAddingToCart } = useCart()
 
@@ -42,17 +44,20 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         }
     }
 
-    if (title && !isOutOfStock) {
+    if (iconOnly) {
         return (
             <Button
-                size="sm"
-                className={cn("bg-primary hover:bg-primary/90 text-primary-foreground", className)}
+                size="icon"
                 onClick={handleAddToCart}
                 disabled={isDisabled}
-                title={title}
+                title={isOutOfStock ? "Sản phẩm đã hết hàng" : (title || "Thêm vào giỏ hàng")}
+                className={cn(
+                    "h-11 w-11 sm:h-9 sm:w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm active:scale-95 transition-all p-0 flex items-center justify-center shrink-0",
+                    isOutOfStock && "bg-muted text-muted-foreground opacity-50 cursor-not-allowed",
+                    className
+                )}
             >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Thêm vào giỏ
+                {isOutOfStock ? <Ban className="h-4 w-4" /> : <ShoppingCart className="h-4.5 w-4.5 sm:h-4 sm:w-4" />}
             </Button>
         )
     }
@@ -74,12 +79,26 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         )
     }
 
+    if (children) {
+        return (
+            <Button
+                size="sm"
+                onClick={handleAddToCart}
+                disabled={isDisabled}
+                title={title || "Thêm vào giỏ hàng"}
+                className={cn("bg-primary hover:bg-primary/90 text-primary-foreground transition-all", className)}
+            >
+                {children}
+            </Button>
+        )
+    }
+
     return (
         <Button
             size="sm"
             onClick={handleAddToCart}
             disabled={isDisabled}
-            title="Thêm vào giỏ hàng"
+            title={title || "Thêm vào giỏ hàng"}
             className={cn("w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors", className)}
         >
             <ShoppingCart className="h-4 w-4 mr-2" />

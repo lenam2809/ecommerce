@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronRight, Package, Calendar, Truck } from "lucide-react"
 
 import Image from "next/image"
+import { formatImageUrl } from "@/lib/utils"
 
 /**
  * OrderItem — Editorial Minimal
@@ -48,7 +49,7 @@ export function OrderItem({ order }: { order: Order }) {
                             <div className="relative w-16 h-16 bg-surface rounded-xl overflow-hidden border border-line shrink-0">
                                 {item.image || item.imageUrl ? (
                                     <Image
-                                        src={item.image || item.imageUrl || "/placeholder.svg"}
+                                        src={formatImageUrl(item.image || item.imageUrl)}
                                         alt={item.name || item.productName || "Product"}
                                         fill
                                         sizes="64px"

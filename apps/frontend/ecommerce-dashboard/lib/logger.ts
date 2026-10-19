@@ -7,10 +7,16 @@ const isDev = process.env.NODE_ENV === 'development';
 const sensitiveKeyPattern = /(token|cookie|authorization|password|secret|email|phone|address|payment|vnpay|txn|transaction)/i;
 
 function sanitizeLogArg(value: unknown, seen = new WeakSet<object>()): unknown {
-  if (value instanceof Error) {
+  if (
+    value instanceof Error ||
+    (typeof value === 'object' && value !== null && ('message' in value || 'isAxiosError' in value))
+  ) {
+    const err = value as { name?: string; message?: string; code?: string; status?: number };
     return {
-      name: value.name,
-      message: value.message,
+      name: err.name || 'Error',
+      message: err.message || String(value),
+      ...(err.code ? { code: err.code } : {}),
+      ...(err.status ? { status: err.status } : {}),
     };
   }
 

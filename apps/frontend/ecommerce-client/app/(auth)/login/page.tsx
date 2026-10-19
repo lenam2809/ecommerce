@@ -10,7 +10,7 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getApiErrorMessage } from "@/hooks/use-auth"
 import { AppToaster } from "@/components/toast/app-toaster"
 import { GoogleLoginButton } from "@/components/auth/google-login-button"
 import { isGoogleLoginEnabled } from "@/lib/google-auth"
@@ -86,10 +86,11 @@ function LoginContent() {
             });
 
             router.push(redirectUrl);
-        } catch {
+        } catch (err: unknown) {
+            const description = getApiErrorMessage(err, "Email hoặc mật khẩu không chính xác");
             AppToaster.error("Đăng nhập thất bại", {
-                description: "Email hoặc mật khẩu không chính xác",
-                duration: Infinity,
+                description,
+                duration: 5000,
             });
         } finally {
             setIsLoading(false);

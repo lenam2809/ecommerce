@@ -1,10 +1,11 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Trash2, Minus, Plus } from "lucide-react"
 import { formatPrice } from "@/lib/contants"
+import { formatImageUrl } from "@/lib/utils"
 import type { CartItem as CartItemType } from "@/types/cart"
 
 export type CartItemProps = {
@@ -26,6 +27,12 @@ const CartItem = ({
     isUpdating,
     isRemoving,
 }: CartItemProps) => {
+    const [imgSrc, setImgSrc] = useState(() => formatImageUrl(item.image))
+
+    useEffect(() => {
+        setImgSrc(formatImageUrl(item.image))
+    }, [item.image])
+
     return (
         <div className="p-4 sm:p-5 border-b border-line/60 transition-colors duration-200 last:border-0 hover:bg-surface/30">
             <div className="grid grid-cols-12 gap-3 sm:gap-6 items-center">
@@ -33,11 +40,12 @@ const CartItem = ({
                 <div className="col-span-12 sm:col-span-6 flex items-center gap-3.5">
                     <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 rounded-2xl border border-line overflow-hidden bg-surface-2/40">
                         <Image
-                            src={item.image || "/placeholder.svg"}
+                            src={imgSrc}
                             alt={item.name}
                             fill
                             sizes="96px"
                             className="object-cover"
+                            onError={() => setImgSrc("/placeholder.svg")}
                         />
                     </div>
 
@@ -104,13 +112,13 @@ const CartItem = ({
                     </div>
                 </div>
 
-                {/* Line total & Remove */}
+                {/* Line total & Remove (Ghost button with status-danger hover per Rule 2) */}
                 <div className="col-span-6 sm:col-span-2 flex items-center justify-end gap-3">
-                    <span className="text-small sm:text-base font-bold text-ink tracking-tight">
+                    <span className="text-small sm:text-base font-bold text-ink tracking-tight tabular-nums">
                         {formatPrice(item.price * item.quantity)}
                     </span>
                     <button
-                        className="grid place-items-center h-8.5 w-8.5 rounded-full text-ink-faint hover:text-brand hover:bg-brand-soft transition-all duration-200 focus-ring"
+                        className="grid place-items-center h-8.5 w-8.5 rounded-full text-ink-faint hover:text-status-danger hover:bg-status-danger-soft transition-all duration-200 focus-ring"
                         onClick={() => onRemove(item.id || item.productId)}
                         disabled={isRemoving}
                         aria-label="Xóa sản phẩm"

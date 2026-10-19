@@ -166,25 +166,23 @@ export function CategorySection({ categories }: CategorySectionProps) {
                   sizes={isHero ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 25vw"}
                   className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                 />
+                {/* Darker overlay for high contrast readability */}
                 <div
-                  className={cn(
-                    "absolute inset-0 bg-gradient-to-t via-black/10 to-transparent",
-                    isHero ? "from-black/80 via-black/20" : "from-black/75"
-                  )}
+                  className="absolute inset-0 bg-gradient-to-t from-[#0b0f17]/95 via-[#0b0f17]/50 to-transparent"
                   aria-hidden="true"
                 />
 
                 <div className="relative z-10">
-                  <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-[10px] font-semibold uppercase tracking-wider">
+                  <span className="inline-block bg-[#0b0f17]/75 backdrop-blur-md text-white border border-white/15 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
                     {tile.badge}
                   </span>
                 </div>
 
-                <div className="relative z-10 text-white">
+                <div className="relative z-10 text-white drop-shadow-xs">
                   <h3
                     className={cn(
-                      "font-semibold tracking-tight",
-                      isHero ? "text-h2 mb-2" : "text-h3"
+                      "font-bold tracking-tight text-white",
+                      isHero ? "text-2xl md:text-3xl mb-2" : "text-xl mb-1"
                     )}
                   >
                     {tile.title}
@@ -192,14 +190,14 @@ export function CategorySection({ categories }: CategorySectionProps) {
                   {tile.description && (
                     <p
                       className={cn(
-                        "text-white/80 mb-3",
-                        isHero ? "text-small max-w-sm mb-4" : "text-tiny mb-2"
+                        "text-slate-200 leading-relaxed",
+                        isHero ? "text-sm max-w-sm mb-4" : "text-xs mb-2.5"
                       )}
                     >
                       {tile.description}
                     </p>
                   )}
-                  <span className="inline-flex items-center gap-1.5 text-tiny font-semibold text-white group-hover:text-primary-container transition-colors">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-[#fb7185] transition-colors">
                     <span>{tile.cta}</span>
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </span>

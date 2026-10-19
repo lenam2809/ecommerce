@@ -62,7 +62,7 @@ async function refreshTokenSilently(): Promise<boolean> {
 
     return true
   } catch (error) {
-    logger.error('Token refresh failed:', error)
+    logger.debug('Token refresh failed (guest or expired session):', error)
     return false
   }
 }

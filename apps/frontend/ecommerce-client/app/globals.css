@@ -5,6 +5,9 @@
 @plugin "tailwindcss-animate";
 
 @theme {
+  --font-sans: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 
@@ -42,24 +45,39 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
 
-  /* ─── Brand — 1 accent duy nhất (đỏ ruby) ─── */
+  /* ─── ShopViet Hybrid Premium Tech — Dual-Accent System ─── */
+  /* 1. Tech Primary Accent (Electric Blue #2563EB / #3B82F6) */
+  --color-tech-blue: hsl(var(--tech-blue));
+  --color-tech-blue-hover: hsl(var(--tech-blue-hover));
+  --color-tech-blue-soft: var(--tech-blue-soft);
+
+  /* 2. Action CTA / Conversion / Sale (Tech Crimson #E11D48) */
   --color-brand: hsl(var(--brand));
   --color-brand-hover: hsl(var(--brand-hover));
   --color-brand-soft: hsl(var(--brand-soft));
+  --color-cta-crimson: hsl(var(--brand));
+  --color-cta-crimson-hover: hsl(var(--brand-hover));
+  --color-cta-crimson-soft: hsl(var(--brand-soft));
 
-  /* ─── Neutral surfaces (light-first) ─── */
+  /* ─── Neutral Surfaces & Typography (Cold Slate / Deep Obsidian) ─── */
   --color-surface: hsl(var(--surface));
   --color-surface-2: hsl(var(--surface-2));
+  --color-elevated: hsl(var(--surface-2));
+  --color-bento-dark: var(--bento-dark);
   --color-ink: hsl(var(--ink));
   --color-ink-soft: hsl(var(--ink-soft));
   --color-ink-faint: hsl(var(--ink-faint));
   --color-line: hsl(var(--line));
+  --color-line-strong: hsl(var(--line-strong));
 
-  /* ─── Stitch design tokens (ShopViet UI/UX Redesign 2026) ─── */
-  --color-primary-container: #e11d48;
-  --color-on-primary-container: #fffaf9;
-  --color-primary-fixed: #ffdada;
+  /* ─── Stitch Container Tokens (Clean SSoT 2026, no pink tints) ─── */
+  --color-primary-container: #2563eb;
+  --color-on-primary-container: #ffffff;
+  --color-primary-fixed: #dbeafe;
   --color-on-surface: var(--on-surface);
   --color-on-surface-variant: var(--on-surface-variant);
   --color-surface-container-lowest: var(--surface-container-lowest);
@@ -69,27 +87,37 @@
   --color-surface-container-highest: var(--surface-container-highest);
   --color-outline: var(--outline);
   --color-outline-variant: var(--outline-variant);
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
+  --color-error-container: #fef2f2;
+  --color-on-error-container: #991b1b;
 
-  /* ─── Typography scale ─── */
+  /* ─── Semantic Feedback Tokens ─── */
+  --color-status-success: var(--status-success);
+  --color-status-success-soft: var(--status-success-soft);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-soft: var(--status-warning-soft);
+  --color-status-danger: var(--status-danger);
+  --color-status-danger-soft: var(--status-danger-soft);
+  --color-card-hover: var(--card-hover);
+
+  /* ─── Typography scale (Vietnamese balanced) ─── */
   --text-display: 3.5rem;
-  --text-display--line-height: 1.05;
-  --text-display--letter-spacing: -0.03em;
+  --text-display--line-height: 1.25;
+  --text-display--letter-spacing: -0.015em;
 
   --text-h1: 2.5rem;
-  --text-h1--line-height: 1.1;
-  --text-h1--letter-spacing: -0.02em;
+  --text-h1--line-height: 1.25;
+  --text-h1--letter-spacing: -0.015em;
 
   --text-h2: 1.875rem;
-  --text-h2--line-height: 1.2;
+  --text-h2--line-height: 1.25;
   --text-h2--letter-spacing: -0.01em;
 
   --text-h3: 1.25rem;
-  --text-h3--line-height: 1.3;
+  --text-h3--line-height: 1.35;
 
   --text-small: 0.875rem;
   --text-tiny: 0.75rem;
+  --text-label-sm: 0.6875rem;
 
   /* ─── Motion ─── */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -104,126 +132,166 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 0 0% 98%;
-    --foreground: 240 4% 11%;
+    /* Surfaces: Cold Alabaster Slate */
+    --background: 210 40% 98%;          /* #F8FAFC */
+    --foreground: 222 47% 11%;          /* #0F172A (WCAG AAA) */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 4% 11%;
+    --card: 0 0% 100%;                  /* #FFFFFF Pure White */
+    --card-foreground: 222 47% 11%;     /* #0F172A */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 4% 11%;
+    --popover: 0 0% 100%;               /* #FFFFFF */
+    --popover-foreground: 222 47% 11%;
 
-    /* Brand red — đồng nhất light & dark */
-    --primary: 347 77% 50%;
+    /* Tech Primary: Electric Blue #2563EB */
+    --primary: 221 83% 53%;             /* #2563EB */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 4% 11%;
+    --secondary: 210 40% 96.1%;         /* #F1F5F9 */
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 38%;
+    --muted: 210 40% 96.1%;             /* #F1F5F9 */
+    --muted-foreground: 215 19% 35%;    /* #475569 */
 
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 4% 11%;
+    --accent: 214 100% 97%;             /* #EFF6FF */
+    --accent-foreground: 221 83% 53%;   /* #2563EB */
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 51%;           /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: 347 77% 50%;
+    --border: 214 32% 91%;              /* #E2E8F0 */
+    --input: 214 32% 91%;               /* #E2E8F0 */
+    --ring: 221 83% 53%;                /* #2563EB */
 
-    --chart-1: 347 77% 50%;
+    --chart-1: 221 83% 53%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --chart-5: 347 77% 50%;
 
     --radius: 0.75rem;
 
-    /* ─── Brand & neutral tokens ─── */
-    --brand: 347 77% 50%;
-    --brand-hover: 350 77% 46%;
-    --brand-soft: 347 100% 97%;
+    /* Tech Blue Tokens */
+    --tech-blue: 221 83% 53%;           /* #2563EB */
+    --tech-blue-hover: 224 76% 48%;     /* #1D4ED8 */
+    --tech-blue-soft: #EFF6FF;
 
-    --surface: 0 0% 98%;
-    --surface-2: 0 0% 95%;
-    --ink: 240 4% 11%;
-    --ink-soft: 240 4% 38%;
-    --ink-faint: 240 4% 60%;
-    --line: 0 0% 89%;
+    /* Conversion CTA: Tech Crimson #E11D48 */
+    --brand: 347 77% 50%;               /* #E11D48 */
+    --brand-hover: 345 83% 41%;         /* #BE123C */
+    --brand-soft: 356 100% 97%;         /* #FFF1F2 */
 
-    /* Stitch container tokens */
+    /* Neutral Surfaces */
+    --surface: 210 40% 96.1%;           /* #F1F5F9 */
+    --surface-2: 214 32% 91.4%;         /* #E2E8F0 */
+    --bento-dark: #090D16;              /* Dark Bento Accent */
+
+    /* Typography */
+    --ink: 222 47% 11%;                 /* #0F172A */
+    --ink-soft: 215 19% 35%;            /* #475569 */
+    --ink-faint: 215 16% 47%;           /* #64748B */
+    --line: 214 32% 91%;                /* #E2E8F0 */
+    --line-strong: 213 27% 84%;         /* #CBD5E1 */
+
+    /* Feedback Tokens */
+    --status-success: #059669;
+    --status-success-soft: rgba(5, 150, 105, 0.12);
+    --status-warning: #d97706;
+    --status-warning-soft: rgba(217, 119, 6, 0.12);
+    --status-danger: #dc2626;
+    --status-danger-soft: rgba(220, 38, 38, 0.12);
+    --card-hover: #f1f5f9;
+
+    /* Clean Container Tokens */
     --surface-container-lowest: #ffffff;
-    --surface-container-low: #f3f3f3;
-    --surface-container: #eeeeee;
-    --surface-container-high: #e8e8e8;
-    --surface-container-highest: #e2e2e2;
-    --on-surface: #1a1c1c;
-    --on-surface-variant: #5c3f40;
-    --outline: #906f70;
-    --outline-variant: #e5bdbe;
+    --surface-container-low: #f8fafc;
+    --surface-container: #f1f5f9;
+    --surface-container-high: #e2e8f0;
+    --surface-container-highest: #cbd5e1;
+    --on-surface: #0f172a;
+    --on-surface-variant: #475569;
+    --outline: #cbd5e1;
+    --outline-variant: #e2e8f0;
   }
 
   .dark {
     color-scheme: dark;
-    --background: 220 9% 6%;
-    --foreground: 240 3% 95%;
+    /* Surfaces: Deep Obsidian 3-Tier */
+    --background: 222 42% 6%;           /* #090D16 */
+    --foreground: 210 40% 98%;          /* #F8FAFC */
 
-    --card: 225 8% 10%;
-    --card-foreground: 240 3% 95%;
+    --card: 221 39% 11%;                /* #111827 */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 225 8% 10%;
-    --popover-foreground: 240 3% 95%;
+    --popover: 217 33% 17.5%;           /* #1E293B */
+    --popover-foreground: 210 40% 98%;
 
-    /* Cùng brand red, sáng hơn chút cho contrast trên nền tối */
-    --primary: 347 77% 50%;
+    /* Tech Primary: Electric Blue #3B82F6 */
+    --primary: 217 91% 60%;             /* #3B82F6 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 7% 13%;
-    --secondary-foreground: 240 3% 95%;
+    --secondary: 219 37% 15%;           /* #182234 */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 225 7% 13%;
-    --muted-foreground: 240 5% 68%;
+    --muted: 219 37% 15%;               /* #182234 */
+    --muted-foreground: 215 20% 65%;    /* #94A3B8 */
 
-    --accent: 225 7% 13%;
-    --accent-foreground: 240 3% 95%;
+    --accent: 217 91% 16%;
+    --accent-foreground: 217 91% 60%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 51%;           /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 7% 19%;
-    --input: 230 7% 19%;
-    --ring: 347 77% 50%;
+    --border: 217 33% 17.5%;            /* #1E293B */
+    --input: 217 33% 17.5%;             /* #1E293B */
+    --ring: 217 91% 60%;                /* #3B82F6 */
 
-    --chart-1: 347 77% 56%;
+    --chart-1: 217 91% 60%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-5: 347 77% 50%;
 
-    /* ─── Brand & neutral tokens (dark) ─── */
-    --brand: 347 77% 50%;
-    --brand-hover: 347 77% 56%;
-    --brand-soft: 347 40% 14%;
+    /* Tech Blue Tokens */
+    --tech-blue: 217 91% 60%;           /* #3B82F6 */
+    --tech-blue-hover: 213 94% 68%;     /* #60A5FA */
+    --tech-blue-soft: rgba(59, 130, 246, 0.14);
 
-    --surface: 220 9% 6%;
-    --surface-2: 225 8% 10%;
-    --ink: 240 3% 95%;
-    --ink-soft: 240 5% 68%;
-    --ink-faint: 240 5% 50%;
-    --line: 230 7% 19%;
+    /* Conversion CTA: Tech Crimson #E11D48 */
+    --brand: 347 77% 50%;               /* #E11D48 */
+    --brand-hover: 345 83% 41%;         /* #BE123C */
+    --brand-soft: rgba(225, 29, 72, 0.15);
 
-    /* Stitch container tokens (Dark) */
-    --surface-container-lowest: #121316;
-    --surface-container-low: #17181b;
-    --surface-container: #1c1d22;
-    --surface-container-high: #222329;
-    --surface-container-highest: #2c2d33;
-    --on-surface: #f2f2f3;
-    --on-surface-variant: #a1a1aa;
-    --outline: #2c2d33;
-    --outline-variant: #3a3b42;
+    /* Neutral Surfaces */
+    --surface: 219 37% 15%;             /* #182234 */
+    --surface-2: 217 33% 17.5%;         /* #1E293B */
+    --bento-dark: #111827;
+
+    /* Typography */
+    --ink: 210 40% 98%;                 /* #F8FAFC */
+    --ink-soft: 215 20% 65%;            /* #94A3B8 */
+    --ink-faint: 215 16% 47%;           /* #64748B */
+    --line: 217 33% 17.5%;              /* #1E293B */
+    --line-strong: 215 25% 27%;         /* #334155 */
+
+    /* Feedback Tokens */
+    --status-success: #10b981;
+    --status-success-soft: rgba(16, 185, 129, 0.15);
+    --status-warning: #f59e0b;
+    --status-warning-soft: rgba(245, 158, 11, 0.15);
+    --status-danger: #ef4444;
+    --status-danger-soft: rgba(239, 68, 68, 0.15);
+    --card-hover: #1e293b;
+
+    /* Clean Container Tokens */
+    --surface-container-lowest: #090d16;
+    --surface-container-low: #0f1523;
+    --surface-container: #111827;
+    --surface-container-high: #182234;
+    --surface-container-highest: #1e293b;
+    --on-surface: #f8fafc;
+    --on-surface-variant: #94a3b8;
+    --outline: #334155;
+    --outline-variant: #1e293b;
   }
 
   * {
@@ -234,12 +302,34 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
-    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
   }
 }
 
 /* ============================================
-   EDITORIAL MINIMAL — Utilities mới
+   SYSTEM Z-INDEX HIERARCHY
+   Drawer/Modal: z-[60] > Sticky Bars: z-50 > Header/Bottom Nav: z-40
+   ============================================ */
+.z-modal-drawer { z-index: 60; }
+.z-sticky-bar   { z-index: 50; }
+.z-header-nav   { z-index: 40; }
+
+/* ============================================
+   TYPOGRAPHY & CURRENCY GUARANTEES
+   Never wrap currency symbols & keep numerals aligned
+   ============================================ */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.price-tag,
+.currency-vnd {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ============================================
+   EDITORIAL MINIMAL & HYBRID BENTO UTILITIES
    ============================================ */
 
 /* Container chuẩn toàn app */
@@ -267,7 +357,7 @@
   font-size: var(--text-h2);
   line-height: var(--text-h2--line-height);
   letter-spacing: var(--text-h2--letter-spacing);
-  font-weight: 600;
+  font-weight: 700;
   color: hsl(var(--ink));
 }
 
@@ -275,18 +365,18 @@
 
 @utility section-label {
   font-size: var(--text-tiny);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: hsl(var(--ink-faint));
+  letter-spacing: 0.15em;
+  color: hsl(var(--tech-blue));
 }
 
-/* Focus ring chuẩn */
+/* Focus ring chuẩn Electric Blue */
 @utility focus-ring {
   outline: none;
 
   &:focus-visible {
-    outline: 2px solid hsl(var(--brand));
+    outline: 2px solid hsl(var(--tech-blue));
     outline-offset: 2px;
   }
 }
@@ -302,11 +392,10 @@
 }
 
 /* ============================================
-   PREMIUM TECH DESIGN SYSTEM (giữ nguyên cho
-   các trang khác: about, contact, account, auth)
+   PREMIUM TECH EFFECTS
    ============================================ */
 
-/* 1. MESH GRADIENT ANIMATIONS (Stripe-like) */
+/* Mesh flow gradient */
 @keyframes mesh-flow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -314,232 +403,114 @@
 }
 
 .mesh-gradient-bg {
-  background-color: #000000;
+  background-color: #090d16;
   background-image:
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(225, 29, 72, 0.12) 0, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.8) 0, transparent 50%);
   background-size: 200% 200%;
   animation: mesh-flow 15s ease infinite;
 }
 
 .mesh-gradient-subtle {
   background:
-    radial-gradient(circle at 50% -20%, rgba(225, 29, 72, 0.12), transparent 60%),
-    radial-gradient(circle at 100% 50%, rgba(190, 18, 60, 0.08), transparent 50%);
+    radial-gradient(circle at 50% -20%, rgba(37, 99, 235, 0.08), transparent 60%),
+    radial-gradient(circle at 100% 50%, rgba(225, 29, 72, 0.06), transparent 50%);
 }
 
-/* 2. GLASSMORPHISM 2.0 (Apple-style) */
+/* Glassmorphism 2.0 */
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass {
+  background-color: rgba(17, 24, 39, 0.8);
+  border-color: rgba(30, 41, 59, 0.8);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-:root:not(.dark) .glass-card {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.05);
+.dark .glass-card {
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .glass-card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 20px 40px -4px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.08);
+}
+.dark .glass-card-hover:hover {
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-:root:not(.dark) .glass-card-hover:hover {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    0 20px 40px -4px rgba(0, 0, 0, 0.1);
-}
-
-/* 3. TYPOGRAPHY (Nike Tech-style) */
+/* Tech Heading */
 .tech-heading {
-  @apply font-semibold tracking-tight;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .tech-label {
-  @apply text-xs font-medium tracking-wider uppercase text-muted-foreground;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
 }
 
+/* Gradient Text */
 .text-gradient {
-  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-:root:not(.dark) .text-gradient {
-  background: linear-gradient(135deg, #111827 0%, #4f46e5 100%);
+.dark .text-gradient {
+  background: linear-gradient(135deg, #f8fafc 0%, #60a5fa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* 4. UTILITIES */
-
+/* Fade in animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-.glow-on-hover {
-  position: relative;
-  overflow: hidden;
-}
-.glow-on-hover::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transform: skewX(-20deg);
-  transition: 0.5s;
-}
-.glow-on-hover:hover::after {
-  left: 150%;
-  transition: 0.7s ease-in-out;
-}
-
-/* 5. TOAST PROGRESS ANIMATION */
-@keyframes progress-linear {
-  0% { transform: scaleX(1); }
-  100% { transform: scaleX(0); }
-}
-
-.animate-progress-linear {
-  animation-name: progress-linear;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.group:hover .animate-progress-linear {
-  animation-play-state: paused !important;
-}
-
-/* 6. DARK MODE ENHANCEMENTS */
-.dark {
-  color-scheme: dark;
-}
-
-.dark *:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
-  border-color: hsl(var(--border));
-}
-
-.dark input:focus,
-.dark textarea:focus,
-.dark select:focus {
-  background-color: hsl(var(--card));
-  border-color: hsl(var(--primary));
-}
-
-.dark {
-  --shadow-color: 0deg 0% 0%;
-}
-
-.dark button {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-
-.dark a:not([class]) {
-  color: hsl(var(--primary));
-}
-
-.dark a:not([class]):hover {
-  color: hsl(var(--primary) / 0.8);
-}
-
-.dark ::selection {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.dark ::-webkit-scrollbar {
+/* Scrollbar */
+::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
-.dark ::-webkit-scrollbar-track {
-  background: hsl(var(--card));
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.5);
-  border-radius: 4px;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.7);
-}
-
-/* ============================================
-   7. DARK MODE DETAILS — Editorial Minimal
-   ============================================ */
-
-/* ─── Scrollbar: cả light lẫn dark ─── */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--ink-faint) / 0.35);
+  background: hsl(var(--ink-faint) / 0.3);
   border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--ink-faint) / 0.55);
-  background-clip: padding-box;
-  border: 2px solid transparent;
+  background: hsl(var(--ink-faint) / 0.5);
 }
 
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--ink-faint) / 0.4) transparent;
-}
-
-/* ─── scrollbar-hide utility (dùng khắp app) ─── */
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -548,38 +519,10 @@
   }
 }
 
-/* ─── Skeleton shimmer mượt ─── */
-@keyframes shimmer {
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
-}
-
-.animate-pulse {
-  animation-duration: 1.6s;
-}
-
-/* ─── Smooth theme transition (chỉ khi toggle, không lúc load) ─── */
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after {
-  transition:
-    background-color 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease,
-    fill 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-/* ─── Form controls dark: autofill fix (không nền vàng) ─── */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill,
-select:-webkit-autofill:hover,
-select:-webkit-autofill:focus {
+/* Dark Form Controls */
+.dark input:-webkit-autofill,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
   -webkit-text-fill-color: hsl(var(--foreground));
   -webkit-box-shadow: 0 0 0 1000px hsl(var(--card)) inset;
   box-shadow: 0 0 0 1000px hsl(var(--card)) inset;
@@ -587,60 +530,13 @@ select:-webkit-autofill:focus {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* ─── Placeholder rõ hơn trong dark ─── */
 .dark ::placeholder {
-  color: hsl(var(--muted-foreground) / 0.7);
+  color: hsl(var(--muted-foreground) / 0.6);
   opacity: 1;
 }
 
-/* ─── Giảm chói ảnh trong dark (ẩn ảnh nền sáng) ─── */
-.dark .dim-image-dark {
-  filter: brightness(0.85) contrast(1.05);
-}
-
-.dark img:not(.no-dim) {
-  /* Chỉ dim ảnh nền/card, giữ ảnh sản phẩm rõ */
-  /* Bật thủ công bằng class dim-image-dark ở trên */
-}
-
-/* ─── Shadow depth cho dark (đổ bóng tối hơn, tinh tế) ─── */
-.dark {
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.55), 0 8px 10px -6px rgb(0 0 0 / 0.45);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.6);
-}
-
-/* ─── Ring focus trong dark đậm hơn ─── */
-.dark *:focus-visible {
-  outline: 2px solid hsl(var(--brand));
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-/* ─── Border mờ hơn trong dark (tạo depth tự nhiên) ─── */
-.dark .border,
-.dark [class*="border-"] {
-  border-color: hsl(var(--border) / 0.8);
-}
-
-/* ─── Card nổi nhẹ trong dark ─── */
-.dark .bg-card {
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.03);
-}
-
-/* ─── Khi JS chưa load: fallback theo prefers-color-scheme ─── */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light):not(.dark) {
-    color-scheme: dark;
-  }
-}
-
-/* ─── Selection light mode (khớp brand) ─── */
+/* Selection */
 ::selection {
-  background-color: hsl(var(--brand) / 0.85);
-  color: #fff;
+  background-color: hsl(var(--tech-blue) / 0.25);
+  color: hsl(var(--foreground));
 }
-

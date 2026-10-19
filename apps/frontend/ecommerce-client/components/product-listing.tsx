@@ -99,8 +99,8 @@ function ProductListingContent({
     const searchParams = useSearchParams()
 
     // Fetch category and brand data if provided
-    const { data: category } = useCategoryBySlug(categorySlug ?? "")
-    const { data: brand } = useBrandBySlug(brandSlug ?? "")
+    const { data: category, isLoading: isLoadingCategory } = useCategoryBySlug(categorySlug ?? "")
+    const { data: brand, isLoading: isLoadingBrand } = useBrandBySlug(brandSlug ?? "")
 
     // State với giá trị mặc định từ URL
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -158,19 +158,26 @@ function ProductListingContent({
 
     const trimmedSearchTerm = debouncedSearchTerm.trim()
 
+    const isCategoryPending = !!categorySlug && isLoadingCategory
+    const isBrandPending = !!brandSlug && isLoadingBrand
+    const shouldEnable = !isCategoryPending && !isBrandPending
+
     // Chuẩn bị filters cho API call
     const apiFilters: ProductFiltersType = {
         ...filters,
+        ...(category?.id ? { categoryIds: category.id } : {}),
+        ...(brand?.id ? { brandIds: brand.id } : {}),
         searchTerm: trimmedSearchTerm || undefined,
         pageNumber: currentPage,
         pageSize: 12,
     }
 
     const useElasticSearch = trimmedSearchTerm.length > 0
-    const catalogQuery = useProducts(apiFilters, !useElasticSearch)
-    const searchQuery = useSearchProducts(apiFilters, useElasticSearch)
+    const catalogQuery = useProducts(apiFilters, !useElasticSearch && shouldEnable)
+    const searchQuery = useSearchProducts(apiFilters, useElasticSearch && shouldEnable)
     const activeQuery = useElasticSearch ? searchQuery : catalogQuery
-    const { data, isLoading, isError } = activeQuery
+    const { data, isLoading: isLoadingProducts, isError } = activeQuery
+    const isLoading = isLoadingProducts || isCategoryPending || isBrandPending
     const products = data?.items || []
     const totalPages = data?.totalPages || 1
     const totalCount = data?.totalCount || products.length
@@ -309,7 +316,15 @@ function ProductListingContent({
         (filters.brandIds ? 1 : 0) +
         (filters.rating ? 1 : 0)
 
-    if ((categorySlug && !category) || (brandSlug && !brand)) {
+    if (isCategoryPending || isBrandPending) {
+        return (
+            <div className="container-app py-16 md:py-24 flex justify-center items-center min-h-[400px]">
+                <div className="h-8 w-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+            </div>
+        )
+    }
+
+    if ((categorySlug && !category && !isLoadingCategory) || (brandSlug && !brand && !isLoadingBrand)) {
         return (
             <div className="container-app py-16 md:py-24">
                 <div className="text-center py-16 bg-card rounded-2xl border border-line">

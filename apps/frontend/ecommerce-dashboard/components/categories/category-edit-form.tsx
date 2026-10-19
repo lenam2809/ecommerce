@@ -26,7 +26,7 @@ interface CategoryFormProps {
 
 export function EditCategoryForm({ category, isDetail = false }: CategoryFormProps) {
     const router = useRouter();
-    const { mutate: updateCategory } = useUpdateCategory();
+    const { mutate: updateCategory, isPending } = useUpdateCategory();
     const { data: products } = useGetProductsByCategory(category.id);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,17 +69,21 @@ export function EditCategoryForm({ category, isDetail = false }: CategoryFormPro
     }, [category, form]);
 
     const handleSubmit = async (values: UpdateCategoryDto) => {
-
         setIsSubmitting(true);
         logger.debug('Setting form values:', values);
         try {
-            updateCategory(values as UpdateCategoryDto);
+            updateCategory(values as UpdateCategoryDto, {
+                onSettled: () => {
+                    setIsSubmitting(false);
+                }
+            });
         } catch (error) {
             logger.error('Error submitting category:', error);
-        } finally {
             setIsSubmitting(false);
         }
     };
+
+    const isBusy = isSubmitting || isPending;
 
     return (
         <>
@@ -108,14 +112,14 @@ export function EditCategoryForm({ category, isDetail = false }: CategoryFormPro
                             type="button"
                             variant="outline"
                             onClick={() => router.back()}
-                            disabled={isSubmitting}
+                            disabled={isBusy}
                         >
                             Hủy
                         </Button>
                         {!isDetail && (
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Cập nhật
+                            <Button type="submit" disabled={isBusy}>
+                                {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isBusy ? 'Đang cập nhật...' : 'Cập nhật'}
                             </Button>
                         )}
                     </div>

@@ -72,18 +72,20 @@ export function Header() {
     }, [])
 
     const getUserInitials = () => {
-        if (!user?.email) return "U"
-        return user.email
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2)
+        if (!user) return "NA"
+        if (user.firstName && user.lastName) {
+            return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+        }
+        if (user.email) {
+            const clean = user.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "")
+            return (clean.substring(0, 2) || "NA").toUpperCase()
+        }
+        return "NA"
     }
 
     return (
         <header
-            className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+            className={`fixed top-0 left-0 right-0 z-40 w-full transition-all duration-300 ${
                 isScrolled
                     ? "bg-background/90 backdrop-blur-md border-b border-line shadow-xs"
                     : "bg-background/95 backdrop-blur-sm border-b border-line"
@@ -97,28 +99,28 @@ export function Header() {
                 Chuyển đến nội dung chính
             </a>
 
-            {/* Top Announcement Bar — Stitch Design Alignment */}
+            {/* Top Announcement Bar — SSoT 2026 Alignment */}
             {showAnnouncement && (
-                <div className="bg-surface-2 dark:bg-[#17181b] text-ink dark:text-[#a1a1aa] text-tiny border-b border-line dark:border-[#2c2d33] transition-all duration-200">
+                <div className="bg-surface-2 dark:bg-[#111827] text-ink dark:text-[#a1a1aa] text-tiny border-b border-line dark:border-white/10 transition-all duration-200">
                     <div className="container-app flex items-center justify-between py-2">
                         <div className="flex items-center gap-2 mx-auto md:mx-0 text-center md:text-left">
-                            <span className="inline-block w-2 h-2 rounded-full bg-brand animate-pulse shrink-0" />
+                            <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
                             <span className="text-ink-soft">
-                                Miễn phí vận chuyển toàn quốc cho đơn từ 2.000.000₫
+                                Miễn phí vận chuyển toàn quốc cho đơn từ 500.000₫
                             </span>
                             <span className="opacity-30 hidden sm:inline">|</span>
                             <span className="hidden sm:inline text-ink-faint">
-                                Cam kết 100% chính hãng & Bảo hành ủy quyền 24 tháng
+                                Cam kết 100% chính hãng • Bảo hành ủy quyền 24 tháng
                             </span>
                         </div>
 
                         <div className="hidden md:flex items-center gap-4 text-ink-faint">
                             <a
-                                href="tel:19006868"
-                                className="flex items-center gap-1 hover:text-brand transition-colors text-[11px]"
+                                href="tel:18006868"
+                                className="flex items-center gap-1 hover:text-primary transition-colors text-[11px]"
                             >
-                                <PhoneCall className="h-3 w-3 text-brand" />
-                                Hotline: <strong className="text-ink font-medium">1900 6868</strong>
+                                <PhoneCall className="h-3 w-3 text-primary" />
+                                Hotline: <strong className="text-ink font-medium">1800 6868</strong>
                             </a>
                             <button
                                 onClick={() => setShowAnnouncement(false)}
@@ -138,12 +140,12 @@ export function Header() {
                     {/* Brand Logo - Stitch Typographic Identity */}
                     <Link
                         href="/"
-                        className="flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg shrink-0 group py-1"
+                        className="flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg shrink-0 group py-1"
                     >
                         <span className="text-xl md:text-2xl font-bold tracking-tight text-ink flex items-center">
-                            Shop<span className="text-brand">Viet</span>
+                            Shop<span className="text-primary font-bold">Viet.</span>
                         </span>
-                        <span className="w-2 h-2 rounded-full bg-brand inline-block translate-y-0.5 group-hover:scale-125 transition-transform duration-200" />
+                        <span className="w-2 h-2 rounded-full bg-primary inline-block translate-y-0.5 group-hover:scale-125 transition-transform duration-200" />
                     </Link>
 
                     {/* Desktop Navigation */}

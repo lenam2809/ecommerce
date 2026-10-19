@@ -151,7 +151,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     private sealed class TestFileStorageService : IFileStorageService
     {
-        public Task<string> SaveFileAsync(IFormFile file, string folderName)
+        public Task<string> SaveFileAsync(IFormFile file, string folderName, string? customSlug = null)
         {
             var fileName = string.IsNullOrWhiteSpace(file.FileName) ? "test.png" : file.FileName;
             return Task.FromResult($"https://cdn.test/{folderName.Trim('/')}/{fileName}");

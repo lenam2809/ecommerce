@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Constants;
+using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Helpers;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
@@ -49,7 +49,8 @@ namespace Ecommerce.Application.Features.Categories.Commands.CreateCategory
                 {
                     string imagePath = await _fileStorageService.SaveFileAsync(
                         request.Image,
-                        "categories");
+                        "categories",
+                        SlugHelper.GenerateSlug(category.Name));
 
                     category.Image = imagePath;
                 }
