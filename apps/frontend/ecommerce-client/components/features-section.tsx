@@ -1,6 +1,6 @@
 "use client"
 
-import { Truck, ShieldCheck, RefreshCw, HeadphonesIcon } from "lucide-react"
+import { Truck, ShieldCheck, RefreshCw, CreditCard } from "lucide-react"
 
 const features = [
     {
@@ -9,19 +9,19 @@ const features = [
         description: "Miễn phí đơn từ 500.000₫",
     },
     {
-        icon: RefreshCw,
-        title: "Đổi Trả 30 Ngày",
-        description: "1 đổi 1 tận nơi khi lỗi kỹ thuật",
-    },
-    {
         icon: ShieldCheck,
-        title: "100% Chính Hãng",
-        description: "Ủy quyền Apple & hoàn tiền 200%",
+        title: "Bảo Hành Chính Hãng 24T",
+        description: "Ủy quyền Apple & 45 Showroom",
     },
     {
-        icon: HeadphonesIcon,
-        title: "Chuyên Gia 24/7",
-        description: "Hotline miễn cước 1800 6868",
+        icon: RefreshCw,
+        title: "Đổi Mới 30 Ngày",
+        description: "1 đổi 1 tận nơi nếu lỗi kỹ thuật",
+    },
+    {
+        icon: CreditCard,
+        title: "Trả Góp 0% Lãi Suất",
+        description: "Duyệt nhanh qua CCCD & Thẻ tín dụng",
     },
 ]
 
@@ -31,7 +31,7 @@ const features = [
  */
 export function FeaturesSection() {
     return (
-        <section className="py-8 md:py-12">
+        <section className="py-4 md:py-8">
             <div className="container-app">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 bg-card dark:bg-[#111827] p-5 md:p-6 rounded-3xl border border-border/80 dark:border-white/[0.08] shadow-xs dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                     {features.map((feature) => (

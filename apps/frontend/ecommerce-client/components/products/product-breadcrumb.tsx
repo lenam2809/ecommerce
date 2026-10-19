@@ -24,14 +24,14 @@ export function ProductBreadcrumb({
         >
             <Link
                 href="/"
-                className="hover:text-brand transition-colors inline-flex items-center gap-1 shrink-0"
+                className="hover:text-primary transition-colors inline-flex items-center gap-1 shrink-0"
             >
                 <Home className="h-3.5 w-3.5" />
                 <span>Trang chủ</span>
             </Link>
             <ChevronRight className="h-3 w-3 shrink-0 opacity-40" />
 
-            <Link href="/products" className="hover:text-brand transition-colors shrink-0">
+            <Link href="/products" className="hover:text-primary transition-colors shrink-0">
                 Sản phẩm
             </Link>
 
@@ -49,7 +49,7 @@ export function ProductBreadcrumb({
                             <ChevronRight className="h-3 w-3 shrink-0 opacity-40" />
                             <Link
                                 href={categorySlug ? `/${categorySlug}` : `/products?category=${categoryName}`}
-                                className="hover:text-brand transition-colors shrink-0"
+                                className="hover:text-primary transition-colors shrink-0"
                             >
                                 {categoryName}
                             </Link>

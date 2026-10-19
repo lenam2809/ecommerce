@@ -18,7 +18,7 @@ export function RatingFilter({ rating, onRatingChange }: RatingFilterProps) {
                     <div
                         key={itemRating}
                         className={`flex items-center space-x-2.5 p-1.5 rounded-lg transition-colors cursor-pointer ${
-                            isChecked ? "bg-surface-2" : "hover:bg-surface-2/60"
+                            isChecked ? "bg-primary/10" : "hover:bg-surface-2/60"
                         }`}
                         onClick={() => onRatingChange(itemRating)}
                     >
@@ -26,11 +26,11 @@ export function RatingFilter({ rating, onRatingChange }: RatingFilterProps) {
                             id={`rating-${itemRating}`}
                             checked={isChecked}
                             onCheckedChange={() => onRatingChange(itemRating)}
-                            className="data-[state=checked]:bg-brand data-[state=checked]:border-brand"
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                         <label
                             htmlFor={`rating-${itemRating}`}
-                            className="text-small cursor-pointer flex items-center text-ink flex-1"
+                            className="text-small cursor-pointer flex items-center text-foreground flex-1"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center gap-0.5">
@@ -43,11 +43,11 @@ export function RatingFilter({ rating, onRatingChange }: RatingFilterProps) {
                                 {[...Array(5 - itemRating)].map((_, i) => (
                                     <Star
                                         key={`empty-${i}`}
-                                        className="h-3.5 w-3.5 fill-line text-line"
+                                        className="h-3.5 w-3.5 fill-border text-border"
                                     />
                                 ))}
                             </div>
-                            <span className="ml-2 text-tiny font-medium text-ink-soft">
+                            <span className="ml-2 text-tiny font-medium text-muted-foreground">
                                 {itemRating === 5 ? "5.0 sao" : `Từ ${itemRating}.0 sao`}
                             </span>
                         </label>
