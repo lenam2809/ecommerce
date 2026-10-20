@@ -36,6 +36,10 @@ class CartService extends BaseService {
   async applyPromoCode(code: string): Promise<Result<Cart>> {
     return await this.post<Cart>('/cart/promo', { code });
   }
+
+  async mergeCart(guestId?: string): Promise<Result<Cart>> {
+    return await this.post<Cart>('/cart/merge', { guestId });
+  }
 }
 
 const cartService = new CartService();

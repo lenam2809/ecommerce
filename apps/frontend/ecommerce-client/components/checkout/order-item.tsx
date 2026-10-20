@@ -10,44 +10,48 @@ interface OrderItemProps {
     item: CartItem
 }
 
-/**
- * OrderItem (checkout) — Editorial Tech Minimalism
- */
 export function OrderItem({ item }: OrderItemProps) {
     const [imgSrc, setImgSrc] = useState(() => formatImageUrl(item.image))
 
     return (
-        <div className="flex items-center gap-3.5 py-2 first:pt-0">
+        <div className="flex items-start gap-3.5 py-3 first:pt-0">
             <div className="relative h-16 w-16 shrink-0">
-                <div className="relative h-full w-full rounded-2xl border border-line overflow-hidden bg-surface-2">
+                <div className="relative h-full w-full rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-800 p-1">
                     <Image
                         src={imgSrc}
                         alt={item.name}
                         fill
                         sizes="64px"
-                        className="object-cover"
+                        className="object-contain p-1"
                         onError={() => setImgSrc("/placeholder.svg")}
                     />
                 </div>
-                <span className="absolute -top-1.5 -right-1.5 bg-brand text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full shadow-xs ring-2 ring-card z-10">
+                <span className="absolute -top-1.5 -right-1.5 bg-primary text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full shadow-xs ring-2 ring-white dark:ring-[#111827] z-10 tabular-nums">
                     {item.quantity}
                 </span>
             </div>
 
             <div className="flex-1 min-w-0">
-                <h4 className="text-small font-medium text-ink line-clamp-1 hover:text-brand transition-colors">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug">
                     {item.name}
                 </h4>
-                <div className="flex items-center gap-2 text-tiny text-ink-faint mt-0.5">
-                    {item.color && <span>{item.color}</span>}
-                    {item.color && item.size && <span>•</span>}
-                    {item.size && <span>Size {item.size}</span>}
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    {item.color && (
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">
+                            {item.color}
+                        </span>
+                    )}
+                    {item.size && (
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">
+                            {item.size}
+                        </span>
+                    )}
                 </div>
-                <div className="flex items-center justify-between mt-1">
-                    <span className="text-tiny text-ink-soft">
+                <div className="flex items-center justify-between gap-2 mt-2">
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                         {formatPrice(item.price)} × {item.quantity}
                     </span>
-                    <span className="text-small font-semibold text-ink">
+                    <span className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                         {formatPrice(item.price * item.quantity)}
                     </span>
                 </div>
@@ -55,4 +59,3 @@ export function OrderItem({ item }: OrderItemProps) {
         </div>
     )
 }
-

@@ -1,3 +1,4 @@
+using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Features.Cart.Commands.AddToCart;
 using Ecommerce.Application.Features.Cart.Commands.ApplyPromoCode;
 using Ecommerce.Application.Features.Cart.Commands.ClearCart;
@@ -11,16 +12,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ecommerce.WebAPI.Controllers
 {
+    public class MergeCartRequest
+    {
+        public string? GuestId { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous] // Allow guest users to access cart endpoints
     public class CartController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IMergeCartService _mergeCartService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CartController(IMediator mediator)
+        public CartController(
+            IMediator mediator,
+            IMergeCartService mergeCartService,
+            ICurrentUserService currentUserService)
         {
             _mediator = mediator;
+            _mergeCartService = mergeCartService;
+            _currentUserService = currentUserService;
         }
 
         /// <summary>
@@ -92,6 +105,28 @@ namespace Ecommerce.WebAPI.Controllers
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
+
+        /// <summary>
+        /// Merge guest cart into user's cart upon login
+        /// </summary>
+        [HttpPost("merge")]
+        [Authorize]
+        public async Task<IActionResult> MergeCart([FromBody] MergeCartRequest? request)
+        {
+            var userId = _currentUserService.UserId;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var guestId = request?.GuestId ?? _currentUserService.GuestId;
+            if (!string.IsNullOrEmpty(guestId))
+            {
+                await _mergeCartService.MergeGuestCartToUserAsync(userId.Value, guestId);
+            }
+
+            var result = await _mediator.Send(new GetCartQuery());
+            return result.ToActionResult();
+        }
     }
 }
-

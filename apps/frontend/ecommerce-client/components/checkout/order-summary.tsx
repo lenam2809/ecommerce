@@ -1,5 +1,8 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Lock, ArrowRight, RotateCcw } from "lucide-react"
+import { Lock, ArrowRight, RotateCcw, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react"
 import { OrderItem } from "./order-item"
 import { OrderTotals } from "./order-totals"
 import { CartItem } from "@/types/cart"
@@ -8,6 +11,7 @@ interface OrderSummaryProps {
     cartItems: CartItem[]
     subtotal: number
     shippingCost: number
+    discount?: number
     total: number
     isSubmitting: boolean
     isEmpty: boolean
@@ -15,82 +19,113 @@ interface OrderSummaryProps {
     submitButtonText?: string
 }
 
-/**
- * OrderSummary (checkout) — Editorial Tech Minimalism
- */
 export function OrderSummary({
     cartItems,
     subtotal,
     shippingCost,
+    discount = 500000,
     total,
     isSubmitting,
     isEmpty,
     isSubmitDisabled = false,
-    submitButtonText = "Hoàn tất đơn hàng",
+    submitButtonText = "Thanh toán qua VNPAY • 62.390.000₫",
 }: OrderSummaryProps) {
+    const [isMobileCollapsed, setIsMobileCollapsed] = useState<boolean>(false)
+    const totalUnits = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+
     return (
-        <div className="bg-card text-card-foreground rounded-3xl border border-line overflow-hidden sticky top-24 shadow-xs">
-            <div className="p-5 border-b border-line/60 flex items-center justify-between">
-                <div>
-                    <h3 className="text-small font-semibold text-ink">Đơn hàng của bạn</h3>
-                    <p className="text-tiny text-ink-faint mt-0.5">Kiểm tra thông tin chi tiết</p>
+        <div className="bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24 shadow-sm">
+            {/* Step 3 Accordion Header */}
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-900/40">
+                <div className="flex items-center gap-3">
+                    <span className="h-7 w-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0">
+                        3
+                    </span>
+                    <div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                            Tóm tắt đơn hàng
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Kiểm tra chi tiết sản phẩm & ưu đãi
+                        </p>
+                    </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-brand-soft text-brand text-tiny font-bold">
-                    {cartItems.length} món
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tabular-nums">
+                        {totalUnits} sản phẩm
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => setIsMobileCollapsed(!isMobileCollapsed)}
+                        className="lg:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                        aria-expanded={!isMobileCollapsed}
+                        aria-controls="order-summary-items"
+                        aria-label="Thu gọn hoặc mở rộng tóm tắt đơn hàng"
+                    >
+                        {isMobileCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                    </button>
+                </div>
             </div>
 
             <div className="p-5 md:p-6 space-y-5">
-                {/* Cart items list */}
-                <div className="space-y-3.5 max-h-80 overflow-y-auto pr-1 divide-y divide-line/40">
+                {/* Cart items list (collapsible on mobile) */}
+                <div id="order-summary-items" className={`${isMobileCollapsed ? "hidden lg:block" : "block"} space-y-1 max-h-80 overflow-y-auto pr-1 divide-y divide-slate-200/70 dark:divide-slate-800`}>
                     {cartItems.map((item) => (
                         <OrderItem key={`${item.productId}-${item.color}-${item.size}`} item={item} />
                     ))}
                 </div>
 
                 {isEmpty && (
-                    <div className="text-center py-6 text-ink-soft text-small">
+                    <div className="text-center py-6 text-slate-600 dark:text-slate-400 text-sm">
                         Giỏ hàng của bạn đang trống
                     </div>
                 )}
 
-                <div className="h-px bg-line/80" />
+                <div className="h-px bg-slate-200 dark:bg-slate-800" />
 
                 {/* Price Breakdown */}
-                <OrderTotals subtotal={subtotal} shippingCost={shippingCost} total={total} />
+                <OrderTotals
+                    subtotal={subtotal}
+                    shippingCost={shippingCost}
+                    discount={discount}
+                    total={total}
+                />
 
-                {/* Submit button */}
+                {/* Submit button — Tech Crimson (#E11D48) exclusively for Checkout/Purchase CTA */}
                 <Button
                     type="submit"
-                    className="w-full h-12 rounded-full bg-brand text-white hover:bg-brand-hover text-small font-semibold shadow-xs hover:shadow-brand-glow transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                    className="w-full h-13 rounded-xl bg-[#e11d48] hover:bg-[#be123c] text-white text-sm font-extrabold shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 group cursor-pointer tabular-nums"
                     disabled={isSubmitting || isEmpty || isSubmitDisabled}
                 >
                     {isSubmitting ? (
                         <>
                             <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            <span>Đang xử lý đơn hàng...</span>
+                            <span>Đang xử lý giao dịch bảo mật...</span>
                         </>
                     ) : (
                         <>
-                            <span>{submitButtonText}</span>
-                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                            <span className="truncate">{submitButtonText}</span>
+                            <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
                         </>
                     )}
                 </Button>
 
                 {/* Trust guarantee micro badges */}
-                <div className="pt-2 border-t border-line/60 grid grid-cols-2 gap-3 text-tiny text-ink-faint">
+                <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 grid grid-cols-2 gap-3 text-xs text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-2">
-                        <Lock className="h-3.5 w-3.5 text-brand shrink-0" />
-                        <span>Bảo mật thanh toán 100%</span>
+                        <Lock className="h-4 w-4 text-primary shrink-0" />
+                        <span>Bảo mật VNPAY / SSL</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <RotateCcw className="h-3.5 w-3.5 text-brand shrink-0" />
-                        <span>Đổi trả 30 ngày nếu lỗi</span>
+                        <RotateCcw className="h-4 w-4 text-primary shrink-0" />
+                        <span>1 đổi 1 trong 30 ngày</span>
+                    </div>
+                    <div className="flex items-center gap-2 col-span-2">
+                        <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <span>Cam kết chính hãng 100% • Bảo hành 24 tháng tại 45 Showroom</span>
                     </div>
                 </div>
             </div>
         </div>
     )
 }
-

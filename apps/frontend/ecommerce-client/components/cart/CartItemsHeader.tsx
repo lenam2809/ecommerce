@@ -2,9 +2,9 @@ import React from "react"
 
 const CartItemsHeader = () => {
     return (
-        <div className="hidden sm:grid grid-cols-12 gap-6 px-5 py-3 border-b border-line/60 bg-surface-2/40 text-tiny font-semibold uppercase tracking-wider text-ink-faint">
+        <div className="hidden sm:grid grid-cols-12 gap-5 px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#090D16]/60 text-tiny font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
             <div className="col-span-6">
-                <h3>Sản phẩm</h3>
+                <h3>Sản phẩm công nghệ</h3>
             </div>
             <div className="col-span-2 text-center">
                 <h3>Đơn giá</h3>
@@ -13,7 +13,7 @@ const CartItemsHeader = () => {
                 <h3>Số lượng</h3>
             </div>
             <div className="col-span-2 text-right">
-                <h3>Tạm tính</h3>
+                <h3>Thành tiền</h3>
             </div>
         </div>
     )
