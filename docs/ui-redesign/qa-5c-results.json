@@ -1,0 +1,300 @@
+{
+  "timestamp": "2026-10-20T12:30:36.768Z",
+  "summary": {
+    "total": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "routes": [
+    {
+      "route": "/cart",
+      "name": "Giỏ hàng (Cart)",
+      "checks": [
+        {
+          "id": "cart-light-bg-contrast",
+          "description": "Light Mode: Bảng giỏ hàng nền trắng (#FFFFFF) trên nền #F8FAFC, chữ slate-900 contrast AAA (17.87:1)",
+          "contrastRatio": "17.85:1",
+          "wcagLevel": "AAA",
+          "pass": true
+        },
+        {
+          "id": "cart-spec-elements",
+          "description": "Hiển thị phép nhân giá (450.000₫ × 2 = 900.000₫), badge TECHVIP500, thanh Freeship 500.000₫, checkbox AppleCare+",
+          "details": {
+            "pageBg": "rgb(248, 250, 252)",
+            "cardBg": "rgb(255, 255, 255)",
+            "titleColor": "rgb(15, 23, 42)",
+            "hasFormula": true,
+            "hasTechVip": true,
+            "hasFreeship": true,
+            "hasAppleCare": true
+          },
+          "pass": true
+        },
+        {
+          "id": "cart-mobile-sticky-padding",
+          "description": "Mobile: Khoảng đệm pb-[120px] bảo vệ nội dung không bị Sticky Checkout Bar che lấp",
+          "details": {
+            "hasPb120": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "01-cart-desktop-light.png",
+        "01-cart-desktop-dark.png",
+        "01-cart-mobile-light.png"
+      ]
+    },
+    {
+      "route": "/checkout",
+      "name": "Thanh toán (Checkout)",
+      "checks": [
+        {
+          "id": "checkout-member-radio-cards",
+          "description": "Radio Cards địa chỉ của hội viên VIP Diamond Nguyễn Minh Quân",
+          "details": {
+            "hasMinhQuan": true
+          },
+          "pass": true
+        },
+        {
+          "id": "checkout-delivery-tabs",
+          "description": "Thao tác chuyển đổi Tab 'Giao hàng tận nơi (2H)' vs 'Nhận tại 45 Showroom (2H)'",
+          "details": {
+            "hasDeliveryTabs": true
+          },
+          "pass": true
+        },
+        {
+          "id": "checkout-cta-crimson",
+          "description": "Nút CTA Crimson (#E11D48 / rgb(225, 29, 72)) đổi chữ động theo phương thức thanh toán",
+          "details": {
+            "btnColor": "rgb(225, 29, 72)",
+            "btnText": "Thanh toán qua VNPAY • 62.390.000 ₫"
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "02-checkout-desktop-light.png",
+        "02-checkout-desktop-showroom-tab.png",
+        "02-checkout-desktop-dark.png",
+        "02-checkout-mobile-light.png"
+      ]
+    },
+    {
+      "route": "/payment/vnpay-return",
+      "name": "Kết quả VNPay (Dual State)",
+      "checks": [
+        {
+          "id": "vnpay-success-clean-state",
+          "description": "Trạng thái Thành công: Hiển thị sạch sẽ, không còn debug text, mã #ORD-20261019-8892, nút PDF VAT, Stepper GHN",
+          "details": {
+            "hasOrder": true,
+            "hasVat": true,
+            "hasGhn": true,
+            "hasNoDebug": true
+          },
+          "pass": true
+        },
+        {
+          "id": "vnpay-failed-state",
+          "description": "Trạng thái Thất bại: Đồng hồ đếm ngược 30 phút, nút Thanh toán lại Crimson (#E11D48)",
+          "details": {
+            "hasFailed": true,
+            "hasCountdown": true,
+            "hasRetryBtn": true,
+            "btnColor": "rgb(225, 29, 72)"
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "03-vnpay-return-success-desktop.png",
+        "03-vnpay-return-failed-desktop.png",
+        "03-vnpay-return-failed-dark.png"
+      ]
+    },
+    {
+      "route": "/wishlist",
+      "name": "Sản phẩm yêu thích (Wishlist)",
+      "checks": [
+        {
+          "id": "wishlist-dark-btn-contrast",
+          "description": "Dark Mode: Nút 'Thêm vào giỏ' mang màu Electric Blue (bg-primary text-white), không bị lỗi trắng trên trắng",
+          "btnBackground": "rgb(60, 131, 246)",
+          "btnTextColor": "rgb(255, 255, 255)",
+          "contrastRatio": "3.64:1",
+          "wcagLevel": "Pass (3:1 UI Component)",
+          "pass": true
+        },
+        {
+          "id": "wishlist-trash2-bulk-action",
+          "description": "Icon Thùng rác Trash2 ở góc thẻ, checkbox indeterminate (-) và Bulk Action Bar",
+          "details": {
+            "btnBg": "rgb(60, 131, 246)",
+            "btnColor": "rgb(255, 255, 255)",
+            "hasTrashIcon": true,
+            "hasBulkBar": true,
+            "addButtonsCount": 2
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "04-wishlist-desktop-dark.png",
+        "04-wishlist-desktop-light.png"
+      ]
+    },
+    {
+      "route": "/login",
+      "name": "Đăng nhập Split-Screen",
+      "checks": [
+        {
+          "id": "login-split-screen-card",
+          "description": "Bố cục Split-Screen: Cột trái thẻ 3D Black Diamond VIP hiển thị rõ dòng 'HẾT HẠN 12/28'",
+          "details": {
+            "hasVipCard": true,
+            "hasNoFakeQuote": true
+          },
+          "pass": true
+        },
+        {
+          "id": "login-auth-card-tabs",
+          "description": "Cột phải Auth Card có Tabs OTP Số điện thoại và Google OAuth",
+          "details": {
+            "hasOtpTab": true,
+            "hasGoogleAuth": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "05-login-desktop-light.png",
+        "05-login-desktop-dark.png",
+        "05-login-mobile-light.png"
+      ]
+    },
+    {
+      "route": "/account",
+      "name": "Hồ sơ Tài khoản (Profile)",
+      "checks": [
+        {
+          "id": "account-single-sidebar-avatar",
+          "description": "Sidebar 300px duy nhất (không lặp tabs nội bộ); Avatar chữ cái 'NA' tròn chuẩn 64x64px",
+          "details": {
+            "hasSingleSidebar": true,
+            "avatarWidth": 64,
+            "avatarHeight": 64,
+            "hasMinhQuan": true,
+            "hasDiamond": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "06-account-desktop-light.png",
+        "06-account-desktop-dark.png"
+      ]
+    },
+    {
+      "route": "/account/orders",
+      "name": "Quản lý đơn hàng (Orders)",
+      "checks": [
+        {
+          "id": "orders-serial-ewarranty",
+          "description": "Chi tiết đơn hàng hiển thị dải Serial/IMEI và tem e-warranty chính hãng",
+          "details": {
+            "hasSerial": true,
+            "hasEwarranty": true,
+            "hasOrderId": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "07-account-orders-desktop-light.png",
+        "07-account-orders-desktop-dark.png"
+      ]
+    },
+    {
+      "route": "/account/returns",
+      "name": "Đổi trả & Bảo hành (Returns)",
+      "checks": [
+        {
+          "id": "returns-contrast-wcag-aa",
+          "description": "Chữ lý do & điều khoản đổi trả đạt chuẩn tương phản WCAG AA (text-slate-800)",
+          "textColor": "rgb(15, 23, 41)",
+          "contrastRatio": "17.87:1",
+          "wcagLevel": "AAA",
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "08-account-returns-desktop-light.png",
+        "08-account-returns-desktop-dark.png"
+      ]
+    },
+    {
+      "route": "/account/addresses",
+      "name": "Sổ địa chỉ (Addresses)",
+      "checks": [
+        {
+          "id": "addresses-default-protection",
+          "description": "Sổ địa chỉ hiển thị thẻ địa chỉ mặc định của Nguyễn Minh Quân và ẩn nút Xóa trên địa chỉ Mặc định",
+          "details": {
+            "hasDefaultBadge": true,
+            "hasMinhQuan": true,
+            "defaultCardHasDelete": false
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "09-account-addresses-desktop-light.png",
+        "09-account-addresses-desktop-dark.png"
+      ]
+    },
+    {
+      "route": "/about",
+      "name": "Giới thiệu & Showroom (About)",
+      "checks": [
+        {
+          "id": "about-45-showroom-hotline-map",
+          "description": "Thống nhất 45 Showroom toàn quốc, hotline 1800 6868, module bản đồ showroom có trạng thái mở cửa",
+          "details": {
+            "has45Showrooms": true,
+            "hasHotline": true,
+            "hasOpenStatus": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "10-about-desktop-light.png",
+        "10-about-desktop-dark.png"
+      ]
+    },
+    {
+      "route": "/contact",
+      "name": "Liên hệ & Hợp tác B2B (Contact)",
+      "checks": [
+        {
+          "id": "contact-showrooms-hotline-b2b",
+          "description": "Liên hệ 45 Showroom, hotline 1800 6868 và form B2B có đính kèm file",
+          "details": {
+            "has45Showrooms": true,
+            "hasHotline": true,
+            "hasFileInput": true
+          },
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "11-contact-desktop-light.png",
+        "11-contact-desktop-dark.png"
+      ]
+    }
+  ]
+}

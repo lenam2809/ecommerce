@@ -109,3 +109,25 @@ docs/                          # Business requirements, auth proposal, security 
 7. **Render deployment**: `render.yaml` cấu hình sẵn — auto-deploy khi push. Backend free tier, không có GitHub Actions CI/CD.
 
 8. **Supabase storage**: Dùng cho production. Local dev dùng thư mục `uploads/` — đừng commit ảnh vào git.
+
+## Quy chuẩn UI/UX & Dữ liệu SSoT 2026 (Bất di bất dịch)
+
+1. **Dữ liệu Chuẩn Một Nguồn (SSoT 2026):**
+   - **Showroom:** Hệ thống 45 Showroom công nghệ hiện đại toàn quốc.
+   - **Hotlines:** Hotline bán hàng `1800 6868` & Hotline kỹ thuật `1800 6869` (miễn phí cước gọi).
+   - **Miễn phí vận chuyển (Freeship):** Áp dụng cho đơn hàng từ **500.000₫** trở lên (tiến độ thanh toán theo dõi trên CartHeader). Đơn dưới 500k tính phí 30.000₫.
+
+2. **Quy chuẩn Định dạng Tiền tệ (Currency Formatting):**
+   - Mọi nơi hiển thị giá tiền (ProductCard, Cart, Checkout, OrderDetails, Wishlist) **bắt buộc** phải có các class:
+     `font-mono tabular-nums whitespace-nowrap` (hoặc class `.price-tag`).
+   - Tuyệt đối không để ký hiệu đơn vị tiền tệ (`₫` hoặc `VND`) rớt dòng một mình.
+
+3. **Phân Vai Màu Sắc Kép (Dual-Accent Tech Hierarchy):**
+   - **Tech Crimson (`#E11D48` / `bg-brand` / `text-brand`):** Dành riêng cho các hành động mua hàng / chuyển đổi bán hàng (`Nút Mua ngay`, `Nút Tiến hành thanh toán`, `Giá bán khuyến mãi`, `Badge % giảm giá`).
+   - **Electric Blue (`#2563EB` / `bg-tech-blue` / `text-tech-blue`):** Dành cho các tính năng công nghệ và tương tác (`Nút Thêm vào giỏ`, `Bộ lọc đang chọn`, `Badge bảo hành 24T chính hãng`, `Icon cam kết`, `Focus ring`).
+   - **Tuyệt đối KHÔNG hardcode hex code** (ví dụ `bg-[#2563eb]`, `text-[#e11d48]`) vào JSX/TSX. Luôn dùng semantic tokens (`bg-brand`, `bg-tech-blue`, `bg-card`, `text-ink`, `border-line`).
+
+4. **Chuẩn Bề Mặt & Chế Độ Tối (Surfaces & Dark Mode):**
+   - **Light Mode:** Nền `bg-background` (`#F8FAFC`), thẻ `bg-card` (`#FFFFFF`), bề mặt phụ `bg-surface` (`#F1F5F9`), viền `border-line` (`#E2E8F0`).
+   - **Dark Mode:** Phân tầng 4 lớp Deep Obsidian (`#090D16` nền chính, `#111827` card, `#182234` spec chips, `#1E293B` elevated/hover). Đảm bảo WCAG 2.1 AA contrast $\ge 4.5:1$.
+

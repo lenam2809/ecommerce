@@ -186,6 +186,7 @@ export function ProductFilters({
         }, 180)
 
         return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         priceRange,
         selectedCategories,

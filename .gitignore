@@ -123,6 +123,8 @@ apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads/*
 # Documentation
 docs/*
 !docs/*.md
+!docs/ui-redesign
+!docs/ui-redesign/*
 docs/architecture-backend.md
 docs/architecture-overview.md
 docs/authentication_proposal.md
