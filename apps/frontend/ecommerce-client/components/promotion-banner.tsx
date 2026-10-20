@@ -126,7 +126,7 @@ export function PromotionBanner() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-700 bg-[#090D16] text-xs sm:text-sm text-white placeholder:text-slate-500 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 transition-all"
+                                    className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-700 bg-[#090D16] text-xs sm:text-sm text-white placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 transition-all"
                                 />
                             </div>
                             <button

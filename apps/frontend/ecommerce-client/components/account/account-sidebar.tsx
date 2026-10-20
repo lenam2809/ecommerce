@@ -2,115 +2,202 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { User, LogOut, Package, RotateCcw, MapPin } from "lucide-react"
+import {
+    User,
+    LogOut,
+    Package,
+    RotateCcw,
+    MapPin,
+    Crown,
+    ShieldCheck,
+    PhoneCall,
+} from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUser } from "@/hooks/use-user"
 import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-/**
- * AccountSidebar — Editorial Minimal
- */
 export function AccountSidebar() {
     const { logout } = useAuth()
-    const { user: userData, isLoading: isLoadingUser } = useUser()
+    const { user: userData } = useUser()
     const pathname = usePathname()
 
-    const getUserInitials = () => {
-        if (!userData?.email) return "U"
-        return userData.email.split(" ").map((part) => part[0]).join("").toUpperCase().substring(0, 2)
-    }
+    const displayFullName =
+        userData?.firstName || userData?.lastName
+            ? `${userData.lastName || ""} ${userData.firstName || ""}`.trim()
+            : "Nguyễn Minh Quân"
+    const displayEmail = userData?.email || "quan.nguyen@shopviet.vn"
 
     const navItems = [
-        { href: "/account", label: "Thông tin cá nhân", icon: User },
-        { href: "/account/orders", label: "Đơn hàng của tôi", icon: Package },
-        { href: "/account/returns", label: "Đổi/Trả hàng", icon: RotateCcw },
-        { href: "/account/addresses", label: "Địa chỉ", icon: MapPin },
+        {
+            href: "/account",
+            label: "Hồ sơ & Sổ địa chỉ",
+            sub: "Thông tin VIP & nhận hàng",
+            icon: User,
+        },
+        {
+            href: "/account/orders",
+            label: "Quản lý đơn hàng",
+            sub: "Serial/IMEI & Vận đơn 2H",
+            icon: Package,
+            badge: "2",
+        },
+        {
+            href: "/account/returns",
+            label: "Đổi trả & Bảo hành",
+            sub: "1 đổi 1 & 45 Showroom",
+            icon: RotateCcw,
+            badge: "1",
+        },
+        {
+            href: "/account/addresses",
+            label: "Sổ địa chỉ giao nhận",
+            sub: "2 địa chỉ đã xác thực",
+            icon: MapPin,
+        },
     ]
 
-    if (isLoadingUser) {
-        return (
-            <div className="flex flex-col space-y-6">
-                <div className="flex items-center gap-4 px-2">
-                    <div className="h-10 w-10 rounded-full bg-muted animate-pulse"></div>
-                    <div className="space-y-2">
-                        <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                        <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
+    return (
+        <div className="flex flex-col space-y-4">
+            {/* Desktop 300px Sidebar Card */}
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] overflow-hidden shadow-xs">
+                {/* Top Member Header with 64x64px "NA" Avatar */}
+                <div className="p-5 bg-gradient-to-br from-[#090D16] via-[#111827] to-[#1E293B] text-white border-b border-slate-800">
+                    <div className="flex items-center gap-3.5">
+                        {/* Strictly 64x64px circular avatar with "NA" */}
+                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-extrabold text-xl flex items-center justify-center ring-2 ring-amber-400/80 shadow-md shrink-0 select-none">
+                            NA
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider mb-1">
+                                <Crown className="h-3 w-3" />
+                                VIP Diamond
+                            </span>
+                            <h2 className="font-extrabold text-base text-white truncate">
+                                {displayFullName}
+                            </h2>
+                            <p className="text-xs text-slate-300 truncate">{displayEmail}</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800/90 flex items-center justify-between text-xs">
+                        <span className="text-slate-300">Điểm thưởng khả dụng:</span>
+                        <span className="font-extrabold text-amber-400 tabular-nums whitespace-nowrap">
+                            2.450 điểm
+                        </span>
                     </div>
                 </div>
-                <div className="space-y-2">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-10 w-full bg-muted animate-pulse rounded-xl"></div>)}
+
+                {/* Desktop Navigation Links */}
+                <nav className="hidden lg:flex flex-col p-3 space-y-1">
+                    {navItems.map((item) => {
+                        const Icon = item.icon
+                        const isActive =
+                            pathname === item.href ||
+                            (item.href !== "/account" && pathname.startsWith(item.href))
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                    "flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-150 group",
+                                    isActive
+                                        ? "bg-primary text-white shadow-xs"
+                                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70"
+                                )}
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <Icon
+                                        className={cn(
+                                            "h-4 w-4 shrink-0 transition-colors",
+                                            isActive
+                                                ? "text-white"
+                                                : "text-slate-500 dark:text-slate-400 group-hover:text-primary"
+                                        )}
+                                    />
+                                    <div className="min-w-0">
+                                        <span className="text-sm font-bold block truncate">
+                                            {item.label}
+                                        </span>
+                                        <span
+                                            className={cn(
+                                                "text-[11px] block truncate",
+                                                isActive
+                                                    ? "text-blue-100"
+                                                    : "text-slate-500 dark:text-slate-400"
+                                            )}
+                                        >
+                                            {item.sub}
+                                        </span>
+                                    </div>
+                                </div>
+                                {item.badge && (
+                                    <span
+                                        className={cn(
+                                            "px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums",
+                                            isActive
+                                                ? "bg-white text-primary"
+                                                : "bg-primary/10 text-primary"
+                                        )}
+                                    >
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </Link>
+                        )
+                    })}
+
+                    <div className="h-px bg-slate-200 dark:bg-slate-800 my-2 mx-2" />
+
+                    <button
+                        type="button"
+                        onClick={() => logout()}
+                        className="flex items-center px-3.5 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-[#e11d48] rounded-xl transition-colors text-xs font-bold w-full cursor-pointer"
+                    >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        <span>Đăng xuất tài khoản</span>
+                    </button>
+                </nav>
+
+                {/* VIP Concierge Support Box */}
+                <div className="hidden lg:block p-4 m-3 mt-0 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                    <div className="flex items-center gap-1.5 font-extrabold text-slate-900 dark:text-white">
+                        <ShieldCheck className="h-4 w-4 text-primary" />
+                        <span>Tổng đài ưu tiên VIP Diamond</span>
+                    </div>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Hỗ trợ kỹ thuật &amp; bảo hành 1 đổi 1 tận nơi trong 2 giờ.
+                    </p>
+                    <div className="flex items-center justify-between pt-1 font-bold text-primary tabular-nums">
+                        <span className="inline-flex items-center gap-1">
+                            <PhoneCall className="h-3.5 w-3.5" />
+                            CSKH: 1800 6868
+                        </span>
+                        <span>KT: 1800 6869</span>
+                    </div>
                 </div>
             </div>
-        )
-    }
 
-    return (
-        <div className="flex flex-col space-y-6">
-            {/* User Profile Summary */}
-            <div className="hidden lg:flex items-center gap-4 px-3 mb-2">
-                <Avatar className="h-11 w-11 border border-line">
-                    <AvatarImage src={userData?.avatar} alt={userData?.email} />
-                    <AvatarFallback className="bg-brand-soft text-brand font-medium">{getUserInitials()}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col overflow-hidden">
-                    <h2 className="font-semibold text-small text-ink truncate">{userData?.firstName} {userData?.lastName}</h2>
-                    <p className="text-tiny text-ink-faint truncate">{userData?.email}</p>
-                </div>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex flex-col space-y-1">
+            {/* Mobile Horizontal Navigation */}
+            <nav className="lg:hidden flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
                 {navItems.map((item) => {
                     const Icon = item.icon
-                    const isActive = pathname === item.href || (item.href !== '/account' && pathname.startsWith(item.href))
-
+                    const isActive =
+                        pathname === item.href ||
+                        (item.href !== "/account" && pathname.startsWith(item.href))
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center px-4 py-2.5 rounded-xl transition-colors duration-200 group font-medium text-small",
+                                "flex items-center whitespace-nowrap px-4 py-2.5 rounded-xl border transition-colors text-xs font-bold shrink-0",
                                 isActive
-                                    ? "bg-brand-soft text-brand"
-                                    : "text-ink-soft hover:bg-surface hover:text-ink"
-                            )}
-                        >
-                            <Icon className={cn("h-4 w-4 mr-3 transition-colors", isActive ? "text-brand" : "text-ink-faint group-hover:text-ink")} />
-                            {item.label}
-                        </Link>
-                    )
-                })}
-
-                <div className="h-px bg-line my-4 mx-3" />
-
-                <button
-                    onClick={() => logout()}
-                    className="flex items-center px-4 py-2.5 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-xl transition-colors duration-200 group font-medium text-small w-full"
-                >
-                    <LogOut className="h-4 w-4 mr-3" />
-                    Đăng xuất
-                </button>
-            </nav>
-
-            {/* Mobile Navigation (Horizontal Scroll) */}
-            <nav className="lg:hidden flex space-x-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-                {navItems.map((item) => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href || (item.href !== '/account' && pathname.startsWith(item.href))
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center whitespace-nowrap px-4 py-2 rounded-full border transition-colors text-small font-medium",
-                                isActive
-                                    ? "bg-brand-soft border-brand/30 text-brand flex-shrink-0"
-                                    : "bg-background border-line text-ink-soft hover:text-ink flex-shrink-0"
+                                    ? "bg-primary border-primary text-white shadow-xs"
+                                    : "bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
                             )}
                         >
                             <Icon className="h-4 w-4 mr-2" />
-                            {item.label}
+                            <span>{item.label}</span>
                         </Link>
                     )
                 })}

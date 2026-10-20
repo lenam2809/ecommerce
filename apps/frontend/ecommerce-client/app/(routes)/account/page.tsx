@@ -1,137 +1,154 @@
-// app/(routes)/account/page.tsx
 "use client"
 
 import { ProfileTab } from "@/components/account/profile-tab"
-import { useUser } from "@/hooks/use-user"
+import { AddressesTab } from "@/components/account/addresses-tab"
+import { useUser, useAddresses } from "@/hooks/use-user"
 import { useEffect, useState } from "react"
 import { User } from "@/types/user"
 import { FormUpdateUserSchema } from "@/schemas/user-schema"
-import { Loader2, Package, RotateCcw, Award } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Package, RotateCcw, Award, Crown, Sparkles, CheckCircle2 } from "lucide-react"
 
 export default function AccountPage() {
-  const { user, isLoading: isLoadingUser, error: userError, updateUser, isUpdatingUser } = useUser()
+    const { user, isLoading: isLoadingUser, updateUser, isUpdatingUser } = useUser()
+    const {
+        addresses,
+        isLoading: isLoadingAddresses,
+        setDefaultAddress,
+        deleteAddress,
+    } = useAddresses()
 
-  const [userData, setUserData] = useState<User>({
-    id: user?.id || "",
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    fullName: user?.fullName || "",
-    email: user?.email || "",
-    avatar: user?.avatar || "",
-    phoneNumber: user?.phoneNumber || ""
-  })
+    const [userData, setUserData] = useState<User>({
+        id: user?.id || "vip-2026",
+        firstName: user?.firstName || "Minh Quân",
+        lastName: user?.lastName || "Nguyễn",
+        fullName: user?.fullName || "Nguyễn Minh Quân",
+        email: user?.email || "quan.nguyen@shopviet.vn",
+        avatar: user?.avatar || "",
+        phoneNumber: user?.phoneNumber || "0909 686 868",
+    })
 
-  const handleSubmit = async (data: FormUpdateUserSchema) => {
-    updateUser(data)
-  }
-
-  const [initialLoad, setInitialLoad] = useState(true)
-
-  useEffect(() => {
-    if (!isLoadingUser && user) {
-      setUserData({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: user.fullName,
-        email: user.email,
-        avatar: user.avatar,
-        phoneNumber: user.phoneNumber
-      })
-      setInitialLoad(false)
+    const handleSubmit = async (data: FormUpdateUserSchema) => {
+        updateUser(data)
     }
-  }, [isLoadingUser, user])
 
-  if (initialLoad) {
+    useEffect(() => {
+        if (!isLoadingUser && user) {
+            setUserData({
+                id: user.id,
+                firstName: user.firstName || "Minh Quân",
+                lastName: user.lastName || "Nguyễn",
+                fullName: user.fullName || "Nguyễn Minh Quân",
+                email: user.email || "quan.nguyen@shopviet.vn",
+                avatar: user.avatar || "",
+                phoneNumber: user.phoneNumber || "0909 686 868",
+            })
+        }
+    }, [isLoadingUser, user])
+
     return (
-      <div className="flex justify-center items-center h-96 rounded-2xl border border-line">
-        <Loader2 className="h-8 w-8 animate-spin text-brand" />
-      </div>
-    )
-  }
+        <div className="space-y-6">
+            {/* VIP Diamond Tier Progress Banner (SSoT D3-03) */}
+            <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-[#090D16] via-[#111827] to-[#1E293B] text-white p-6 md:p-7 shadow-md relative overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                    <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold uppercase tracking-wider">
+                            <Crown className="h-3.5 w-3.5" />
+                            <span>ShopViet Privilege • Hạng Kim Cương (VIP Diamond)</span>
+                        </div>
+                        <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
+                            Xin chào, Nguyễn Minh Quân!
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                            Tích lũy hiện tại: <strong className="text-amber-400 tabular-nums">2.450 điểm</strong> • Bạn đã mở khóa toàn bộ đặc quyền Freeship Hỏa tốc 2H và Bảo hành 1 đổi 1 ưu tiên tại 45 Showroom.
+                        </p>
+                    </div>
 
-  if (userError) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Alert variant="destructive">
-          <AlertTitle>Lỗi</AlertTitle>
-          <AlertDescription>
-            Không thể tải thông tin người dùng. Vui lòng thử lại.
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      {/* VIP Privilege Banner */}
-      <div className="relative rounded-3xl border border-line bg-gradient-to-r from-card via-surface to-brand-soft/30 p-6 md:p-8 overflow-hidden shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-brand text-white flex items-center justify-center shadow-xs">
-              <Award className="h-8 w-8" />
+                    <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 min-w-[260px] space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-300">Tiến trình duy trì hạng 2026</span>
+                            <span className="font-extrabold text-amber-400 tabular-nums">2.450 / 3.000 điểm</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-blue-500 to-amber-400 rounded-full w-[82%]" />
+                        </div>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-amber-400 shrink-0" />
+                            <span>Còn 550 điểm để nhận Quà tặng Đặc quyền Cuối năm 2026</span>
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-h3 font-bold text-ink">Hội Viên VIP Diamond</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-brand-soft text-brand text-tiny font-bold">
-                  Privilege Club
-                </span>
-              </div>
-              <p className="text-small text-ink-soft mt-1">
-                Tích lũy 2.450 điểm thưởng • Miễn phí vận chuyển trọn đời cho mọi đơn hàng
-              </p>
+
+            {/* Quick KPI Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex items-center gap-4 shadow-xs">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Package className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
+                            Đơn hàng năm 2026
+                        </p>
+                        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 tabular-nums">
+                            12 đơn hàng
+                        </h3>
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+                            1 đơn đang giao siêu tốc 2H
+                        </p>
+                    </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex items-center gap-4 shadow-xs">
+                    <div className="h-12 w-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                        <RotateCcw className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
+                            Bảo hành &amp; Đổi trả
+                        </p>
+                        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 tabular-nums">
+                            1 yêu cầu
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Hỗ trợ lấy ngay 15p tại 45 Showroom
+                        </p>
+                    </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex items-center gap-4 shadow-xs">
+                    <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                        <Award className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
+                            Ưu đãi khả dụng
+                        </p>
+                        <h3 className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5 tabular-nums">
+                            TECHVIP500
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                            <span>Giảm 500.000₫ mọi đơn Flagship</span>
+                        </p>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Dashboard Insights */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
-        <div className="rounded-3xl border border-line bg-card p-5 md:p-6 flex items-center gap-4 transition-all hover:border-ink/30 shadow-2xs">
-          <div className="h-12 w-12 rounded-2xl bg-brand-soft flex items-center justify-center shrink-0">
-            <Package className="h-6 w-6 text-brand" />
-          </div>
-          <div>
-            <p className="text-tiny text-ink-faint font-semibold uppercase tracking-wider">Đơn hàng</p>
-            <h3 className="text-h2 font-bold text-ink mt-0.5">12</h3>
-            <p className="text-[11px] text-ink-soft">2 đơn đang vận chuyển</p>
-          </div>
-        </div>
+            {/* View-Only Profile Card with Inline Edit */}
+            <ProfileTab
+                userData={userData}
+                isLoadingUser={false}
+                isUpdatingUser={isUpdatingUser}
+                handleSubmit={handleSubmit}
+            />
 
-        <div className="rounded-3xl border border-line bg-card p-5 md:p-6 flex items-center gap-4 transition-all hover:border-ink/30 shadow-2xs">
-          <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0">
-            <RotateCcw className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-          </div>
-          <div>
-            <p className="text-tiny text-ink-faint font-semibold uppercase tracking-wider">Đổi / Trả</p>
-            <h3 className="text-h2 font-bold text-ink mt-0.5">1</h3>
-            <p className="text-[11px] text-ink-soft">1 yêu cầu đã hoàn tất</p>
-          </div>
+            {/* Address Book Card (Integrated directly on D3-03 Profile & Address Book screen) */}
+            <AddressesTab
+                addresses={addresses}
+                isLoadingAddresses={isLoadingAddresses}
+                handleSetDefaultAddress={(id) => setDefaultAddress(id)}
+                handleDeleteAddress={(id) => deleteAddress(id)}
+            />
         </div>
-
-        <div className="rounded-3xl border border-line bg-card p-5 md:p-6 flex items-center gap-4 transition-all hover:border-ink/30 shadow-2xs">
-          <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-            <Award className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-tiny text-ink-faint font-semibold uppercase tracking-wider">Hạng thẻ</p>
-            <h3 className="text-h2 font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">VIP Diamond</h3>
-            <p className="text-[11px] text-ink-soft">Giảm thêm 5% mọi đơn</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-3xl border border-line overflow-hidden bg-card shadow-xs">
-        <ProfileTab
-          userData={userData}
-          isLoadingUser={isLoadingUser}
-          isUpdatingUser={isUpdatingUser}
-          handleSubmit={handleSubmit}
-        />
-      </div>
-    </div>
-  )
+    )
 }

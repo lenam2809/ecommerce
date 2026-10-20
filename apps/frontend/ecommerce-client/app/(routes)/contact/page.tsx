@@ -1,11 +1,17 @@
-// app/(routes)/contact/page.tsx
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter, Youtube } from "lucide-react"
+import {
+    ChevronRight,
+    Home,
+    Clock,
+    FileUp,
+    Store,
+    Headphones,
+    Wrench,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,19 +20,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { AppToaster } from "@/components/toast/app-toaster"
 import { useContact } from "@/hooks/use-contact"
 
-
-
 export default function ContactPage() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
+        phone: "",
         subject: "",
         message: "",
     })
+    const [attachedFile, setAttachedFile] = useState<string>("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error] = useState<string | null>(null)
 
-    const { data: contactInfo, isLoading: isLoading } = useContact();
+    // Keep useContact hook intact
+    const { data: contactInfo } = useContact()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
@@ -37,243 +43,254 @@ export default function ContactPage() {
         e.preventDefault()
         setIsSubmitting(true)
 
-        // Giả lập gửi form
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        await new Promise((resolve) => setTimeout(resolve, 600))
 
-        AppToaster.success("Đã Gửi Tin Nhắn", {
-            description: "Chúng tôi đã nhận được tin nhắn của bạn và sẽ phản hồi sớm.",
+        AppToaster.success("Đã Gửi Yêu Cầu Liên Hệ", {
+            description: "Chuyên viên CSKH ShopViet sẽ phản hồi bạn trong vòng 15 phút.",
         })
 
         setFormData({
             name: "",
             email: "",
+            phone: "",
             subject: "",
             message: "",
         })
+        setAttachedFile("")
         setIsSubmitting(false)
     }
 
-    // Hiển thị trạng thái đang tải
-    if (isLoading) {
-        return (
-            <div className="container-app py-12 flex justify-center items-center min-h-[50vh]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
-                    <p className="text-ink-soft">Đang tải thông tin liên hệ...</p>
-                </div>
-            </div>
-        )
-    }
-
-    // Hiển thị trạng thái lỗi
-    if (error) {
-        return (
-            <div className="container-app py-12 flex justify-center items-center min-h-[50vh]">
-                <div className="text-center">
-                    <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={() => window.location.reload()} className="rounded-full bg-brand text-white hover:bg-brand-hover h-11 px-6 text-small font-semibold">Thử Lại</Button>
-                </div>
-            </div>
-        )
-    }
-
-    // Hiển thị trang liên hệ với dữ liệu đã tải
     return (
-        <div className="container-app py-10 md:py-16">
-            {/* Breadcrumb */}
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-tiny text-ink-faint mb-12">
-                <Link href="/" className="hover:text-brand transition-colors">
-                    Trang Chủ
-                </Link>
-                <ChevronRight className="h-3 w-3" />
-                <span className="font-medium text-ink-soft">Liên Hệ</span>
-            </nav>
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] py-8 md:py-12">
+            <div className="container-app space-y-10">
+                {/* Breadcrumb */}
+                <nav
+                    aria-label="Breadcrumb"
+                    className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400"
+                >
+                    <Link
+                        href="/"
+                        className="hover:text-primary transition-colors inline-flex items-center gap-1 font-medium"
+                    >
+                        <Home className="h-3.5 w-3.5" />
+                        <span>Trang chủ</span>
+                    </Link>
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="font-bold text-slate-900 dark:text-white">
+                        Liên hệ Tổng đài &amp; 45 Showroom
+                    </span>
+                </nav>
 
-            {/* Hero Section */}
-            <div className="text-center mb-16">
-                <p className="section-label mb-3">Liên hệ</p>
-                <h1 className="text-display font-semibold tracking-tight text-ink mb-6">Liên Hệ Với Chúng Tôi</h1>
-                <p className="text-body text-ink-soft max-w-2xl mx-auto leading-relaxed">
-                    Bạn có câu hỏi về sản phẩm hoặc dịch vụ của chúng tôi? Chúng tôi luôn sẵn sàng hỗ trợ và rất mong được nghe từ
-                    bạn.
-                </p>
-            </div>
+                {/* Header */}
+                <div className="text-center max-w-2xl mx-auto space-y-2">
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-primary">
+                        Trung tâm Chăm sóc Khách hàng &amp; B2B 2026
+                    </p>
+                    <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                        Liên hệ Hệ thống 45 Showroom ShopViet
+                    </h1>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                        Hỗ trợ tư vấn mua hàng, tra cứu Bảo hành Điện tử và hợp tác dự án doanh nghiệp B2B toàn quốc.
+                    </p>
+                </div>
 
-            {/* Contact Information Cards */}
-            {contactInfo && (
-                <div className="grid gap-4 md:gap-6 md:grid-cols-3 mb-16">
-                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
-                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
-                            <Phone className="h-8 w-8 text-brand" />
+                {/* SSoT 2026 Contact Cards (1800 6868 CSKH, 1800 6869 Kỹ thuật, 45 Showrooms) */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                            <Headphones className="h-6 w-6" />
                         </div>
-                        <h3 className="text-h3 font-semibold text-ink mb-2">Điện Thoại</h3>
-                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.phone.hoursOrDescription}</p>
-                        <a href={`tel:${contactInfo.phone.numberOrAddress.replace(/\s+/g, "")}`} className="text-h3 font-semibold text-brand hover:underline">
-                            {contactInfo.phone.numberOrAddress}
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            Tổng đài Tư vấn &amp; CSKH (Miễn phí)
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Hoạt động 08:00 - 22:00 (Cả Thứ 7 &amp; Chủ Nhật)
+                        </p>
+                        <a
+                            href="tel:18006868"
+                            className="text-2xl font-extrabold text-primary hover:underline block tabular-nums pt-1"
+                        >
+                            1800 6868
                         </a>
                     </div>
 
-                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
-                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
-                            <Mail className="h-8 w-8 text-brand" />
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                        <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                            <Wrench className="h-6 w-6" />
                         </div>
-                        <h3 className="text-h3 font-semibold text-ink mb-2">Email</h3>
-                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.email.hoursOrDescription}</p>
-                        <a href={`mailto:${contactInfo.email.numberOrAddress}`} className="text-h3 font-semibold text-brand hover:underline break-all">
-                            {contactInfo.email.numberOrAddress}
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            Hỗ trợ Kỹ thuật &amp; Bảo hành 1 Đổi 1
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Kiểm định lấy ngay 15 phút tại 45 Showroom
+                        </p>
+                        <a
+                            href="tel:18006869"
+                            className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline block tabular-nums pt-1"
+                        >
+                            1800 6869
                         </a>
                     </div>
 
-                    <div className="bg-card border border-line rounded-2xl p-8 text-center hover:border-ink/30 transition-colors group">
-                        <div className="bg-brand-soft p-4 rounded-full mb-6 mx-auto w-16 h-16 flex items-center justify-center">
-                            <MapPin className="h-8 w-8 text-brand" />
+                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                        <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                            <Store className="h-6 w-6" />
                         </div>
-                        <h3 className="text-h3 font-semibold text-ink mb-2">Văn Phòng</h3>
-                        <p className="text-ink-soft mb-4 text-tiny">{contactInfo.office.hoursOrDescription}</p>
-                        <address className="not-italic text-body font-medium text-ink whitespace-pre-line">{contactInfo.office.numberOrAddress}</address>
+                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                            Trụ sở Flagship &amp; 45 Showroom
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5 text-emerald-600" />
+                            <span>Đang mở cửa • Đóng cửa lúc 21:30</span>
+                        </p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 pt-1">
+                            {contactInfo?.office?.numberOrAddress ||
+                                "125 Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh"}
+                        </p>
                     </div>
                 </div>
-            )}
 
-            {/* Contact Form and Map */}
-            <div className="grid gap-10 lg:grid-cols-2 mb-16">
-                <div className="bg-card border border-line rounded-3xl p-6 md:p-8">
-                    <p className="section-label mb-1">Nhắn tin</p>
-                    <h2 className="text-h1 font-semibold tracking-tight text-ink mb-8">Gửi Tin Nhắn Cho Chúng Tôi</h2>
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="name" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Họ Tên</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    value={formData.name}
+                {/* Form & Map */}
+                <div className="grid gap-8 lg:grid-cols-12">
+                    <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xs">
+                        <p className="text-xs font-extrabold uppercase tracking-widest text-primary mb-1">
+                            Gửi yêu cầu trực tuyến &amp; Hợp tác B2B
+                        </p>
+                        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-6">
+                            Gửi tin nhắn hoặc Đính kèm Hồ sơ Năng lực
+                        </h2>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="name" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Họ và tên / Tên doanh nghiệp *
+                                    </Label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        placeholder="Nguyễn Minh Quân"
+                                        required
+                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="phone" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Số điện thoại liên hệ *
+                                    </Label>
+                                    <Input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        inputMode="tel"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        placeholder="0909 686 868"
+                                        required
+                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm tabular-nums"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="email" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Email nhận phản hồi *
+                                    </Label>
+                                    <Input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="quan.nguyen@shopviet.vn"
+                                        required
+                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="subject" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Chủ đề cần hỗ trợ *
+                                    </Label>
+                                    <Input
+                                        id="subject"
+                                        name="subject"
+                                        value={formData.subject}
+                                        onChange={handleChange}
+                                        placeholder="Báo giá B2B / Hỗ trợ bảo hành..."
+                                        required
+                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* File Attachment for B2B / Technical Support */}
+                            <div className="space-y-1.5">
+                                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Đính kèm Hồ sơ năng lực B2B / Hình ảnh bảo hành (Tùy chọn)
+                                </Label>
+                                <label className="flex items-center justify-between gap-3 p-3 rounded-xl border border-dashed border-primary/40 bg-blue-50/40 dark:bg-blue-950/20 cursor-pointer">
+                                    <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                                        <FileUp className="h-4 w-4 text-primary shrink-0" />
+                                        <span>{attachedFile || "Tải lên PDF, DOCX, XLSX hoặc ảnh chụp thiết bị"}</span>
+                                    </div>
+                                    <span className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold">
+                                        Chọn tệp
+                                    </span>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0]
+                                            if (f) setAttachedFile(f.name)
+                                        }}
+                                    />
+                                </label>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="message" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Nội dung chi tiết *
+                                </Label>
+                                <Textarea
+                                    id="message"
+                                    name="message"
+                                    value={formData.message}
                                     onChange={handleChange}
-                                    placeholder="Nguyễn Văn A"
+                                    placeholder="Nhập nội dung yêu cầu của quý khách..."
+                                    rows={4}
                                     required
-                                    className="h-12 bg-surface border-line focus:border-brand/60"
+                                    className="resize-none rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Email</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="nguyenvana@example.com"
-                                    required
-                                    className="h-12 bg-surface border-line focus:border-brand/60"
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="subject" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Tiêu Đề</Label>
-                            <Input
-                                id="subject"
-                                name="subject"
-                                value={formData.subject}
-                                onChange={handleChange}
-                                placeholder="Chúng tôi có thể giúp gì cho bạn?"
-                                required
-                                className="h-12 bg-surface border-line focus:border-brand/60"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="message" className="text-tiny font-medium uppercase tracking-wider text-ink-faint">Nội Dung</Label>
-                            <Textarea
-                                id="message"
-                                name="message"
-                                value={formData.message}
-                                onChange={handleChange}
-                                placeholder="Nội dung tin nhắn của bạn..."
-                                rows={6}
-                                required
-                                className="resize-none bg-surface border-line focus:border-brand/60"
-                            />
-                        </div>
-                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-full rounded-full bg-brand text-white hover:bg-brand-hover h-12 text-small font-semibold">
-                            {isSubmitting ? "Đang Gửi..." : "Gửi Tin Nhắn"}
-                        </Button>
-                    </form>
-                </div>
-                <div className="h-full min-h-[400px]">
-                    <div className="h-full rounded-3xl overflow-hidden border border-line relative bg-surface">
+
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full rounded-xl bg-primary text-white hover:bg-primary/90 h-11 text-sm font-bold cursor-pointer"
+                            >
+                                {isSubmitting ? "Đang gửi yêu cầu..." : "Gửi yêu cầu tới ShopViet"}
+                            </Button>
+                        </form>
+                    </div>
+
+                    <div className="lg:col-span-5 min-h-[420px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1862.4285288592966!2d105.79340843922351!3d20.998366263847014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acba7ddb0f43%3A0xe7d7c05f85f830a!2zNDggUC4gVOG7kSBI4buvdSwgVHJ1bmcgVsSDbiwgTmFtIFThu6sgTGnDqm0sIEjDoCBO4buZaSAxMDAwMCwgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1743667684381!5m2!1svi!2s"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.513274621584!2d106.6972363!3d10.7719444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3f3129e64d%3A0x8d6b2d79522c7f30!2zMTI1IEzDqiBM4bujaSwgQuG6v24gVGjDoG5oLCBRdeG6rW4gMSwgSOG7kyBDaMOtIE1pbmgsIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1743667684381!5m2!1svi!2s"
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}
                             allowFullScreen
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
-                            title="Bản đồ vị trí văn phòng"
-                            aria-label="Bản đồ Google Maps hiển thị vị trí văn phòng"
-                            className="absolute inset-0 grayscale hover:grayscale-0 transition-all duration-700"
+                            title="Bản đồ vị trí Flagship Showroom ShopViet"
+                            className="absolute inset-0"
                         />
                     </div>
                 </div>
             </div>
-
-            {/* Social Media */}
-            {contactInfo && (
-                <div className="text-center mb-16">
-                    <p className="section-label mb-2">Mạng xã hội</p>
-                    <h2 className="section-title mb-6">Kết Nối Với Chúng Tôi</h2>
-                    <p className="text-ink-soft mb-10 max-w-2xl mx-auto">
-                        Theo dõi chúng tôi trên mạng xã hội để cập nhật các sản phẩm mới nhất, khuyến mãi và tin tức.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-5">
-                        {contactInfo.social.map((platform, index) => {
-                            let Icon = Facebook
-                            if (platform.name === "Twitter") Icon = Twitter
-                            if (platform.name === "Instagram") Icon = Instagram
-                            if (platform.name === "LinkedIn") Icon = Linkedin
-                            if (platform.name === "YouTube") Icon = Youtube
-
-                            return (
-                                <div key={index} className="relative group">
-                                    <a
-                                        href={platform.url}
-                                        className={`flex items-center justify-center h-14 w-14 rounded-full bg-card border border-line shadow-sm transition-all duration-300 transform hover:scale-110`}
-                                        style={{
-                                            color: platform.name === "Instagram" ? "#E1306C"
-                                                : platform.name === "Twitter" ? "#1DA1F2" :
-                                                    platform.name === "LinkedIn" ? "#0A66C2" :
-                                                        platform.name === "YouTube" ? "#FF0000" :
-                                                            platform.name === "Facebook" ? "#1877F2" : "",
-                                        }}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={platform.name}
-                                    >
-                                        <Icon className="h-6 w-6" />
-                                    </a>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* FAQ Section */}
-            {contactInfo && (
-                <div className="bg-surface border border-line rounded-3xl p-10 md:p-14">
-                    <div className="section-heading !mb-10 text-center">
-                        <p className="section-label">Hỗ trợ</p>
-                        <h2 className="section-title">Câu Hỏi Thường Gặp</h2>
-                    </div>
-                    <div className="grid gap-4 md:gap-6 md:grid-cols-2 max-w-5xl mx-auto">
-                        {contactInfo.faqs.map((faq, index) => (
-                            <div key={index} className="space-y-2 p-6 rounded-2xl bg-card border border-line hover:border-ink/30 transition-colors">
-                                <h3 className="font-semibold text-h3 text-ink">{faq.question}</h3>
-                                <p className="text-ink-soft leading-relaxed">{faq.answer}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

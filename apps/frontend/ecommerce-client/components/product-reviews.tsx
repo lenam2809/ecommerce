@@ -1,7 +1,7 @@
 "use client"
 
 import { logger } from '@/lib/logger'
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useProductReviews } from "@/hooks/use-products"
 import { useAuth } from "@/hooks/use-auth"
 import { useSignalR } from "@/hubs/signalr-context"
@@ -46,6 +46,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   } = useSignalR()
 
   const [, setTypingUsers] = useState<TypingUser[]>([])
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const queryClient = useQueryClient()
   const { data, isLoading, error, refetch } = useProductReviews(productId || "")
@@ -115,7 +116,10 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           return filtered
         })
 
-        setTimeout(() => {
+        if (typingTimerRef.current) {
+          clearTimeout(typingTimerRef.current)
+        }
+        typingTimerRef.current = setTimeout(() => {
           setTypingUsers(prev => prev.filter(user => user.userId !== data.UserId))
         }, 3000)
       }
@@ -127,8 +131,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
     onUserTyping(handleUserTyping)
 
     return () => {
-      // B4 FIX: Dọi dẹp đúng handler specific khi component unmount hoặc productId thay đổi
-      // Tránh memory leak và handler duplication sau mỗi lần re-render
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current)
+      }
       offNewReview(handleNewReview)
       offRatingUpdated(handleRatingUpdated)
       offReviewLikeUpdated(handleReviewLikeUpdated)

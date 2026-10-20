@@ -1,7 +1,7 @@
 "use client"
 
 import { logger } from '@/lib/logger'
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef, ReactNode } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { useAuth } from '@/hooks/use-auth'
 import { Review } from '@/types/product'
@@ -18,13 +18,14 @@ interface SignalRContextType {
     onRatingUpdated: (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => void
     onReviewLikeUpdated: (callback: (data: { ReviewId: string; LikeCount: number }) => void) => void
     onUserTyping: (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
-    // B4 FIX: Expose off* methods để component có thể cleanup đúng handler specific
-    offNewReview: (callback: (review: Review) => void) => void
-    offRatingUpdated: (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => void
-    offReviewLikeUpdated: (callback: (data: { ReviewId: string; LikeCount: number }) => void) => void
-    offUserTyping: (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
-    // New handler for notifications
+    // B4 FIX: Expose off* methods để component có thể cleanup đúng handler specific hoặc purge
+    offNewReview: (callback?: (review: Review) => void) => void
+    offRatingUpdated: (callback?: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => void
+    offReviewLikeUpdated: (callback?: (data: { ReviewId: string; LikeCount: number }) => void) => void
+    offUserTyping: (callback?: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => void
+    // Handlers for notifications
     onReceiveNotification: (callback: (type: string, payload: unknown) => void) => void
+    offReceiveNotification: (callback?: (type: string, payload: unknown) => void) => void
 }
 
 const SignalRContext = createContext<SignalRContextType | undefined>(undefined)
@@ -34,13 +35,17 @@ interface SignalRProviderProps {
 }
 
 export function SignalRProvider({ children }: SignalRProviderProps) {
-    // ReviewHub state
+    // ReviewHub state & refs
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null)
     const [isConnected, setIsConnected] = useState(false)
+    const connectionRef = useRef<signalR.HubConnection | null>(null)
+    const isConnectingRef = useRef(false)
 
-    // NotificationHub state
+    // NotificationHub state & refs
     const [notificationConnection, setNotificationConnection] = useState<signalR.HubConnection | null>(null)
     const [isNotificationConnected, setIsNotificationConnected] = useState(false)
+    const notificationConnectionRef = useRef<signalR.HubConnection | null>(null)
+    const isNotifConnectingRef = useRef(false)
 
     const { isAuthenticated } = useAuth()
 
@@ -59,9 +64,12 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     // Setup ReviewHub
     useEffect(() => {
         if (!isAuthenticated) {
+            setIsConnected(false)
+            setConnection(null)
             return
         }
 
+        let isCancelled = false
         const baseUrl = getBaseUrl();
         const csrfToken = getCsrfToken();
         const headers: Record<string, string> = {};
@@ -71,7 +79,6 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
 
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${baseUrl}/reviewHub`, {
-                // accessTokenFactory: () => token, // No longer needed with cookies
                 transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
                 withCredentials: true,
                 headers: headers
@@ -89,47 +96,87 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
             .build()
 
         const startConnection = async () => {
+            if (isConnectingRef.current) return
+            isConnectingRef.current = true
             try {
-                await newConnection.start()
+                if (newConnection.state === signalR.HubConnectionState.Disconnected) {
+                    await newConnection.start()
+                }
+                if (isCancelled) {
+                    if (
+                        newConnection.state === signalR.HubConnectionState.Connected ||
+                        newConnection.state === signalR.HubConnectionState.Connecting
+                    ) {
+                        await newConnection.stop().catch(() => {})
+                    }
+                    return
+                }
                 logger.debug('SignalR ReviewHub Connected')
                 setIsConnected(true)
             } catch (err) {
-                logger.error('SignalR ReviewHub Connection Error: ', err)
-                setIsConnected(false)
+                if (!isCancelled) {
+                    logger.error('SignalR ReviewHub Connection Error: ', err)
+                    setIsConnected(false)
+                }
+            } finally {
+                isConnectingRef.current = false
             }
         }
 
         newConnection.onclose((error) => {
-            logger.debug('SignalR ReviewHub Connection Closed', error)
-            setIsConnected(false)
+            if (!isCancelled) {
+                logger.debug('SignalR ReviewHub Connection Closed', error)
+                setIsConnected(false)
+            }
         })
 
         newConnection.onreconnecting((error) => {
-            logger.debug('SignalR ReviewHub Reconnecting', error)
-            setIsConnected(false)
+            if (!isCancelled) {
+                logger.debug('SignalR ReviewHub Reconnecting', error)
+                setIsConnected(false)
+            }
         })
 
         newConnection.onreconnected((connectionId) => {
-            logger.debug('SignalR ReviewHub Reconnected', connectionId)
-            setIsConnected(true)
+            if (!isCancelled) {
+                logger.debug('SignalR ReviewHub Reconnected', connectionId)
+                setIsConnected(true)
+            }
         })
 
+        connectionRef.current = newConnection
         setConnection(newConnection)
         startConnection()
 
         return () => {
-            if (newConnection) {
-                newConnection.stop()
+            isCancelled = true
+            setIsConnected(false)
+            if (connectionRef.current) {
+                if (
+                    connectionRef.current.state === signalR.HubConnectionState.Connected ||
+                    connectionRef.current.state === signalR.HubConnectionState.Connecting
+                ) {
+                    connectionRef.current.stop().catch(() => {})
+                }
+                connectionRef.current = null
             }
+            setConnection(null)
         }
     }, [isAuthenticated])
 
     // Setup NotificationHub
     useEffect(() => {
         if (!isAuthenticated) {
+            setIsNotificationConnected(false)
+            setNotificationConnection(null)
+            if (notificationConnectionRef.current) {
+                notificationConnectionRef.current.stop().catch(() => {})
+                notificationConnectionRef.current = null
+            }
             return
         }
 
+        let isCancelled = false
         const baseUrl = getBaseUrl();
         const csrfToken = getCsrfToken();
         const headers: Record<string, string> = {};
@@ -139,7 +186,6 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
 
         const newNotifConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${baseUrl}/notification-hub`, { // Correct endpoint per Program.cs
-                // accessTokenFactory: () => token,
                 transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
                 withCredentials: true,
                 headers: headers
@@ -149,119 +195,162 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
             .build()
 
         const startNotifConnection = async () => {
+            if (isNotifConnectingRef.current) return
+            isNotifConnectingRef.current = true
             try {
-                await newNotifConnection.start()
+                if (newNotifConnection.state === signalR.HubConnectionState.Disconnected) {
+                    await newNotifConnection.start()
+                }
+                if (isCancelled) {
+                    if (
+                        newNotifConnection.state === signalR.HubConnectionState.Connected ||
+                        newNotifConnection.state === signalR.HubConnectionState.Connecting
+                    ) {
+                        await newNotifConnection.stop().catch(() => {})
+                    }
+                    return
+                }
                 logger.debug('SignalR NotificationHub Connected')
                 setIsNotificationConnected(true)
             } catch (err) {
-                logger.error('SignalR NotificationHub Connection Error: ', err)
-                setIsNotificationConnected(false)
+                if (!isCancelled) {
+                    logger.error('SignalR NotificationHub Connection Error: ', err)
+                    setIsNotificationConnected(false)
+                }
+            } finally {
+                isNotifConnectingRef.current = false
             }
         }
 
         newNotifConnection.onclose((error) => {
-            logger.debug('SignalR NotificationHub Connection Closed', error)
-            setIsNotificationConnected(false)
+            if (!isCancelled) {
+                logger.debug('SignalR NotificationHub Connection Closed', error)
+                setIsNotificationConnected(false)
+            }
         })
 
+        notificationConnectionRef.current = newNotifConnection
         setNotificationConnection(newNotifConnection)
         startNotifConnection()
 
         return () => {
-            if (newNotifConnection) {
-                newNotifConnection.stop()
+            isCancelled = true
+            setIsNotificationConnected(false)
+            if (notificationConnectionRef.current) {
+                if (
+                    notificationConnectionRef.current.state === signalR.HubConnectionState.Connected ||
+                    notificationConnectionRef.current.state === signalR.HubConnectionState.Connecting
+                ) {
+                    notificationConnectionRef.current.stop().catch(() => {})
+                }
+                notificationConnectionRef.current = null
             }
+            setNotificationConnection(null)
         }
     }, [isAuthenticated])
 
-    const joinProductGroup = async (productId: string) => {
-        if (connection && isConnected) {
+    const joinProductGroup = useCallback(async (productId: string) => {
+        const conn = connectionRef.current
+        if (conn && conn.state === signalR.HubConnectionState.Connected) {
             try {
-                await connection.invoke('JoinProductGroup', productId)
+                await conn.invoke('JoinProductGroup', productId)
                 logger.debug(`Joined product group: ${productId}`)
             } catch (err) {
                 logger.error('Error joining product group:', err)
             }
         }
-    }
+    }, [])
 
-    const leaveProductGroup = async (productId: string) => {
-        if (connection && isConnected) {
+    const leaveProductGroup = useCallback(async (productId: string) => {
+        const conn = connectionRef.current
+        if (conn && conn.state === signalR.HubConnectionState.Connected) {
             try {
-                await connection.invoke('LeaveProductGroup', productId)
+                await conn.invoke('LeaveProductGroup', productId)
                 logger.debug(`Left product group: ${productId}`)
             } catch (err) {
                 logger.error('Error leaving product group:', err)
             }
         }
-    }
+    }, [])
 
-    const sendTypingIndicator = async (productId: string, isTyping: boolean) => {
-        if (connection && isConnected) {
+    const sendTypingIndicator = useCallback(async (productId: string, isTyping: boolean) => {
+        const conn = connectionRef.current
+        if (conn && conn.state === signalR.HubConnectionState.Connected) {
             try {
-                await connection.invoke('SendTypingIndicator', productId, isTyping)
+                await conn.invoke('SendTypingIndicator', productId, isTyping)
             } catch (err) {
                 logger.error('Error sending typing indicator:', err)
             }
         }
-    }
+    }, [])
 
-    const onNewReview = (callback: (review: Review) => void) => {
-        if (connection) {
-            connection.on('NewReview', callback)
+    const onNewReview = useCallback((callback: (review: Review) => void) => {
+        connectionRef.current?.on('NewReview', callback)
+    }, [])
+
+    const onRatingUpdated = useCallback((callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => {
+        connectionRef.current?.on('RatingUpdated', callback)
+    }, [])
+
+    const onReviewLikeUpdated = useCallback((callback: (data: { ReviewId: string; LikeCount: number }) => void) => {
+        connectionRef.current?.on('ReviewLikeUpdated', callback)
+    }, [])
+
+    const onUserTyping = useCallback((callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => {
+        connectionRef.current?.on('UserTyping', callback)
+    }, [])
+
+    const onReceiveNotification = useCallback((callback: (type: string, payload: unknown) => void) => {
+        notificationConnectionRef.current?.on('ReceiveNotification', callback)
+    }, [])
+
+    // Off methods with specific callback or purge fallback
+    const offNewReview = useCallback((callback?: (review: Review) => void) => {
+        if (!connectionRef.current) return
+        if (callback) {
+            connectionRef.current.off('NewReview', callback)
+        } else {
+            connectionRef.current.off('NewReview')
         }
-    }
+    }, [])
 
-    const onRatingUpdated = (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => {
-        if (connection) {
-            connection.on('RatingUpdated', callback)
+    const offRatingUpdated = useCallback((callback?: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => {
+        if (!connectionRef.current) return
+        if (callback) {
+            connectionRef.current.off('RatingUpdated', callback)
+        } else {
+            connectionRef.current.off('RatingUpdated')
         }
-    }
+    }, [])
 
-    const onReviewLikeUpdated = (callback: (data: { ReviewId: string; LikeCount: number }) => void) => {
-        if (connection) {
-            connection.on('ReviewLikeUpdated', callback)
+    const offReviewLikeUpdated = useCallback((callback?: (data: { ReviewId: string; LikeCount: number }) => void) => {
+        if (!connectionRef.current) return
+        if (callback) {
+            connectionRef.current.off('ReviewLikeUpdated', callback)
+        } else {
+            connectionRef.current.off('ReviewLikeUpdated')
         }
-    }
+    }, [])
 
-    const onUserTyping = (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => {
-        if (connection) {
-            connection.on('UserTyping', callback)
+    const offUserTyping = useCallback((callback?: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => {
+        if (!connectionRef.current) return
+        if (callback) {
+            connectionRef.current.off('UserTyping', callback)
+        } else {
+            connectionRef.current.off('UserTyping')
         }
-    }
+    }, [])
 
-    const onReceiveNotification = (callback: (type: string, payload: unknown) => void) => {
-        if (notificationConnection) {
-            notificationConnection.on('ReceiveNotification', callback)
+    const offReceiveNotification = useCallback((callback?: (type: string, payload: unknown) => void) => {
+        if (!notificationConnectionRef.current) return
+        if (callback) {
+            notificationConnectionRef.current.off('ReceiveNotification', callback)
+        } else {
+            notificationConnectionRef.current.off('ReceiveNotification')
         }
-    }
+    }, [])
 
-    // B4 FIX: Off methods để component có thể cleanup handler specific khi unmount
-    const offNewReview = (callback: (review: Review) => void) => {
-        if (connection) {
-            connection.off('NewReview', callback)
-        }
-    }
-
-    const offRatingUpdated = (callback: (data: { ProductId: string; NewRating: number; ReviewCount: number }) => void) => {
-        if (connection) {
-            connection.off('RatingUpdated', callback)
-        }
-    }
-
-    const offReviewLikeUpdated = (callback: (data: { ReviewId: string; LikeCount: number }) => void) => {
-        if (connection) {
-            connection.off('ReviewLikeUpdated', callback)
-        }
-    }
-
-    const offUserTyping = (callback: (data: { UserId: string; UserName: string; IsTyping: boolean; ProductId: string }) => void) => {
-        if (connection) {
-            connection.off('UserTyping', callback)
-        }
-    }
-
-    const value: SignalRContextType = {
+    const value = useMemo<SignalRContextType>(() => ({
         connection,
         notificationConnection,
         isConnected,
@@ -278,7 +367,26 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         offReviewLikeUpdated,
         offUserTyping,
         onReceiveNotification,
-    }
+        offReceiveNotification,
+    }), [
+        connection,
+        notificationConnection,
+        isConnected,
+        isNotificationConnected,
+        joinProductGroup,
+        leaveProductGroup,
+        sendTypingIndicator,
+        onNewReview,
+        onRatingUpdated,
+        onReviewLikeUpdated,
+        onUserTyping,
+        offNewReview,
+        offRatingUpdated,
+        offReviewLikeUpdated,
+        offUserTyping,
+        onReceiveNotification,
+        offReceiveNotification,
+    ])
 
     return (
         <SignalRContext.Provider value={value}>

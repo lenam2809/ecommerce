@@ -43,7 +43,7 @@ export function MobileMenu({
                 {/* Quick Access Badges - Cart, Wishlist, Compare */}
                 <div className="grid grid-cols-3 gap-2 pb-3 mb-1 border-b border-border">
                     <Link href="/cart" className="flex-1" onClick={closeMenu}>
-                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm" aria-label={`Giỏ hàng ${cartCount > 0 ? `(${cartCount})` : ""}`}>
                             <span className="flex items-center gap-1.5 font-medium text-xs">
                                 <ShoppingCart className="h-4 w-4 shrink-0" />
                                 <span className="truncate">Giỏ hàng</span>
@@ -56,7 +56,7 @@ export function MobileMenu({
                         </Button>
                     </Link>
                     <Link href="/wishlist" className="flex-1" onClick={closeMenu}>
-                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm" aria-label={`Danh sách yêu thích ${wishlistCount > 0 ? `(${wishlistCount})` : ""}`}>
                             <span className="flex items-center gap-1.5 font-medium text-xs">
                                 <Heart className="h-4 w-4 shrink-0" />
                                 <span className="truncate">Yêu thích</span>
@@ -69,7 +69,7 @@ export function MobileMenu({
                         </Button>
                     </Link>
                     <Link href="/compare" className="flex-1" onClick={closeMenu}>
-                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm">
+                        <Button variant="outline" className="w-full justify-between rounded-xl h-11 px-2.5" size="sm" aria-label={`So sánh thiết bị ${compareCount > 0 ? `(${compareCount})` : ""}`}>
                             <span className="flex items-center gap-1.5 font-medium text-xs">
                                 <ArrowLeftRight className="h-4 w-4 shrink-0" />
                                 <span className="truncate">So sánh</span>

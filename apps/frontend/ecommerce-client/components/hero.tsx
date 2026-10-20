@@ -56,7 +56,7 @@ export function Hero({ banners }: HeroProps) {
         {/* Bento Grid Showcase (Compact on Mobile ~25% shorter so first product row is visible) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-stretch">
           {/* Primary Dark Bento Hero Block (8 cols on lg) */}
-          <div className="lg:col-span-8 relative rounded-3xl overflow-hidden bg-[#090D16] text-white border border-slate-800/90 shadow-xl flex flex-col justify-between p-5 sm:p-7 md:p-10 min-h-[290px] sm:min-h-[360px] lg:min-h-[440px]">
+          <div className="lg:col-span-8 relative rounded-3xl overflow-hidden bg-[#090D16] text-white border border-slate-800/90 shadow-xl flex flex-col justify-between p-5 sm:p-7 md:p-10 min-h-[290px] sm:min-h-[360px] lg:min-h-[440px] aspect-[16/10] sm:aspect-[16/9] lg:aspect-[16/10]">
             {/* Background Hero Image & Subtle Ambient Glows */}
             <div className="absolute inset-0 z-0">
               <Image
@@ -64,6 +64,7 @@ export function Hero({ banners }: HeroProps) {
                 alt="MacBook Pro 14 M3 Pro Flagship 2026"
                 fill
                 priority
+                fetchPriority="high"
                 sizes="(max-width: 1024px) 100vw, 66vw"
                 className="object-cover object-right opacity-35 sm:opacity-45 mix-blend-luminosity scale-105 transition-transform duration-700"
               />
@@ -133,7 +134,7 @@ export function Hero({ banners }: HeroProps) {
                   <span className="text-lg sm:text-2xl font-extrabold text-white tabular-nums whitespace-nowrap">
                     61.990.000₫
                   </span>
-                  <span className="text-xs text-slate-500 line-through tabular-nums whitespace-nowrap hidden sm:inline">
+                  <span className="text-xs text-slate-400 line-through tabular-nums whitespace-nowrap hidden sm:inline">
                     67.990.000₫
                   </span>
                 </div>
@@ -175,7 +176,7 @@ export function Hero({ banners }: HeroProps) {
             {/* Bento Sub-Card 1: iPhone 16 Pro Max 256GB — SSoT Price 34.990.000đ */}
             <Link
               href="/products?q=iPhone"
-              className="group relative rounded-3xl overflow-hidden bg-[#111827] text-white border border-slate-800/90 p-4 sm:p-6 flex flex-col justify-between hover:border-[#2563EB]/60 transition-all duration-300 shadow-md"
+              className="group relative rounded-3xl overflow-hidden bg-[#111827] text-white border border-slate-800/90 p-4 sm:p-6 flex flex-col justify-between hover:border-[#2563EB]/60 transition-all duration-300 shadow-md aspect-[1/1] sm:aspect-[16/10] lg:aspect-[16/9]"
             >
               <div
                 className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#2563EB]/15 rounded-full blur-2xl pointer-events-none"
@@ -213,7 +214,7 @@ export function Hero({ banners }: HeroProps) {
                   <p className="text-base sm:text-xl font-extrabold text-white tabular-nums whitespace-nowrap">
                     34.990.000₫
                   </p>
-                  <p className="text-[11px] text-slate-500 line-through tabular-nums whitespace-nowrap">
+                  <p className="text-[11px] text-slate-400 line-through tabular-nums whitespace-nowrap">
                     39.990.000₫
                   </p>
                 </div>
@@ -226,7 +227,7 @@ export function Hero({ banners }: HeroProps) {
             {/* Bento Sub-Card 2: Trade-In & 45 Showrooms Experience */}
             <Link
               href="/products"
-              className="group relative rounded-3xl overflow-hidden bg-card dark:bg-[#111827] border border-border dark:border-slate-800/90 p-4 sm:p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 shadow-xs"
+              className="group relative rounded-3xl overflow-hidden bg-card dark:bg-[#111827] border border-border dark:border-slate-800/90 p-4 sm:p-6 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 shadow-xs aspect-[1/1] sm:aspect-[16/10] lg:aspect-[16/9]"
             >
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-[11px] font-bold uppercase tracking-wide mb-2">

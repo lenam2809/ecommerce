@@ -108,33 +108,51 @@ export function SearchInput() {
         submitSearch(text)
     }, [searchHistory, submitSearch])
 
-    // Keyboard navigation in suggestions list
+    // Keyboard navigation in suggestions list (supports ArrowDown, ArrowUp, Enter, Escape)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!showSuggestions) return
 
+            if (e.key === "Escape") {
+                e.preventDefault()
+                setShowSuggestions(false)
+                setSelectedIndex(-1)
+                return
+            }
+
+            // Only intercept navigation keys if focus is within search input or dropdown
+            const isSearchFocused =
+                document.activeElement === searchInputRef.current ||
+                Boolean(suggestionsRef.current && suggestionsRef.current.contains(document.activeElement))
+
+            if (!isSearchFocused) return
+
+            const currentItems = debouncedQuery ? apiSuggestions : searchHistory
+            const itemCount = currentItems.length
+
             if (e.key === "ArrowDown") {
                 e.preventDefault()
-                setSelectedIndex((prev) => prev + 1)
+                if (itemCount > 0) {
+                    setSelectedIndex((prev) => (prev < itemCount - 1 ? prev + 1 : prev))
+                }
             } else if (e.key === "ArrowUp") {
                 e.preventDefault()
-                setSelectedIndex((prev) => (prev <= 0 ? -1 : prev - 1))
+                if (itemCount > 0) {
+                    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+                }
             } else if (e.key === "Enter" && selectedIndex >= 0) {
                 e.preventDefault()
-                const allSuggestions = [...searchHistory, ...apiSuggestions]
-                const selected = allSuggestions[selectedIndex]
+                const selected = currentItems[selectedIndex]
                 if (selected) {
                     const text = typeof selected === "string" ? selected : selected.text
                     handleSelectSuggestion(text)
                 }
-            } else if (e.key === "Escape") {
-                setShowSuggestions(false)
             }
         }
 
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [showSuggestions, selectedIndex, searchHistory, apiSuggestions, handleSelectSuggestion])
+    }, [showSuggestions, selectedIndex, debouncedQuery, searchHistory, apiSuggestions, handleSelectSuggestion])
 
     const handleClearSearch = () => {
         setSearchQuery("")
@@ -166,6 +184,12 @@ export function SearchInput() {
                 ref={searchInputRef}
                 type="text"
                 placeholder="Tìm kiếm điện thoại, laptop, phụ kiện..."
+                aria-label="Tìm kiếm điện thoại, laptop, phụ kiện"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions}
+                aria-controls="search-suggestions-list"
+                aria-activedescendant={selectedIndex >= 0 ? `search-item-${selectedIndex}` : undefined}
                 className="pl-11 pr-16 py-2 h-10 w-full rounded-full bg-surface-2/80 hover:bg-surface-2 border border-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 transition-all text-small text-ink placeholder:text-ink-faint"
                 value={searchQuery}
                 onChange={(e) => {
@@ -200,7 +224,7 @@ export function SearchInput() {
                 <button
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-faint hover:text-ink h-6 w-6 flex items-center justify-center rounded-full hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     onClick={handleClearSearch}
-                    aria-label="Xóa tìm kiếm"
+                    aria-label="Xóa nội dung tìm kiếm"
                 >
                     <X className="h-4 w-4" />
                 </button>
@@ -209,6 +233,9 @@ export function SearchInput() {
             {showSuggestions && (
                 <div
                     ref={suggestionsRef}
+                    id="search-suggestions-list"
+                    role="listbox"
+                    aria-label="Danh sách gợi ý tìm kiếm"
                     className="absolute top-full left-0 right-0 mt-2 bg-card text-foreground rounded-2xl shadow-xl z-50 border border-line overflow-hidden backdrop-blur-xl"
                 >
                     {suggestionsLoading ? (
@@ -256,6 +283,9 @@ export function SearchInput() {
                                     {searchHistory.map((item, idx) => (
                                         <button
                                             key={`history-${idx}`}
+                                            id={`search-item-${idx}`}
+                                            role="option"
+                                            aria-selected={selectedIndex === idx}
                                             onClick={() => handleSelectSuggestion(item)}
                                             className={`w-full px-4 py-2.5 text-left text-small transition-colors flex items-center justify-between ${
                                                 selectedIndex === idx ? "bg-surface" : "hover:bg-surface/70"
@@ -282,9 +312,12 @@ export function SearchInput() {
                                     {displaySuggestions.map((suggestion, idx) => (
                                         <button
                                             key={`suggestion-${idx}`}
+                                            id={`search-item-${idx}`}
+                                            role="option"
+                                            aria-selected={selectedIndex === idx}
                                             onClick={() => handleSelectSuggestion(suggestion.text)}
                                             className={`w-full px-4 py-2.5 text-left text-small transition-colors flex items-center justify-between ${
-                                                selectedIndex === idx + searchHistory.length ? "bg-surface" : "hover:bg-surface/70"
+                                                selectedIndex === idx ? "bg-surface" : "hover:bg-surface/70"
                                             }`}
                                         >
                                             <div className="min-w-0 pr-2">

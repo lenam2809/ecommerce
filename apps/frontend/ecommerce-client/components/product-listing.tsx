@@ -720,6 +720,9 @@ function ProductListingContent({
                         size="sm"
                         className="md:hidden rounded-full px-4 h-11 border-line text-ink"
                         onClick={() => setShowMobileFilters((prev) => !prev)}
+                        aria-expanded={showMobileFilters}
+                        aria-controls="mobile-filter-drawer"
+                        aria-label="Bộ lọc sản phẩm"
                     >
                         <Filter className="h-4 w-4 mr-2 text-primary" />
                         <span>Bộ lọc</span>
@@ -808,7 +811,13 @@ function ProductListingContent({
 
                 {/* Mobile Filter Modal Drawer — z-[60] above Mobile Bottom Navigation */}
                 {showMobileFilters && (
-                    <div className="md:hidden fixed inset-0 z-[60] flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div
+                        id="mobile-filter-drawer"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Bộ lọc sản phẩm"
+                        className="md:hidden fixed inset-0 z-[60] flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+                    >
                         <div className="w-full max-w-sm h-full bg-card border-l border-line shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
                             <div className="p-4 border-b border-line flex items-center justify-between bg-surface">
                                 <div className="flex items-center gap-2">

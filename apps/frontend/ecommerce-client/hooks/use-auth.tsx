@@ -2,7 +2,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import authService, { User } from "@/services/auth-service"
 import { useRouter } from "next/navigation"
-import { clearGuestId } from "@/lib/guest-id"
+import { clearGuestId, getGuestId } from "@/lib/guest-id"
+import cartService from "@/services/cart-service"
+import { logger } from "@/lib/logger"
 
 interface AuthContextType {
     user: User | null
@@ -109,6 +111,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     avatar: data.data.avatar,
                 }
 
+                const currentGuestId = getGuestId()
+                if (currentGuestId) {
+                    try {
+                        await cartService.mergeCart(currentGuestId)
+                    } catch (mergeErr) {
+                        logger.error("Auto merge cart error:", mergeErr)
+                    }
+                }
                 setUser(nextUser)
                 clearGuestId()
             } else {

@@ -76,6 +76,7 @@ export default function ProductComparison() {
                             type="button"
                             onClick={clearComparison}
                             className="inline-flex items-center gap-1 text-tiny text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg hover:bg-destructive/10"
+                            aria-label="Xóa tất cả sản phẩm khỏi so sánh"
                         >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span className="hidden sm:inline">Xóa tất cả</span>
@@ -85,6 +86,8 @@ export default function ProductComparison() {
                             onClick={() => setIsCollapsed((prev) => !prev)}
                             className="inline-flex items-center gap-1 text-tiny font-semibold text-primary hover:underline px-2 py-1 rounded-lg hover:bg-primary/10"
                             aria-label={isCollapsed ? "Mở rộng thanh so sánh" : "Thu gọn thanh so sánh"}
+                            aria-expanded={!isCollapsed}
+                            aria-controls="comparison-matrix-bar"
                         >
                             <span>{isCollapsed ? "Mở rộng" : "Thu gọn"}</span>
                             {isCollapsed ? (
@@ -98,7 +101,7 @@ export default function ProductComparison() {
 
                 {/* Expandable 4-Slot Compare Matrix Bar */}
                 {!isCollapsed && (
-                    <div className="p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+                    <div id="comparison-matrix-bar" className="p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1">
                             {comparedProducts.map((product) => (
                                 <div
