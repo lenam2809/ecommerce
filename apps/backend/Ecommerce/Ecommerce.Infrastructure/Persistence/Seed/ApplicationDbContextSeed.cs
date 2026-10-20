@@ -348,6 +348,37 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 users.Add(customerUser);
             }
 
+            // Seed VIP Diamond Customer Nguyen Minh Quan
+            var vipEmail = "quan.nguyen@shopviet.vn";
+            var vipUser = await _userManager.FindByEmailAsync(vipEmail);
+            if (vipUser == null)
+            {
+                vipUser = new ApplicationUser
+                {
+                    UserName = vipEmail,
+                    Email = vipEmail,
+                    EmailConfirmed = true,
+                    FirstName = "Minh Quân",
+                    LastName = "Nguyễn",
+                    FullName = "Nguyễn Minh Quân",
+                    PhoneNumber = "0909 686 868",
+                    CustomerLevel = ECustomerLevel.Diamond,
+                    PromotionPoints = 5000,
+                    MustChangePassword = false
+                };
+
+                var result = await _userManager.CreateAsync(vipUser, "Password@123");
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Created seeded VIP user {Email}", vipEmail);
+                    users.Add(vipUser);
+                }
+            }
+            else
+            {
+                users.Add(vipUser);
+            }
+
             return users;
         }
 
@@ -482,6 +513,15 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 {
                     await _userManager.AddToRoleAsync(staffUser, staffRole.Name!);
                     _logger.LogInformation("Assigned role {RoleName} to seeded user type {SeedUserType}", staffRole.Name, "Staff");
+                }
+            }
+
+            var vipUserForRole = users.FirstOrDefault(u => u.Email == "quan.nguyen@shopviet.vn");
+            if (vipUserForRole != null && customerRole != null)
+            {
+                if (!await _userManager.IsInRoleAsync(vipUserForRole, customerRole.Name!))
+                {
+                    await _userManager.AddToRoleAsync(vipUserForRole, customerRole.Name!);
                 }
             }
 

@@ -24,6 +24,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReviews(Guid productId)
         {
             var query = new GetProductReviewsQuery(productId);
@@ -53,6 +54,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpGet("{reviewId}/replies")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReviewReplies(Guid reviewId)
         {
             // Lấy userId từ token nếu user đã đăng nhập để check liked status

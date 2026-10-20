@@ -67,7 +67,8 @@ namespace Ecommerce.Infrastructure.Identity
         }
 
         public string? GuestId => _httpContextAccessor.HttpContext?.Request.Cookies[GuestCartConstants.GuestIdCookieName]
-            ?? _httpContextAccessor.HttpContext?.Items[GuestCartConstants.GuestIdItemKey] as string;
+            ?? _httpContextAccessor.HttpContext?.Items[GuestCartConstants.GuestIdItemKey] as string
+            ?? _httpContextAccessor.HttpContext?.Request.Headers["X-Guest-ID"].FirstOrDefault();
     }
 
 }
