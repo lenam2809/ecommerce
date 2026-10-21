@@ -29,8 +29,17 @@ namespace Ecommerce.Application.Features.Returns.Dto
         public DateTime CreatedAt { get; set; }
         public DateTime? ResolvedAt { get; set; }
 
+        public string? SerialNumber { get; set; }
+        public Guid? ShowroomId { get; set; }
+        public string? ShowroomName { get; set; }
+        public string? ShowroomAddress { get; set; }
+        public string? AssignedTechnicianName { get; set; }
+        public string? ProcessingMethod { get; set; }
+
         public List<ReturnEvidenceDto> Evidences { get; set; } = [];
         public List<ReturnStatusHistoryDto> StatusHistory { get; set; } = [];
+        public List<ReturnRequestLogDto> Logs { get; set; } = [];
+        public List<ReturnTimelineStepDto> TimelineSteps { get; set; } = [];
     }
 
     public class ReturnEvidenceDto
@@ -47,6 +56,32 @@ namespace Ecommerce.Application.Features.Returns.Dto
         public string StatusDisplay { get; set; } = string.Empty;
         public string Note { get; set; } = string.Empty;
         public DateTime ChangedAt { get; set; }
+    }
+
+    public class ReturnRequestLogDto
+    {
+        public Guid Id { get; set; }
+        public int Step { get; set; }
+        public string Action { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string? ActorName { get; set; }
+        public string? Author => ActorName;
+        public string? Location { get; set; }
+        public string? Note { get; set; }
+        public string? TechnicianNote => Note;
+        public string? ProcessingMethod { get; set; }
+        public DateTime LoggedAt { get; set; }
+    }
+
+    public class ReturnTimelineStepDto
+    {
+        public int Step { get; set; } // 1 to 5
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Status { get; set; } = "Pending"; // "Completed", "Active", "Pending"
+        public DateTime? CompletedAt { get; set; }
+        public string? Actor { get; set; }
+        public string? Location { get; set; }
     }
 
     public class ReturnRequestListDto

@@ -21,6 +21,16 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
         public string DiscountCode { get; set; } = string.Empty;
         public string DeliveryInstructions { get; set; } = string.Empty;
         public DateTime? ExpectedDeliveryDate { get; set; }
+        public Guid? ShowroomId { get; set; }
+        public string DeliveryMethod { get; set; } = "StandardDelivery";
+        public EDeliveryType DeliveryType { get; set; } = EDeliveryType.HomeDelivery;
+        public string PaymentMethod { get; set; } = "COD";
+        public OrderInvoiceDto? Invoice { get; set; }
+        public bool RequireInvoice { get; set; } = false;
+        public string? TaxCode { get; set; }
+        public string? CompanyName { get; set; }
+        public string? CompanyAddress { get; set; }
+        public string? InvoiceEmail { get; set; }
         public List<CreateOrderItemDto> OrderItems { get; set; } = [];
     }
 }

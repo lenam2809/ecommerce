@@ -14,6 +14,12 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .IsRequired()
                    .HasMaxLength(100);
 
+            builder.Property(i => i.Imei)
+                   .HasMaxLength(50);
+
+            builder.Property(i => i.WarrantyMonths)
+                   .HasDefaultValue(24);
+
             builder.Property(i => i.BatchCode)
                    .HasMaxLength(50);
 
@@ -36,6 +42,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
 
             // Indexes
             builder.HasIndex(i => i.SerialNumber).IsUnique();
+            builder.HasIndex(i => i.Imei);
             builder.HasIndex(i => i.ProductVariantSkuId);
             builder.HasIndex(i => i.Status);
             builder.HasIndex(i => i.OrderItemId).HasFilter("\"OrderItemId\" IS NOT NULL");

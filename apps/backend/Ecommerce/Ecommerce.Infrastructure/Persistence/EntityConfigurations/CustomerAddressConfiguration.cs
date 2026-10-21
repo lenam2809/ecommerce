@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,10 +11,22 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
         {
             builder.ToTable("CustomerAddresses");
 
-            // Validation cho các trường
+            builder.Property(ca => ca.AddressType)
+                   .IsRequired()
+                   .HasMaxLength(50)
+                   .HasDefaultValue("Home");
+
             builder.Property(ca => ca.FullName)
                    .IsRequired()
                    .HasMaxLength(100);
+
+            builder.Property(ca => ca.ReceiverName)
+                   .HasMaxLength(100)
+                   .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            builder.Property(ca => ca.ReceiverPhone)
+                   .HasMaxLength(20)
+                   .UsePropertyAccessMode(PropertyAccessMode.Property);
 
             builder.Property(ca => ca.Street)
                    .IsRequired()
@@ -32,9 +44,12 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .IsRequired()
                    .HasMaxLength(20);
 
+            builder.Property(ca => ca.IsDefault)
+                   .HasDefaultValue(false);
+
             // Cấu hình quan hệ với User
             builder.HasOne(ca => ca.ApplicationUser)
-                   .WithMany()
+                   .WithMany(u => u.Addresses)
                    .HasForeignKey(ca => ca.ApplicationUserId)
                    .OnDelete(DeleteBehavior.Cascade);
 
@@ -43,4 +58,3 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
         }
     }
 }
-

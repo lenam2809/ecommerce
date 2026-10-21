@@ -14,6 +14,15 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .IsRequired()
                    .HasMaxLength(50);
 
+            builder.Property(r => r.SerialNumber)
+                   .HasMaxLength(100);
+
+            builder.Property(r => r.AssignedTechnicianName)
+                   .HasMaxLength(100);
+
+            builder.Property(r => r.ProcessingMethod)
+                   .HasMaxLength(100);
+
             builder.Property(r => r.CustomerNote)
                    .HasMaxLength(2000);
 
@@ -33,12 +42,18 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasOne(r => r.Order)
                    .WithMany()
                    .HasForeignKey(r => r.OrderId)
-                   .OnDelete(DeleteBehavior.NoAction);
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(r => r.Customer)
                    .WithMany()
                    .HasForeignKey(r => r.CustomerId)
                    .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(r => r.Showroom)
+                   .WithMany()
+                   .HasForeignKey(r => r.ShowroomId)
+                   .OnDelete(DeleteBehavior.Restrict)
+                   .IsRequired(false);
 
             builder.HasMany(r => r.Evidences)
                    .WithOne(e => e.ReturnRequest)
@@ -50,11 +65,18 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .HasForeignKey(h => h.ReturnRequestId)
                    .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasMany(r => r.Logs)
+                   .WithOne(l => l.ReturnRequest)
+                   .HasForeignKey(l => l.ReturnRequestId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes
             builder.HasIndex(r => r.Code).IsUnique();
             builder.HasIndex(r => r.CustomerId);
             builder.HasIndex(r => r.OrderId);
             builder.HasIndex(r => r.Status);
+            builder.HasIndex(r => r.SerialNumber);
+            builder.HasIndex(r => r.ShowroomId);
         }
     }
 }

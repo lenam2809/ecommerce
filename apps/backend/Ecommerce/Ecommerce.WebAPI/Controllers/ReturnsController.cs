@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ecommerce.WebAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Route("api/account/returns")]
     [ApiController]
     public class ReturnsController : ControllerBase
     {

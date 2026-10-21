@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Domain.Entities
 {
@@ -69,6 +69,14 @@ namespace Ecommerce.Domain.Entities
         /// Các IMEI/Serial đã gắn vào line item này
         /// </summary>
         public virtual ICollection<InventoryItem> AssignedSerials { get; private set; } = new List<InventoryItem>();
+
+        public Guid? AddOnId { get; set; }
+        public string? AddOnName { get; set; }
+        public decimal AddOnPrice { get; set; } = 0;
+        public int WarrantyMonths { get; set; } = 24;
+
+        public virtual ProductAddOn? AddOn { get; set; }
+        public virtual ICollection<OrderItemSerial> OrderItemSerials { get; set; } = new List<OrderItemSerial>();
 
         public void AddQuantity(int quantity)
         {

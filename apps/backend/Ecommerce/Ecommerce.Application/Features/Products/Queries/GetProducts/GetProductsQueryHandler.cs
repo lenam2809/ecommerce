@@ -6,6 +6,7 @@ using Ecommerce.Domain.Interfaces;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Queries.GetProducts
 {
@@ -25,9 +26,23 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProducts
         {
             try
             {
-                var products = await _unitOfWork.Products.GetAllAsync(cancellationToken);
+                var products = await _unitOfWork.Products
+                    .GetQueryable()
+                    .AsNoTracking()
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Specifications)
+                    .ToListAsync(cancellationToken);
 
                 var result = _mapper.Map<List<ProductDto>>(products);
+
+                for (int i = 0; i < products.Count; i++)
+                {
+                    var p = products[i];
+                    var dto = result[i];
+                    dto.KeySpecs = Ecommerce.Application.Features.Products.Helpers.ProductSpecHelper.ExtractKeySpecs(
+                        p.Specifications, p.Name, p.Category?.Name);
+                }
 
                 return Result<List<ProductDto>>.Success(result);
             }

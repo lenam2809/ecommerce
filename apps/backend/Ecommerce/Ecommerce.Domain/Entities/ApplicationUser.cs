@@ -63,6 +63,8 @@ namespace Ecommerce.Domain.Entities
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public virtual ICollection<CustomerAddress> Addresses { get; set; } = new List<CustomerAddress>();
+        public virtual ICollection<LoyaltyPointTransaction> LoyaltyTransactions { get; set; } = new List<LoyaltyPointTransaction>();
     }
 
 }

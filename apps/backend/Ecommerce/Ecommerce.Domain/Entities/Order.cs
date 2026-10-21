@@ -1,6 +1,7 @@
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Events;
 using Ecommerce.Domain.Exceptions;
+using Ecommerce.Domain.ValueObjects;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -58,6 +59,94 @@ namespace Ecommerce.Domain.Entities
         public string? DeliveryInstructions { get; private set; }
 
         public DateTime? ExpectedDeliveryDate { get; private set; }
+
+        public string DeliveryMethod { get; set; } = "StandardDelivery";
+        public EDeliveryType DeliveryType { get; set; } = EDeliveryType.HomeDelivery;
+        public Guid? ShowroomId { get; set; }
+        public virtual Showroom? Showroom { get; set; }
+
+        private Guid? _pickupShowroomId;
+        public Guid? PickupShowroomId
+        {
+            get => _pickupShowroomId ?? ShowroomId;
+            set
+            {
+                _pickupShowroomId = value;
+                if (value.HasValue && !ShowroomId.HasValue)
+                {
+                    ShowroomId = value;
+                }
+            }
+        }
+        public virtual Showroom? PickupShowroom { get; set; }
+
+        public decimal DepositRequired { get; set; } = 0;
+        public EDepositStatus DepositStatus { get; set; } = EDepositStatus.None;
+        public decimal DepositAmount { get; set; } = 0;
+        public decimal Subtotal { get; set; } = 0;
+        public decimal ShippingCost { get; set; } = 0;
+        public decimal DiscountAmount { get; set; } = 0;
+        public decimal RemainingAmount { get; set; } = 0;
+        public string PaymentMethod { get; set; } = "COD";
+        public string PaymentStatus { get; set; } = "Pending";
+        public string? TransactionId { get; set; }
+        public string? CarrierName { get; set; }
+        public string? TrackingNumber { get; set; }
+        public string? DriverName { get; set; }
+        public string? DriverPhone { get; set; }
+        public string? RecipientName { get; set; }
+
+        public OrderInvoice Invoice { get; set; } = new();
+
+        public bool RequireInvoice
+        {
+            get => Invoice?.RequireInvoice ?? false;
+            set
+            {
+                Invoice ??= new();
+                Invoice.RequireInvoice = value;
+            }
+        }
+
+        public string? TaxCode
+        {
+            get => Invoice?.TaxCode;
+            set
+            {
+                Invoice ??= new();
+                Invoice.TaxCode = value;
+            }
+        }
+
+        public string? CompanyName
+        {
+            get => Invoice?.CompanyName;
+            set
+            {
+                Invoice ??= new();
+                Invoice.CompanyName = value;
+            }
+        }
+
+        public string? CompanyAddress
+        {
+            get => Invoice?.CompanyAddress;
+            set
+            {
+                Invoice ??= new();
+                Invoice.CompanyAddress = value;
+            }
+        }
+
+        public string? InvoiceEmail
+        {
+            get => Invoice?.InvoiceEmail;
+            set
+            {
+                Invoice ??= new();
+                Invoice.InvoiceEmail = value;
+            }
+        }
 
         // Navigation properties
         public virtual ApplicationUser ApplicationUser { get; private set; } = null!;
@@ -133,13 +222,18 @@ namespace Ecommerce.Domain.Entities
             string? size,
             Guid? productVariantSkuId = null,
             string? skuCode = null,
-            string? variantInfo = null)
+            string? variantInfo = null,
+            Guid? addOnId = null,
+            string? addOnName = null,
+            decimal addOnPrice = 0,
+            int warrantyMonths = 24)
         {
             var existingItem = _orderItems.FirstOrDefault(i =>
                 i.ProductId == productId &&
                 i.ProductVariantSkuId == productVariantSkuId &&
                 i.Color == (color ?? string.Empty) &&
-                i.Size == (size ?? string.Empty));
+                i.Size == (size ?? string.Empty) &&
+                i.AddOnId == addOnId);
             if (existingItem != null)
             {
                 existingItem.AddQuantity(quantity);
@@ -151,14 +245,20 @@ namespace Ecommerce.Domain.Entities
                     productId,
                     name,
                     image,
-                    unitPrice,
+                    unitPrice + addOnPrice,
                     quantity,
                     color,
                     size,
                     productVariantSkuId,
                     skuCode,
                     variantInfo
-                );
+                )
+                {
+                    AddOnId = addOnId,
+                    AddOnName = addOnName,
+                    AddOnPrice = addOnPrice,
+                    WarrantyMonths = warrantyMonths
+                };
                 _orderItems.Add(item);
             }
 

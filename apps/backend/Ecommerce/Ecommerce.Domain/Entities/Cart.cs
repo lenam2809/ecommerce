@@ -38,14 +38,24 @@ namespace Ecommerce.Domain.Entities
             PromoCode = string.Empty;
         }
 
-        public void AddItem(Product product, int quantity, string? color = null, string? size = null)
+        public void AddItem(
+            Product product,
+            int quantity,
+            string? color = null,
+            string? size = null,
+            Guid? addOnId = null,
+            decimal addOnPrice = 0,
+            Guid? productVariantSkuId = null)
         {
             var normColor = color?.Trim() ?? string.Empty;
             var normSize = size?.Trim() ?? string.Empty;
 
-            var existingItem = _cartItems.FirstOrDefault(i => i.ProductId == product.Id
-                && i.Color == normColor
-                && i.Size == normSize);
+            var existingItem = _cartItems.FirstOrDefault(i =>
+                i.ProductId == product.Id &&
+                i.Color == normColor &&
+                i.Size == normSize &&
+                i.AddOnId == addOnId &&
+                i.ProductVariantSkuId == productVariantSkuId);
 
             if (existingItem != null)
             {
@@ -53,7 +63,10 @@ namespace Ecommerce.Domain.Entities
             }
             else
             {
-                _cartItems.Add(new CartItem(this.Id, product, quantity, normColor, normSize));
+                var newItem = new CartItem(this.Id, product, quantity, normColor, normSize, productVariantSkuId);
+                newItem.AddOnId = addOnId;
+                newItem.AddOnPrice = addOnPrice;
+                _cartItems.Add(newItem);
             }
 
             RecalculateTotal();

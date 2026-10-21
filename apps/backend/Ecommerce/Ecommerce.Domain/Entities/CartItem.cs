@@ -55,8 +55,12 @@ namespace Ecommerce.Domain.Entities
         public virtual Product Product { get; private set; } = null!;
         public virtual ProductVariantSku? ProductVariantSku { get; private set; }
 
+        public Guid? AddOnId { get; set; }
+        public decimal AddOnPrice { get; set; } = 0;
+        public virtual ProductAddOn? AddOn { get; set; }
+
         [NotMapped]
-        public decimal TotalPrice => (Product?.SalePrice ?? Product?.Price ?? 0) * Quantity;
+        public decimal TotalPrice => ((Product?.SalePrice ?? Product?.Price ?? 0) + AddOnPrice) * Quantity;
 
         public void AddQuantity(int quantity)
         {

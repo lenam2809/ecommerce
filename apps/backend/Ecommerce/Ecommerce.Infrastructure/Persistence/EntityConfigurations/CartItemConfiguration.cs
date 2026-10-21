@@ -32,9 +32,12 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .IsRequired()
                    .HasDefaultValue(1);
 
+            builder.Property(ci => ci.AddOnPrice)
+                   .HasColumnType("decimal(18,2)")
+                   .HasDefaultValue(0);
+
             // Unique index bảo đảm mỗi biến thể chỉ có tối đa một dòng trong mỗi giỏ hàng
-            builder.HasIndex(ci => new { ci.CartId, ci.ProductId, ci.Color, ci.Size })
-                   .IsUnique();
+            builder.HasIndex(ci => new { ci.CartId, ci.ProductId, ci.Color, ci.Size });
 
             // Cấu hình quan hệ
             builder.HasOne(ci => ci.Cart)
@@ -51,7 +54,12 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
                    .WithMany()
                    .HasForeignKey(ci => ci.ProductVariantSkuId)
                    .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(ci => ci.AddOn)
+                   .WithMany()
+                   .HasForeignKey(ci => ci.AddOnId)
+                   .OnDelete(DeleteBehavior.SetNull)
+                   .IsRequired(false);
         }
     }
 }
-

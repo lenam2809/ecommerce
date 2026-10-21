@@ -156,12 +156,15 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                             {
                                 existingSpec.Name = spec.Name;
                                 existingSpec.Value = spec.Value;
+                                existingSpec.GroupName = spec.GroupName;
+                                existingSpec.IsKeySpec = spec.IsKeySpec;
+                                existingSpec.DisplayOrder = spec.DisplayOrder;
                             }
                         }
                         else
                         {
                             // Thêm thông số mới
-                            existingProduct.AddSpecification(spec.Name, spec.Value);
+                            existingProduct.AddSpecification(spec.Name, spec.Value, spec.GroupName, spec.IsKeySpec, spec.DisplayOrder);
                         }
                     }
                 }

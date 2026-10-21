@@ -79,6 +79,11 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await SeedProductVariantsAsync();
                 await SeedProductImagesAsync();
                 await SeedBannersAsync();
+                await SeedShowroomsAsync();
+                await SeedVouchersAsync();
+                await SeedFlashSalesAsync();
+                await SeedProductAddOnsAsync();
+                await SeedFlagshipProductSpecificationsAsync();
             }
             await SeedAboutAndContactAsync();
 

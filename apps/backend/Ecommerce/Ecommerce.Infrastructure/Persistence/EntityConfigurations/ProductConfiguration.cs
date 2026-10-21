@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,6 +36,15 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.Property(p => p.RowVersion)
                    .IsConcurrencyToken()
                    .HasColumnType("bytea");
+
+            builder.Property(p => p.WarrantyMonths)
+                   .HasDefaultValue(24);
+
+            builder.Property(p => p.WarrantyPolicy)
+                   .HasMaxLength(500);
+
+            builder.Property(p => p.OriginBadge)
+                   .HasMaxLength(100);
 
             // Cấu hình quan hệ
             builder.HasOne(p => p.Category)

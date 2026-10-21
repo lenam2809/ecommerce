@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Domain.Entities;
 using AutoMapper;
 
@@ -28,6 +28,8 @@ namespace Ecommerce.Application.Features.Products.Dto
         //số lượng đã bán
         public int SoldQuantity { get; set; }
         public List<SpecificationDto> Specifications { get; set; } = [];
+        public List<string> KeySpecs { get; set; } = [];
+        public List<ProductAddOnDto> AvailableAddOns { get; set; } = [];
         public List<string> Colors { get; set; } = [];
         public List<string> Sizes { get; set; } = [];
         public VariantsDto? Variants { get; set; }

@@ -23,6 +23,8 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                     .ThenInclude(i => i.Product)
+                .Include(c => c.CartItems)
+                    .ThenInclude(i => i.AddOn)
                 .FirstOrDefaultAsync(c => c.ApplicationUserId == userId, cancellationToken);
 
             if (cart == null)

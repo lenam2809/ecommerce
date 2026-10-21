@@ -87,6 +87,21 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                                 return stockItem.ErrorResult;
                             }
 
+                            decimal addOnPrice = 0;
+                            string? addOnName = null;
+                            int warrantyMonths = 24;
+                            if (item.AddOnId.HasValue && item.AddOnId.Value != Guid.Empty)
+                            {
+                                var addOn = await _unitOfWork.BaseRepository<ProductAddOn>()
+                                    .GetByIdAsync(item.AddOnId.Value, cancellationToken);
+                                if (addOn != null && addOn.IsActive)
+                                {
+                                    addOnPrice = addOn.Price;
+                                    addOnName = addOn.Name;
+                                    warrantyMonths = addOn.DurationMonths ?? 24;
+                                }
+                            }
+
                             order.AddOrderItem(
                                 product.Id,
                                 product.Name,
@@ -97,7 +112,11 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                                 item.Size,
                                 stockItem.ProductVariantSkuId,
                                 stockItem.SkuCode,
-                                stockItem.VariantInfo);
+                                stockItem.VariantInfo,
+                                item.AddOnId,
+                                addOnName,
+                                addOnPrice,
+                                warrantyMonths);
 
                             stockItems.Add(stockItem);
                         }
@@ -133,6 +152,25 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                             }
 
                             redeemedPromoCode = promoRedeemContext.PromoCode.Code;
+                        }
+
+                        order.Subtotal = order.TotalAmount + (promoRedeemContext?.DiscountAmount ?? 0);
+                        order.DiscountAmount = promoRedeemContext?.DiscountAmount ?? 0;
+
+                        var isCod = string.Equals(order.PaymentMethod, "COD", StringComparison.OrdinalIgnoreCase);
+                        if (isCod && order.TotalAmount > 20_000_000m)
+                        {
+                            order.DepositRequired = Math.Round(order.TotalAmount * 0.10m);
+                            order.DepositStatus = EDepositStatus.Pending;
+                            order.DepositAmount = 0;
+                            order.RemainingAmount = order.TotalAmount - order.DepositRequired;
+                        }
+                        else
+                        {
+                            order.DepositRequired = 0;
+                            order.DepositStatus = EDepositStatus.None;
+                            order.DepositAmount = 0;
+                            order.RemainingAmount = order.TotalAmount;
                         }
 
                         order.FinalizeCreation(customerNameForEvent);
@@ -249,6 +287,16 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
         private async Task<CreateOrderContext> BuildOrderContextAsync(CreateOrderCommand request, CancellationToken cancellationToken)
         {
+            var shippingAddress = request.ShippingAddress;
+            if (request.ShowroomId.HasValue && string.IsNullOrWhiteSpace(shippingAddress))
+            {
+                var showroom = await _unitOfWork.BaseRepository<Showroom>()
+                    .GetByIdAsync(request.ShowroomId.Value, cancellationToken);
+                shippingAddress = showroom != null
+                    ? $"Nhận tại Showroom {showroom.Name} ({showroom.Address})"
+                    : "Nhận tại showroom";
+            }
+
             if (request.ApplicationUserId.HasValue)
             {
                 var orderCode = _orderCodeGenerator.Generate();
@@ -265,11 +313,13 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                     customerNameForEvent,
                     request.Email ?? customer.Email,
                     request.Phone,
-                    request.ShippingAddress,
+                    shippingAddress,
                     null,
                     request.DeliveryInstructions,
                     request.ExpectedDeliveryDate,
                     orderCode);
+
+                ConfigureOrder(order, request);
 
                 return CreateOrderContext.WithOrder(order, customerNameForEvent);
             }
@@ -280,7 +330,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 request.Email,
                 guestName,
                 request.Phone,
-                request.ShippingAddress,
+                shippingAddress,
                 null,
                 request.DeliveryInstructions,
                 request.ExpectedDeliveryDate,
@@ -289,7 +339,35 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                 _currentUserService.GuestId,
                 guestOrderCode);
 
+            ConfigureOrder(guestOrder, request);
+
             return CreateOrderContext.WithOrder(guestOrder, guestName);
+        }
+
+        private static void ConfigureOrder(Order order, CreateOrderCommand request)
+        {
+            order.DeliveryMethod = !string.IsNullOrWhiteSpace(request.DeliveryMethod)
+                ? request.DeliveryMethod
+                : (request.ShowroomId.HasValue ? "ShowroomPickup" : "StandardDelivery");
+
+            order.DeliveryType = request.ShowroomId.HasValue
+                ? EDeliveryType.ShowroomPickup
+                : request.DeliveryType;
+
+            order.ShowroomId = request.ShowroomId;
+            order.PickupShowroomId = request.ShowroomId;
+            order.PaymentMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod) ? request.PaymentMethod : "COD";
+
+            var requireInvoice = request.RequireInvoice || (request.Invoice != null && request.Invoice.RequireInvoice);
+            if (requireInvoice)
+            {
+                var taxCode = (request.Invoice != null && !string.IsNullOrWhiteSpace(request.Invoice.TaxCode)) ? request.Invoice.TaxCode : request.TaxCode;
+                var companyName = (request.Invoice != null && !string.IsNullOrWhiteSpace(request.Invoice.CompanyName)) ? request.Invoice.CompanyName : request.CompanyName;
+                var companyAddress = (request.Invoice != null && !string.IsNullOrWhiteSpace(request.Invoice.CompanyAddress)) ? request.Invoice.CompanyAddress : request.CompanyAddress;
+                var invoiceEmail = (request.Invoice != null && !string.IsNullOrWhiteSpace(request.Invoice.InvoiceEmail)) ? request.Invoice.InvoiceEmail : (request.InvoiceEmail ?? request.Email);
+
+                order.Invoice = new Ecommerce.Domain.ValueObjects.OrderInvoice(true, taxCode, companyName, companyAddress, invoiceEmail);
+            }
         }
 
         private async Task<PromoRedeemContext> ValidatePromoCodeForOrderAsync(Order order, string discountCode)

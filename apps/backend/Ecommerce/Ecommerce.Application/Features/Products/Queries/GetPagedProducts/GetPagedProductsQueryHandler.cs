@@ -118,6 +118,7 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
                         includeFunc: query => query
                             .Include(p => p.Category)
                             .Include(p => p.Brand)
+                            .Include(p => p.Specifications)
                         );
 
                 // Ánh xạ kết quả sang DTO
@@ -144,12 +145,20 @@ namespace Ecommerce.Application.Features.Products.Queries.GetPagedProducts
                     .Distinct()
                     .ToListAsync(cancellationToken);
 
-                // Gán MainImage + SoldQuantity + AllowDelete trong bộ nhớ (không có round-trip)
+                var productEntityMap = paginatedResult.Items.ToDictionary(p => p.Id);
+
+                // Gán MainImage + SoldQuantity + AllowDelete + KeySpecs trong bộ nhớ (không có round-trip)
                 foreach (var productDto in productDtos)
                 {
                     productDto.MainImage = await _fileStorageService.GetFileUrlAsync(productDto.MainImage);
                     productDto.SoldQuantity = soldQuantityMap.TryGetValue(productDto.Id, out var qty) ? qty : 0;
                     productDto.AllowDelete = !inWishlistSet.Contains(productDto.Id);
+
+                    if (productEntityMap.TryGetValue(productDto.Id, out var entity))
+                    {
+                        productDto.KeySpecs = Ecommerce.Application.Features.Products.Helpers.ProductSpecHelper.ExtractKeySpecs(
+                            entity.Specifications, entity.Name, entity.Category?.Name);
+                    }
                 }
 
                 // Tạo kết quả trả về

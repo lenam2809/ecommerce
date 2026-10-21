@@ -95,6 +95,17 @@ namespace Ecommerce.Infrastructure.Persistence
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+        // SSoT 2026 Core Tech Architecture
+        public DbSet<Showroom> Showrooms { get; set; }
+        public DbSet<ShowroomInventory> ShowroomInventories { get; set; }
+        public DbSet<ProductAddOn> ProductAddOns { get; set; }
+        public DbSet<OrderItemSerial> OrderItemSerials { get; set; }
+        public DbSet<ReturnRequestLog> ReturnRequestLogs { get; set; }
+        public DbSet<FlashSale> FlashSales { get; set; }
+        public DbSet<FlashSaleItem> FlashSaleItems { get; set; }
+        public DbSet<Voucher> Vouchers { get; set; }
+        public DbSet<LoyaltyPointTransaction> LoyaltyPointTransactions { get; set; }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var domainEvents = CollectDomainEvents();
@@ -308,6 +319,9 @@ namespace Ecommerce.Infrastructure.Persistence
 
             builder.Entity<WishlistItem>()
                 .HasQueryFilter(rp => !rp.Product.IsDeleted);
+
+            builder.Entity<ShowroomInventory>()
+                .HasQueryFilter(si => !si.Product.IsDeleted);
 
             ApplySoftDeleteQueryFilters(builder);
 

@@ -40,6 +40,7 @@ namespace Ecommerce.Application.Features.Orders.Queries.GetOrderById
                     .Include(o => o.OrderItems)
                     .ThenInclude(i => i.Product)
                     .Include(o => o.ApplicationUser)
+                    .Include(o => o.Showroom)
                     .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
 
                 if (order == null)

@@ -84,7 +84,7 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
             {
                 foreach (var spec in request.Specifications)
                 {
-                    product.AddSpecification(spec.Name, spec.Value);
+                    product.AddSpecification(spec.Name, spec.Value, spec.GroupName, spec.IsKeySpec, spec.DisplayOrder);
                 }
             }
 

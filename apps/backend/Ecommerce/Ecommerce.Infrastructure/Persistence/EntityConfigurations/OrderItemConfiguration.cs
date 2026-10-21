@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Entities;
+using Ecommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,8 +11,7 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
         {
             builder.ToTable("OrderItems");
 
-            // Khóa chính composite
-            builder.HasKey(oi => new { oi.OrderId, oi.ProductId });
+            builder.HasKey(oi => oi.Id);
 
             // Validation cho các trường
             builder.Property(oi => oi.Quantity)
@@ -21,6 +20,16 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.Property(oi => oi.UnitPrice)
                    .HasColumnType("decimal(18,2)")
                    .IsRequired();
+
+            builder.Property(oi => oi.AddOnName)
+                   .HasMaxLength(255);
+
+            builder.Property(oi => oi.AddOnPrice)
+                   .HasColumnType("decimal(18,2)")
+                   .HasDefaultValue(0);
+
+            builder.Property(oi => oi.WarrantyMonths)
+                   .HasDefaultValue(24);
 
             // Cấu hình quan hệ
             builder.HasOne(oi => oi.Order)
@@ -31,8 +40,19 @@ namespace Ecommerce.Infrastructure.Persistence.EntityConfigurations
             builder.HasOne(oi => oi.Product)
                    .WithMany()
                    .HasForeignKey(oi => oi.ProductId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(oi => oi.ProductVariantSku)
+                   .WithMany()
+                   .HasForeignKey(oi => oi.ProductVariantSkuId)
+                   .OnDelete(DeleteBehavior.NoAction)
+                   .IsRequired(false);
+
+            builder.HasOne(oi => oi.AddOn)
+                   .WithMany()
+                   .HasForeignKey(oi => oi.AddOnId)
+                   .OnDelete(DeleteBehavior.SetNull)
+                   .IsRequired(false);
         }
     }
 }
-

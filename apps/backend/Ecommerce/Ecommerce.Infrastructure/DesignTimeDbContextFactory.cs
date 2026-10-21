@@ -13,8 +13,10 @@ namespace Ecommerce.Infrastructure
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? "Host=localhost;Port=5432;Database=ecommerce_db;Username=postgres;Password=yourpassword";
             optionsBuilder.UseNpgsql(
-                "Host=localhost;Database=ecommerce_db;Username=postgres;Password=postgres",
+                connectionString,
                 npgsqlOptions => npgsqlOptions
                     .MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
 

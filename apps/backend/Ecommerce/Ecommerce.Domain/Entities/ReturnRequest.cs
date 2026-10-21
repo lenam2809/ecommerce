@@ -46,6 +46,12 @@ namespace Ecommerce.Domain.Entities
         public Guid? ProcessedByStaffId { get; private set; }
         public DateTime? ResolvedAt { get; private set; }
 
+        public string? SerialNumber { get; set; }
+        public Guid? ShowroomId { get; set; }
+        public virtual Showroom? Showroom { get; set; }
+        public string? AssignedTechnicianName { get; set; }
+        public string? ProcessingMethod { get; set; }
+
         // Navigation properties
         public virtual Order Order { get; private set; } = null!;
         public virtual ApplicationUser Customer { get; private set; } = null!;
@@ -55,6 +61,8 @@ namespace Ecommerce.Domain.Entities
 
         private readonly List<ReturnStatusHistory> _statusHistory = new();
         public virtual IReadOnlyCollection<ReturnStatusHistory> StatusHistory => _statusHistory.AsReadOnly();
+
+        public virtual ICollection<ReturnRequestLog> Logs { get; set; } = new List<ReturnRequestLog>();
 
         // EF Core constructor
         private ReturnRequest() { }

@@ -56,11 +56,14 @@ namespace Ecommerce.Application.Features.Cart.Queries.GetCart
                         Id = i.Id,
                         ProductId = i.ProductId,
                         Name = i.Product.Name,
-                        Price = i.Product.SalePrice ?? i.Product.Price,
+                        Price = (i.Product.SalePrice ?? i.Product.Price) + i.AddOnPrice,
                         Quantity = i.Quantity,
                         Image = _fileStorageService.GetFileUrlAsync(i.Product.Image).Result,
                         Color = i.Color ?? string.Empty,
-                        Size = i.Size ?? string.Empty
+                        Size = i.Size ?? string.Empty,
+                        AddOnId = i.AddOnId,
+                        AddOnName = i.AddOn?.Name,
+                        AddOnPrice = i.AddOnPrice
                     })],
                     Subtotal = cart.Subtotal,
                     ShippingCost = cart.ShippingCost,

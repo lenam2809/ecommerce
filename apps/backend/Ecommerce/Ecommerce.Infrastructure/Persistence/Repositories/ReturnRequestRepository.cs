@@ -23,6 +23,8 @@ namespace Ecommerce.Infrastructure.Persistence.Repositories
             return await _context.ReturnRequests
                 .Include(r => r.Evidences)
                 .Include(r => r.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                .Include(r => r.Logs.OrderBy(l => l.Step).ThenBy(l => l.LoggedAt))
+                .Include(r => r.Showroom)
                 .Include(r => r.Order)
                 .Include(r => r.Customer)
                 .FirstOrDefaultAsync(r => r.Id == id, ct);

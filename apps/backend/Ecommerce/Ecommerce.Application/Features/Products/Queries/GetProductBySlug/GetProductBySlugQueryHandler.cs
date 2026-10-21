@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Ecommerce.Application.Common.Constants;
 using Ecommerce.Application.Common.Interfaces;
 using Ecommerce.Application.Common.Models;
@@ -77,6 +77,34 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductBySlug
                 for (int i = 0; i < productDto.AdditionalImages.Count; i++)
                 {
                     productDto.AdditionalImages[i] = await _fileStorageService.GetFileUrlAsync(productDto.AdditionalImages[i]);
+                }
+
+                // SSoT 2026: Trả về KeySpecs & AvailableAddOns (AppleCare+...)
+                productDto.KeySpecs = Ecommerce.Application.Features.Products.Helpers.ProductSpecHelper.ExtractKeySpecs(
+                    product.Specifications, product.Name, product.Category?.Name);
+
+                try
+                {
+                    var addOnRepo = _unitOfWork.BaseRepository<Ecommerce.Domain.Entities.ProductAddOn>();
+                    if (addOnRepo != null)
+                    {
+                        var addOns = await addOnRepo
+                            .GetQueryable()
+                            .AsNoTracking()
+                            .Where(a => a.IsActive && (
+                                a.ProductId == product.Id ||
+                                (a.CategoryId.HasValue && a.CategoryId == product.CategoryId) ||
+                                (a.BrandId.HasValue && a.BrandId == product.BrandId) ||
+                                (!a.ProductId.HasValue && !a.CategoryId.HasValue && !a.BrandId.HasValue)
+                            ))
+                            .OrderBy(a => a.DisplayOrder)
+                            .ToListAsync(cancellationToken);
+                        productDto.AvailableAddOns = _mapper.Map<List<ProductAddOnDto>>(addOns) ?? new();
+                    }
+                }
+                catch
+                {
+                    productDto.AvailableAddOns = new();
                 }
 
                 // Lưu kết quả vào cache trong 10 phút

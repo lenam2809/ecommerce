@@ -82,7 +82,7 @@ public static class ValidatorScenarios
     {
         yield return Scenario<global::Ecommerce.Application.Features.Account.Commands.UpdateProfile.UpdateProfileCommandValidator, global::Ecommerce.Application.Features.Account.Commands.UpdateProfile.UpdateProfileCommand>("FirstName", "PhoneNumber");
         yield return Scenario<global::Ecommerce.Application.Features.Auth.Commands.LoginUser.LoginUserCommandValidator, global::Ecommerce.Application.Features.Auth.Commands.LoginUser.LoginUserCommand>("Email", "Email");
-        yield return Scenario<global::Ecommerce.Application.Features.Auth.Commands.RefreshToken.RefreshTokenCommandValidator, global::Ecommerce.Application.Features.Auth.Commands.RefreshToken.RefreshTokenCommand>("AccessToken", "RefreshToken");
+        yield return Scenario<global::Ecommerce.Application.Features.Auth.Commands.RefreshToken.RefreshTokenCommandValidator, global::Ecommerce.Application.Features.Auth.Commands.RefreshToken.RefreshTokenCommand>("RefreshToken", "RefreshToken");
         yield return Scenario<global::Ecommerce.Application.Features.Auth.Commands.RegisterUser.RegisterCommandValidator, global::Ecommerce.Application.Features.Auth.Commands.RegisterUser.RegisterCommand>("Email", "Password");
         yield return Scenario<global::Ecommerce.Application.Features.Auth.Commands.RevokeToken.RevokeTokenCommandValidator, global::Ecommerce.Application.Features.Auth.Commands.RevokeToken.RevokeTokenCommand>("RefreshToken", "RefreshToken");
         yield return Scenario<global::Ecommerce.Application.Features.Brands.Commands.CreateBrand.CreateBrandCommandValidator, global::Ecommerce.Application.Features.Brands.Commands.CreateBrand.CreateBrandCommand>("Code", "Description");
@@ -450,6 +450,8 @@ internal static class CommandFactory
         {
             SetProperty(command, type.GetProperty("ApplicationUserId")!, Guid.NewGuid());
             SetProperty(command, type.GetProperty("GuestName")!, string.Empty);
+            SetProperty(command, type.GetProperty("RequireInvoice")!, false);
+            SetProperty(command, type.GetProperty("Invoice")!, null);
         }
 
         if (type.FullName == "Ecommerce.Application.Features.Orders.Commands.UpdateOrderStatus.UpdateOrderStatusCommand")

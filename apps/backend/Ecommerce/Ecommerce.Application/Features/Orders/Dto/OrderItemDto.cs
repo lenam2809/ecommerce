@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Domain.Entities;
 using AutoMapper;
 
@@ -15,6 +15,13 @@ namespace Ecommerce.Application.Features.Orders.Dto
         public required string Image { get; set; }
         public required string Color { get; set; }
         public required string Size { get; set; }
+        public Guid? AddOnId { get; set; }
+        public string? AddOnName { get; set; }
+        public decimal AddOnPrice { get; set; }
+        public int WarrantyMonths { get; set; } = 24;
+        public Guid? ProductVariantSkuId { get; set; }
+        public string? SkuCode { get; set; }
+        public string? VariantInfo { get; set; }
 
         public void Mapping(Profile profile)
         {
@@ -22,4 +29,3 @@ namespace Ecommerce.Application.Features.Orders.Dto
         }
     }
 }
-

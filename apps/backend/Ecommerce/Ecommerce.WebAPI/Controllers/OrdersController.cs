@@ -95,6 +95,7 @@ namespace Ecommerce.WebAPI.Controllers
         }
 
         [HttpPost]
+        [HttpPost("checkout")]
         public async Task<IActionResult> Create(CreateOrderCommand command)
         {
             // 🔒 SECURITY (H4): LUÔN ghi đè bằng danh tính xác thực — KHÔNG tin giá trị

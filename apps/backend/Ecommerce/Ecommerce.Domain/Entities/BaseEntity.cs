@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Interfaces.Base;
+using Ecommerce.Domain.Interfaces.Base;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -11,7 +11,7 @@ namespace Ecommerce.Domain.Entities
         public Guid Id { get; set; }
 
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
 

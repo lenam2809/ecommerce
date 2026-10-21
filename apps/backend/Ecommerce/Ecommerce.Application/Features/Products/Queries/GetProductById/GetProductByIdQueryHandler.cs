@@ -65,6 +65,34 @@ namespace Ecommerce.Application.Features.Products.Queries.GetProductById
                     productDto.AdditionalImages[i] = await _fileStorageService.GetFileUrlAsync(productDto.AdditionalImages[i]);
                 }
 
+                // SSoT 2026: Trả về KeySpecs & AvailableAddOns
+                productDto.KeySpecs = Ecommerce.Application.Features.Products.Helpers.ProductSpecHelper.ExtractKeySpecs(
+                    product.Specifications, product.Name, product.Category?.Name);
+
+                try
+                {
+                    var addOnRepo = _unitOfWork.BaseRepository<Ecommerce.Domain.Entities.ProductAddOn>();
+                    if (addOnRepo != null)
+                    {
+                        var addOns = await addOnRepo
+                            .GetQueryable()
+                            .AsNoTracking()
+                            .Where(a => a.IsActive && (
+                                a.ProductId == product.Id ||
+                                (a.CategoryId.HasValue && a.CategoryId == product.CategoryId) ||
+                                (a.BrandId.HasValue && a.BrandId == product.BrandId) ||
+                                (!a.ProductId.HasValue && !a.CategoryId.HasValue && !a.BrandId.HasValue)
+                            ))
+                            .OrderBy(a => a.DisplayOrder)
+                            .ToListAsync(cancellationToken);
+                        productDto.AvailableAddOns = _mapper.Map<List<ProductAddOnDto>>(addOns) ?? new();
+                    }
+                }
+                catch
+                {
+                    productDto.AvailableAddOns = new();
+                }
+
                 await _userActivityService.LogActivityAsync("ViewProductBySlug", $"Xem sản phẩm {productDto.Name} có slug {productDto.Slug}", new { ProductId = productDto.Id });
 
                 return Result<ProductDto>.Success(productDto);

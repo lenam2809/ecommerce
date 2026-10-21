@@ -107,7 +107,7 @@ public class LoginUserCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
-        result.Error.Should().Be("Invalid email or password.");
+        result.Error.Should().Be("Email hoặc mật khẩu không đúng.");
 
         _userRepository.Verify(x => x.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
     }
@@ -137,7 +137,7 @@ public class LoginUserCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
-        result.Error.Should().Contain("Account is locked. Reason: Manual review.");
+        result.Error.Should().Be("Email hoặc mật khẩu không đúng.");
 
         _userRepository.Verify(x => x.CheckPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
     }
@@ -158,7 +158,7 @@ public class LoginUserCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
-        result.Error.Should().Be("Invalid email or password. Remaining attempts: 3.");
+        result.Error.Should().Be("Email hoặc mật khẩu không đúng.");
 
         _userRepository.Verify(x => x.AccessFailedAsync(user), Times.Once);
         _accountLockRepository.Verify(x => x.LockUserAsync(
@@ -187,7 +187,7 @@ public class LoginUserCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
-        result.Error.Should().Be("Account locked for 30 minutes due to too many failed attempts.");
+        result.Error.Should().Be("Email hoặc mật khẩu không đúng.");
         user.DomainEvents.Should().ContainSingle()
             .Which.Should().BeOfType<UserLockedEvent>();
 

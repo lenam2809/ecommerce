@@ -28,9 +28,14 @@ namespace Ecommerce.Application.Features.Cart.Dto
         public required string Image { get; set; }
         public string? Color { get; set; }
         public string? Size { get; set; }
+        public Guid? AddOnId { get; set; }
+        public string? AddOnName { get; set; }
+        public decimal AddOnPrice { get; set; }
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<CartItem, CartItemDto>();
+            profile.CreateMap<CartItem, CartItemDto>()
+                .ForMember(d => d.AddOnName, opt => opt.MapFrom(s => s.AddOn != null ? s.AddOn.Name : null))
+                .ForMember(d => d.AddOnPrice, opt => opt.MapFrom(s => s.AddOnPrice));
         }
     }
 }

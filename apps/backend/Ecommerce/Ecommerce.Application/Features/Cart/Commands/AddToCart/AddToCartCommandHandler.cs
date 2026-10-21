@@ -44,15 +44,48 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
                 throw new Exception($"Không tìm thấy sản phẩm với ID {request.ProductId}");
             }
 
+            decimal addOnPrice = 0;
+            string? addOnName = null;
+            if (request.AddOnId.HasValue && request.AddOnId.Value != Guid.Empty)
+            {
+                var addOnRepo = _unitOfWork.BaseRepository<Ecommerce.Domain.Entities.ProductAddOn>();
+                if (addOnRepo != null)
+                {
+                    var addOn = await addOnRepo.GetByIdAsync(request.AddOnId.Value, cancellationToken);
+                    if (addOn != null && addOn.IsActive)
+                    {
+                        addOnPrice = addOn.Price;
+                        addOnName = addOn.Name;
+                    }
+                }
+            }
+
             if (_currentUserService.UserId == null && !string.IsNullOrEmpty(_currentUserService.GuestId))
             {
-                var guestCart = await _guestCartService.AddItemAsync(
-                    _currentUserService.GuestId,
-                    product,
-                    request.Quantity,
-                    request.Color,
-                    request.Size,
-                    cancellationToken);
+                CartDto guestCart;
+                if (request.AddOnId.HasValue && request.AddOnId.Value != Guid.Empty)
+                {
+                    guestCart = await _guestCartService.AddItemAsync(
+                        _currentUserService.GuestId,
+                        product,
+                        request.Quantity,
+                        request.Color,
+                        request.Size,
+                        request.AddOnId,
+                        addOnPrice,
+                        addOnName,
+                        cancellationToken);
+                }
+                else
+                {
+                    guestCart = await _guestCartService.AddItemAsync(
+                        _currentUserService.GuestId,
+                        product,
+                        request.Quantity,
+                        request.Color,
+                        request.Size,
+                        cancellationToken);
+                }
 
                 return Result<CartDto>.Success(guestCart);
             }
@@ -93,7 +126,14 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
                 cart = cartNullable;
             }
 
-            cart.AddItem(product, request.Quantity, request.Color, request.Size);
+            cart.AddItem(
+                product,
+                request.Quantity,
+                request.Color,
+                request.Size,
+                request.AddOnId,
+                addOnPrice,
+                request.ProductVariantSkuId);
 
             // Calculate shipping cost using business rules
             var shippingCost = _shippingCalculator.CalculateShippingCost(cart.Subtotal, cart.PromoCode);
@@ -110,11 +150,14 @@ namespace Ecommerce.Application.Features.Cart.Commands.AddToCart
                     Id = i.Id,
                     ProductId = i.ProductId,
                     Name = i.Product.Name,
-                    Price = i.Product.SalePrice ?? i.Product.Price,
+                    Price = (i.Product.SalePrice ?? i.Product.Price) + i.AddOnPrice,
                     Quantity = i.Quantity,
                     Image = i.Product.Image,
                     Color = i.Color,
-                    Size = i.Size
+                    Size = i.Size,
+                    AddOnId = i.AddOnId,
+                    AddOnName = i.AddOn?.Name ?? (i.AddOnId == request.AddOnId ? addOnName : null),
+                    AddOnPrice = i.AddOnPrice
                 }).ToList(),
                 Subtotal = cart.Subtotal,
                 ShippingCost = cart.ShippingCost,

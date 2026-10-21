@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using AutoMapper;
@@ -26,6 +26,21 @@ namespace Ecommerce.Application.Features.Orders.Dto
         public string? DeliveryInstructions { get; set; }
         public DateTime? ExpectedDeliveryDate { get; set; }
         public string? RowVersion { get; set; }
+        public Guid? ShowroomId { get; set; }
+        public Guid? PickupShowroomId { get; set; }
+        public string? ShowroomName { get; set; }
+        public string DeliveryMethod { get; set; } = "StandardDelivery";
+        public EDeliveryType DeliveryType { get; set; } = EDeliveryType.HomeDelivery;
+        public decimal DepositRequired { get; set; }
+        public EDepositStatus DepositStatus { get; set; } = EDepositStatus.None;
+        public decimal DepositAmount { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal ShippingCost { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
+        public string PaymentMethod { get; set; } = "COD";
+        public string PaymentStatus { get; set; } = "Pending";
+        public OrderInvoiceDto? Invoice { get; set; }
         public List<OrderItemDto> OrderItems { get; set; } = [];
 
         public void Mapping(Profile profile)
@@ -35,8 +50,9 @@ namespace Ecommerce.Application.Features.Orders.Dto
                     s.ApplicationUser != null
                         ? $"{s.ApplicationUser.FirstName} {s.ApplicationUser.LastName}".Trim()
                         : (s.GuestName ?? string.Empty)))
+                .ForMember(d => d.ShowroomName, opt => opt.MapFrom(s => s.Showroom != null ? s.Showroom.Name : null))
+                .ForMember(d => d.Invoice, opt => opt.MapFrom(s => s.Invoice != null && s.Invoice.RequireInvoice ? s.Invoice : null))
                 .ForMember(d => d.RowVersion, opt => opt.MapFrom(s => s.ConcurrencyToken != null ? Convert.ToBase64String(s.ConcurrencyToken) : null));
         }
     }
 }
-

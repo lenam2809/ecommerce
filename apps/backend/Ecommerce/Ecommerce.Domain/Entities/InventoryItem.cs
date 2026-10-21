@@ -18,6 +18,10 @@ namespace Ecommerce.Domain.Entities
         [StringLength(100)]
         public string SerialNumber { get; private set; } = string.Empty; // IMEI hoặc Serial
 
+        public string? Imei { get; set; }
+        public int WarrantyMonths { get; set; } = 24;
+        public DateTime? WarrantyExpiresAt { get; set; }
+
         public EInventoryStatus Status { get; private set; }
 
         [ForeignKey(nameof(OrderItem))]

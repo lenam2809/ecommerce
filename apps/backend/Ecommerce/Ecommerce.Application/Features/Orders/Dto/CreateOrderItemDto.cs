@@ -1,4 +1,4 @@
-﻿namespace Ecommerce.Application.Features.Orders.Dto
+namespace Ecommerce.Application.Features.Orders.Dto
 {
     public class CreateOrderItemDto
     {
@@ -7,6 +7,7 @@
         public int Quantity { get; set; }
         public string? Color { get; set; }
         public string? Size { get; set; }
+        public Guid? AddOnId { get; set; }
     }
 }
 

@@ -16,6 +16,7 @@ using Ecommerce.Application.Features.Products.Queries.GetProductReviews;
 using Ecommerce.Application.Features.Products.Queries.GetProducts;
 using Ecommerce.Application.Features.Products.Queries.GetProductsByBrand;
 using Ecommerce.Application.Features.Products.Queries.GetProductsByCategory;
+using Ecommerce.Application.Features.Products.Queries.CompareProducts;
 using Ecommerce.Application.Features.Products.Queries.GetSimilarProducts;
 using Ecommerce.Application.Policies;
 using Ecommerce.Domain.Enums;
@@ -85,14 +86,22 @@ namespace Ecommerce.WebAPI.Controllers
             return result.ToActionResult();
         }
 
+        [HttpGet("compare")]
+        public async Task<IActionResult> Compare([FromQuery] string ids)
+        {
+            var result = await _mediator.Send(new CompareProductsQuery { Ids = ids });
+            return result.ToActionResult();
+        }
+
         [HttpGet("slug/{slug}")]
+        [HttpGet("{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
         {
             var result = await _mediator.Send(new GetProductBySlugQuery { Slug = slug });
             return result.ToActionResult();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _mediator.Send(new GetProductByIdQuery { Id = id });

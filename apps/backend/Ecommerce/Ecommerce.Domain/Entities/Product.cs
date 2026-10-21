@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Domain.Entities
@@ -13,6 +13,8 @@ namespace Ecommerce.Domain.Entities
             Reviews = new List<Review>();
             Attributes = new List<ProductAttribute>();
             VariantSkus = new List<ProductVariantSku>();
+            AddOns = new List<ProductAddOn>();
+            ShowroomInventories = new List<ShowroomInventory>();
         }
 
         [Required]
@@ -85,6 +87,13 @@ namespace Ecommerce.Domain.Entities
         [ForeignKey(nameof(Brand))]
         public Guid BrandId { get; private set; }
         public virtual Brand Brand { get; private set; } = null!;
+
+        public int WarrantyMonths { get; set; } = 24;
+        public string? WarrantyPolicy { get; set; }
+        public string? OriginBadge { get; set; }
+
+        public virtual ICollection<ProductAddOn> AddOns { get; private set; }
+        public virtual ICollection<ShowroomInventory> ShowroomInventories { get; private set; }
 
         // Factory Method
         public static Product Create(
@@ -203,9 +212,26 @@ namespace Ecommerce.Domain.Entities
              Images.Clear();
         }
 
-        public void AddSpecification(string name, string value)
+        public void AddSpecification(
+            string name,
+            string value,
+            string groupName = "Chung",
+            bool isKeySpec = false,
+            int displayOrder = 0,
+            string? filterKey = null,
+            bool isHighlight = false)
         {
-            Specifications.Add(new ProductSpecification { Name = name, Value = value, ProductId = this.Id });
+            Specifications.Add(new ProductSpecification
+            {
+                Name = name,
+                Value = value,
+                GroupName = groupName,
+                IsKeySpec = isKeySpec,
+                DisplayOrder = displayOrder,
+                FilterKey = filterKey,
+                IsHighlight = isHighlight || isKeySpec,
+                ProductId = this.Id
+            });
         }
         
         public void ClearSpecifications()

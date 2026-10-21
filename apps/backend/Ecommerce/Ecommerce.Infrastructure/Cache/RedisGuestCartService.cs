@@ -58,7 +58,27 @@ namespace Ecommerce.Infrastructure.Cache
             }
         }
 
-        public async Task<CartDto> AddItemAsync(string guestId, Product product, int quantity, string? color, string? size, CancellationToken cancellationToken = default)
+        public Task<CartDto> AddItemAsync(
+            string guestId,
+            Product product,
+            int quantity,
+            string? color,
+            string? size,
+            CancellationToken cancellationToken = default)
+        {
+            return AddItemAsync(guestId, product, quantity, color, size, null, 0, null, cancellationToken);
+        }
+
+        public async Task<CartDto> AddItemAsync(
+            string guestId,
+            Product product,
+            int quantity,
+            string? color,
+            string? size,
+            Guid? addOnId,
+            decimal addOnPrice = 0,
+            string? addOnName = null,
+            CancellationToken cancellationToken = default)
         {
             var cart = await GetCartAsync(guestId, cancellationToken);
             var normColor = color?.Trim() ?? string.Empty;
@@ -67,21 +87,26 @@ namespace Ecommerce.Infrastructure.Cache
             var item = cart.Items.FirstOrDefault(i =>
                 i.ProductId == product.Id &&
                 string.Equals(i.Color?.Trim() ?? string.Empty, normColor, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(i.Size?.Trim() ?? string.Empty, normSize, StringComparison.OrdinalIgnoreCase));
+                string.Equals(i.Size?.Trim() ?? string.Empty, normSize, StringComparison.OrdinalIgnoreCase) &&
+                i.AddOnId == addOnId);
 
             if (item == null)
             {
+                var basePrice = product.SalePrice ?? product.Price;
                 cart.Items.Add(new CartItemDto
                 {
                     Id = Guid.NewGuid(),
                     CartId = Guid.Empty,
                     ProductId = product.Id,
                     Name = product.Name,
-                    Price = product.SalePrice ?? product.Price,
+                    Price = basePrice + addOnPrice,
                     Quantity = quantity,
                     Image = product.Image,
                     Color = normColor,
-                    Size = normSize
+                    Size = normSize,
+                    AddOnId = addOnId,
+                    AddOnName = addOnName,
+                    AddOnPrice = addOnPrice
                 });
             }
             else
