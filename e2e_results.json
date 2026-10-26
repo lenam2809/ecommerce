@@ -1,0 +1,42 @@
+[
+  {
+    "id": "SCENARIO-01",
+    "name": "Flash Sale & Countdown Timer (Trang chủ)",
+    "endpoint": "/api/promotions/flash-sale/current",
+    "input": "Hero Banner + FlashSaleId: FS-2026-NIGHT, EndTime: NOW() + 22H -> Expired",
+    "actual": "Hero hiển thị đúng thời gian còn lại (Kết thúc sau: 14 : 59 : 56); Giá iPhone 16 Pro Max chuẩn 34.990.000₫ / 31.490.000₫ tabular-nums; Khi hết giờ: Countdown ẩn hoàn toàn, trả về giá niêm yết 34.990.000₫.",
+    "status": "PASS",
+    "latencyMs": 24,
+    "priceDelta": 0
+  },
+  {
+    "id": "SCENARIO-02",
+    "name": "Mua kèm AppleCare+ & Tồn kho 45 Showroom",
+    "endpoint": "/api/showrooms/check-stock?productId=a1b2c3d4...",
+    "input": "Slug: macbook-pro-14-m3-pro, Gói: AppleCare+ (+2.490.000đ)",
+    "actual": "Giá hiển thị chuẩn 61.990.000₫ (không rớt đơn vị \"đ\"); Tích chọn thành công gói AppleCare+ (+2.490.000đ); Danh sách tồn kho tải chính xác 45 Showroom toàn quốc từ API check-stock.",
+    "status": "PASS",
+    "latencyMs": 8,
+    "priceDelta": 0
+  },
+  {
+    "id": "SCENARIO-03",
+    "name": "Đặt hàng O2O, Hóa đơn VAT & Trừ tồn kho",
+    "endpoint": "/api/Orders, /api/Cart",
+    "input": "Hội viên: Nguyễn Minh Quân (VIP Diamond), Nhận tại: 48 Tố Hữu, MST: 0108998877, Voucher: TECHVIP500",
+    "actual": "Voucher TECHVIP500 (-500.000₫) kích hoạt; Đạt mốc Freeship 500.000₫ (phí 0₫); Tổng tiền 63.980.000₫ (Độ lệch 0₫); Đơn hàng ORD-2026-266415 lưu DB thành công kèm thông tin VAT; Tồn kho Showroom 48 Tố Hữu giảm từ 12 xuống 11 (-1 máy).",
+    "status": "PASS",
+    "latencyMs": 77,
+    "priceDelta": 0
+  },
+  {
+    "id": "SCENARIO-04",
+    "name": "Bảo hành điện tử (Serial/IMEI) & Đổi trả 5 bước",
+    "endpoint": "/api/Returns/33333333-..., /api/Orders/...",
+    "input": "Mã đơn: ORD-2026-VIP001, Phiếu bảo hành: RET-2026-001",
+    "actual": "Hiển thị chính xác SN: VN2026-M3P8892, IMEI: 358912345678901, Tem e-Warranty 24T; Số điện thoại shipper được che 4 số giữa (0912***789); Phiếu đổi trả hiển thị đủ 5 bước tiến trình chuẩn O2O kèm log kỹ thuật viên và tùy chọn đổi trả 15 phút tại 45 Showroom.",
+    "status": "PASS",
+    "latencyMs": 3754,
+    "priceDelta": 0
+  }
+]

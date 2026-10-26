@@ -19,6 +19,7 @@ import {
 import { Banner } from "@/types/banner"
 import { useFlashSale } from "@/hooks/use-flash-sale"
 import { formatPrice } from "@/lib/contants"
+import { formatImageUrl } from "@/lib/utils"
 
 interface HeroProps {
   banners: Banner[]
@@ -50,7 +51,10 @@ export function Hero({ banners }: HeroProps) {
   const [activeTab, setActiveTab] = useState("all")
 
   useEffect(() => {
-    if (!flashSale?.endTime) return
+    if (!flashSale?.endTime) {
+      setSecondsLeft(0)
+      return
+    }
 
     const updateRemaining = () => {
       const remaining = Math.max(0, Math.floor((new Date(flashSale.endTime).getTime() - Date.now()) / 1000))
@@ -61,6 +65,8 @@ export function Hero({ banners }: HeroProps) {
     const timer = setInterval(updateRemaining, 1000)
     return () => clearInterval(timer)
   }, [flashSale?.endTime])
+
+  const isFlashSaleActive = !!flashSale?.isActive && secondsLeft > 0
 
   const hours = String(Math.floor(secondsLeft / 3600)).padStart(2, "0")
   const minutes = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, "0")
@@ -76,7 +82,7 @@ export function Hero({ banners }: HeroProps) {
             {/* Background Hero Image & Subtle Ambient Glows */}
             <div className="absolute inset-0 z-0">
               <Image
-                src={heroItem?.productImageUrl || imageUrl}
+                src={formatImageUrl(heroItem?.productImageUrl || imageUrl)}
                 alt={heroItem?.productName || "Sản phẩm Flagship"}
                 fill
                 priority
@@ -99,29 +105,31 @@ export function Hero({ banners }: HeroProps) {
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-2.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand text-white text-xs font-bold uppercase tracking-wider shadow-sm">
                 <Flame className="h-3.5 w-3.5 fill-current animate-pulse" />
-                <span>{flashSale?.title || "Flash Sale Độc Quyền 2026"}</span>
+                <span>{isFlashSaleActive ? (flashSale?.title || "Flash Sale Độc Quyền 2026") : "Sản Phẩm Flagship 2026"}</span>
               </div>
 
-              {/* Countdown Timer */}
-              <div
-                className="inline-flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-3 py-1 rounded-full text-xs font-semibold text-slate-200 backdrop-blur-md"
-                aria-label="Đồng hồ đếm ngược Flash Sale"
-              >
-                <span className="text-slate-400 hidden sm:inline text-[11px]">Kết thúc sau:</span>
-                <div className="flex items-center gap-1 font-mono tabular-nums whitespace-nowrap font-bold text-white">
-                  <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
-                    {hours}
-                  </span>
-                  <span className="text-brand">:</span>
-                  <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
-                    {minutes}
-                  </span>
-                  <span className="text-brand">:</span>
-                  <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
-                    {seconds}
-                  </span>
+              {/* Countdown Timer - only shown when Flash Sale is active and seconds remaining > 0 */}
+              {isFlashSaleActive && (
+                <div
+                  className="inline-flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-3 py-1 rounded-full text-xs font-semibold text-slate-200 backdrop-blur-md"
+                  aria-label="Đồng hồ đếm ngược Flash Sale"
+                >
+                  <span className="text-slate-400 hidden sm:inline text-[11px]">Kết thúc sau:</span>
+                  <div className="flex items-center gap-1 font-mono tabular-nums whitespace-nowrap font-bold text-white">
+                    <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
+                      {hours}
+                    </span>
+                    <span className="text-brand">:</span>
+                    <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
+                      {minutes}
+                    </span>
+                    <span className="text-brand">:</span>
+                    <span className="bg-brand text-white px-1.5 py-0.5 rounded text-[11px]">
+                      {seconds}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Middle Content: Editorial Flagship Title & Pricing */}
@@ -150,11 +158,15 @@ export function Hero({ banners }: HeroProps) {
               {/* Featured Price Pill & CTA Group */}
               <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-3 sm:gap-4">
                 <div className="flex items-baseline gap-2 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-2xl">
-                  <span className="text-xs text-slate-400">Giá ưu đãi:</span>
-                  <span className="text-lg sm:text-2xl font-extrabold text-white font-mono tabular-nums whitespace-nowrap">
-                    {heroItem ? formatPrice(heroItem.flashSalePrice) : "—"}
+                  <span className="text-xs text-slate-400">
+                    {isFlashSaleActive ? "Giá ưu đãi:" : "Giá niêm yết:"}
                   </span>
-                  {heroItem && heroItem.originalPrice > heroItem.flashSalePrice && (
+                  <span className="text-lg sm:text-2xl font-extrabold text-white font-mono tabular-nums whitespace-nowrap">
+                    {heroItem
+                      ? formatPrice(isFlashSaleActive ? heroItem.flashSalePrice : heroItem.originalPrice)
+                      : "—"}
+                  </span>
+                  {isFlashSaleActive && heroItem && heroItem.originalPrice > heroItem.flashSalePrice && (
                     <span className="text-xs text-slate-400 line-through font-mono tabular-nums whitespace-nowrap hidden sm:inline">
                       {formatPrice(heroItem.originalPrice)}
                     </span>
