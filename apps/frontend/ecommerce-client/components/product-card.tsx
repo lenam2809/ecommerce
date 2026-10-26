@@ -19,7 +19,7 @@ interface ProductCardProps {
 
 /**
  * ProductCard — ShopViet Hybrid Premium Tech (SSoT 2026 Edition)
- * - Pure White / Deep Obsidian card surface (dark:bg-[#111827])
+ * - Pure White / Deep Obsidian card surface (bg-card)
  * - Aspect-square product frame with technology vector fallback
  * - Max 2 core spec chips per card to ensure consistent height across grid
  * - Tech Crimson (-% discount) + Electric Blue 24T official badges
@@ -46,40 +46,23 @@ export default function ProductCard({ product }: ProductCardProps) {
     : 0
   const isSoldOut = (product.stockQuantity ?? 0) <= 0
 
-  // Standardize exactly up to 2 spec chips for uniform card grid height
+  // Render keySpecs directly from backend API
   const specChips = useMemo(() => {
+    if (product.keySpecs && product.keySpecs.length > 0) {
+      return product.keySpecs.slice(0, 2)
+    }
     const chips: string[] = []
     if (product.specifications && product.specifications.length > 0) {
       for (const spec of product.specifications) {
         if (chips.length >= 2) break
-        const val = spec.value?.trim()
+        const val = (spec.value || spec.specValue)?.trim()
         if (val && !chips.includes(val)) {
           chips.push(val)
         }
       }
     }
-    // Extract key hardware spec pills from product title if not enough
-    if (chips.length < 2 && product.name) {
-      const chipMatch = product.name.match(
-        /\b(M[1-4]\s*(?:Pro|Max)?|A1[5-8]\s*(?:Pro(?:\s*Max)?)?|Snapdragon\s*\d+|Ryzen\s*\d|Core\s*Ultra\s*\d)\b/i
-      )
-      if (chipMatch && !chips.includes(chipMatch[0])) {
-        chips.push(chipMatch[0])
-      }
-      const storageMatch = product.name.match(/\b(\d{1,3}GB(?:\/\d{1,2}TB)?|\d{1,2}TB)\b/i)
-      if (chips.length < 2 && storageMatch && !chips.includes(storageMatch[0])) {
-        chips.push(storageMatch[0])
-      }
-    }
-    // Fallback defaults
-    if (chips.length === 0) {
-      if (product.categoryName) chips.push(product.categoryName)
-      chips.push("Bảo hành 24T")
-    } else if (chips.length === 1) {
-      chips.push("Chính hãng 24T")
-    }
     return chips.slice(0, 2)
-  }, [product.specifications, product.name, product.categoryName])
+  }, [product.keySpecs, product.specifications])
 
   const prefetchProduct = () => {
     if (!product.slug) return
@@ -93,11 +76,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <article className="group relative flex flex-col h-full bg-card dark:bg-[#111827] dark:hover:bg-[#182234] rounded-2xl border border-border/80 dark:border-white/[0.08] hover:border-border dark:hover:border-white/20 overflow-hidden shadow-xs hover:shadow-md dark:shadow-none dark:hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+    <article className="group relative flex flex-col h-full bg-card rounded-2xl border border-border/80 dark:border-white/[0.08] hover:border-border dark:hover:border-white/20 overflow-hidden shadow-xs hover:shadow-md dark:shadow-none dark:hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
       {/* Badges container (Top Left) */}
       <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1 items-start pointer-events-none">
         {discount > 0 && (
-          <span className="px-2 py-0.5 rounded-full bg-[#e11d48] text-white text-[11px] font-bold tracking-tight shadow-xs whitespace-nowrap">
+          <span className="px-2 py-0.5 rounded-full bg-brand text-white text-[11px] font-bold tracking-tight shadow-xs whitespace-nowrap font-mono tabular-nums">
             -{discount}%
           </span>
         )}
@@ -123,7 +106,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Product Image Frame (aspect-square with p-4 breathing room and object-contain) */}
-      <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-[#182234] p-4 flex-shrink-0 rounded-t-2xl">
+      <div className="relative aspect-square overflow-hidden bg-surface p-4 flex-shrink-0 rounded-t-2xl">
         <Link
           href={`/product/${product.slug}`}
           onMouseEnter={prefetchProduct}
@@ -134,7 +117,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           aria-label={product.name}
         >
           {imgError || !imgSrc ? (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-[#182234] rounded-xl text-slate-400 dark:text-slate-500">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-surface rounded-xl text-slate-400 dark:text-slate-500">
               <Cpu className="h-10 w-10 mb-1 opacity-60 text-primary" />
               <span className="text-[10px] font-semibold uppercase tracking-wider">ShopViet Tech</span>
             </div>
@@ -152,8 +135,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Sold out overlay */}
           {isSoldOut && (
-            <div className="absolute inset-0 grid place-items-center bg-[#090D16]/80 backdrop-blur-xs rounded-xl">
-              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[#f8fafc] text-xs font-semibold uppercase tracking-wider shadow-sm">
+            <div className="absolute inset-0 grid place-items-center bg-background/80 backdrop-blur-xs rounded-xl">
+              <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider shadow-sm">
                 Hết hàng
               </span>
             </div>
@@ -199,25 +182,25 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center gap-1.5 text-xs">
           <div className="flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
-            <span className="font-semibold text-foreground">
-              {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
+            <span className="font-semibold text-foreground font-mono tabular-nums">
+              {product.rating > 0 ? product.rating.toFixed(1) : "—"}
             </span>
           </div>
           {product.reviewCount ? (
-            <span className="text-muted-foreground">({product.reviewCount})</span>
+            <span className="text-muted-foreground font-mono tabular-nums">({product.reviewCount})</span>
           ) : (
-            <span className="text-muted-foreground">(Đã kiểm định)</span>
+            <span className="text-muted-foreground">(Chưa có đánh giá)</span>
           )}
         </div>
 
         {/* Bottom Row: Price & Add to Cart Button */}
         <div className="mt-auto pt-3 flex items-center justify-between gap-2 border-t border-border/40">
           <div className="flex flex-col min-w-0">
-            <span className="text-foreground dark:text-white font-bold text-base md:text-lg tracking-tight tabular-nums whitespace-nowrap leading-tight">
+            <span className="text-foreground dark:text-white font-bold text-base md:text-lg tracking-tight font-mono tabular-nums whitespace-nowrap leading-tight">
               {formatPrice(displayPrice)}
             </span>
             {hasSalePrice && (
-              <span className="text-xs text-muted-foreground line-through tabular-nums whitespace-nowrap mt-0.5">
+              <span className="text-xs text-muted-foreground line-through font-mono tabular-nums whitespace-nowrap mt-0.5">
                 {formatPrice(product.price)}
               </span>
             )}

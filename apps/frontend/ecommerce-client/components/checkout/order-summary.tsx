@@ -28,13 +28,13 @@ export function OrderSummary({
     isSubmitting,
     isEmpty,
     isSubmitDisabled = false,
-    submitButtonText = "Thanh toán qua VNPAY • 62.390.000₫",
+    submitButtonText = "Tiến hành thanh toán",
 }: OrderSummaryProps) {
     const [isMobileCollapsed, setIsMobileCollapsed] = useState<boolean>(false)
     const totalUnits = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
     return (
-        <div className="bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24 shadow-sm">
+        <div className="bg-card text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24 shadow-sm">
             {/* Step 3 Accordion Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-900/40">
                 <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export function OrderSummary({
                 {/* Submit button — Tech Crimson (#E11D48) exclusively for Checkout/Purchase CTA */}
                 <Button
                     type="submit"
-                    className="w-full h-13 rounded-xl bg-[#e11d48] hover:bg-[#be123c] text-white text-sm font-extrabold shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 group cursor-pointer tabular-nums"
+                    className="w-full h-13 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-extrabold shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 group cursor-pointer tabular-nums"
                     disabled={isSubmitting || isEmpty || isSubmitDisabled}
                 >
                     {isSubmitting ? (

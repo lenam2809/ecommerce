@@ -44,14 +44,14 @@ const CartActions = ({ onClearCart, isClearingCart }: CartActionsProps) => {
                         type="button"
                         variant="outline"
                         aria-label="Xóa tất cả sản phẩm khỏi giỏ hàng"
-                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors duration-150 flex items-center text-tiny font-semibold h-10 px-4"
+                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-card text-slate-700 dark:text-slate-300 hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors duration-150 flex items-center text-tiny font-semibold h-10 px-4"
                         disabled={isClearingCart}
                     >
                         <Trash2 className="h-4 w-4 mr-2" />
                         {isClearingCart ? "Đang xóa..." : "Xóa tất cả"}
                     </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-2xl">
+                <AlertDialogContent className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-card shadow-2xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-slate-900 dark:text-white font-bold">
                             Xác nhận làm trống giỏ hàng?
@@ -65,7 +65,7 @@ const CartActions = ({ onClearCart, isClearingCart }: CartActionsProps) => {
                             Giữ lại sản phẩm
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            className="rounded-xl bg-[#e11d48] text-white hover:bg-[#be123c] font-bold"
+                            className="rounded-xl bg-brand text-white hover:bg-brand-hover font-bold"
                             onClick={() => {
                                 onClearCart()
                                 setOpen(false)

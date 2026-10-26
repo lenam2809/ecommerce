@@ -61,7 +61,7 @@ export default function ContactPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] py-8 md:py-12">
+        <div className="min-h-screen bg-background py-8 md:py-12">
             <div className="container-app space-y-10">
                 {/* Breadcrumb */}
                 <nav
@@ -96,7 +96,7 @@ export default function ContactPage() {
 
                 {/* SSoT 2026 Contact Cards (1800 6868 CSKH, 1800 6869 Kỹ thuật, 45 Showrooms) */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                    <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
                         <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                             <Headphones className="h-6 w-6" />
                         </div>
@@ -108,13 +108,13 @@ export default function ContactPage() {
                         </p>
                         <a
                             href="tel:18006868"
-                            className="text-2xl font-extrabold text-primary hover:underline block tabular-nums pt-1"
+                            className="text-2xl font-extrabold text-primary hover:underline block font-mono tabular-nums pt-1"
                         >
                             1800 6868
                         </a>
                     </div>
 
-                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                    <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
                         <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                             <Wrench className="h-6 w-6" />
                         </div>
@@ -126,13 +126,13 @@ export default function ContactPage() {
                         </p>
                         <a
                             href="tel:18006869"
-                            className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline block tabular-nums pt-1"
+                            className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline block font-mono tabular-nums pt-1"
                         >
                             1800 6869
                         </a>
                     </div>
 
-                    <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
+                    <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-2">
                         <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
                             <Store className="h-6 w-6" />
                         </div>
@@ -152,7 +152,7 @@ export default function ContactPage() {
 
                 {/* Form & Map */}
                 <div className="grid gap-8 lg:grid-cols-12">
-                    <div className="lg:col-span-7 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xs">
+                    <div className="lg:col-span-7 bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-xs">
                         <p className="text-xs font-extrabold uppercase tracking-widest text-primary mb-1">
                             Gửi yêu cầu trực tuyến &amp; Hợp tác B2B
                         </p>

@@ -22,72 +22,9 @@ import {
     Clock,
 } from "lucide-react"
 
-interface SavedAddress {
-    id: string
-    label: string
-    recipient: string
-    phone: string
-    email: string
-    address: string
-    ward: string
-    district: string
-    city: string
-    isDefault?: boolean
-}
-
-const SAVED_VIP_ADDRESSES: SavedAddress[] = [
-    {
-        id: "addr-1",
-        label: "Văn phòng",
-        recipient: "Nguyễn Minh Quân",
-        phone: "0909686868",
-        email: "quan.nguyen@shopviet.vn",
-        address: "Tầng 18, Tòa nhà Vietcombank Tower, Số 5 Công Trường Mê Linh",
-        ward: "Phường Bến Nghé",
-        district: "Quận 1",
-        city: "Thành phố Hồ Chí Minh",
-        isDefault: true,
-    },
-    {
-        id: "addr-2",
-        label: "Nhà riêng",
-        recipient: "Nguyễn Minh Quân",
-        phone: "0909686868",
-        email: "quan.nguyen@shopviet.vn",
-        address: "Biệt thự Vinhomes Central Park, 208 Nguyễn Hữu Cảnh",
-        ward: "Phường 22",
-        district: "Quận Bình Thạnh",
-        city: "Thành phố Hồ Chí Minh",
-        isDefault: false,
-    },
-]
-
-const SHOWROOM_LOCATIONS = [
-    {
-        id: "sr-hcm-q1",
-        name: "ShopViet Flagship Quận 1 — 125 Lê Lợi, P. Bến Thành, Q.1, TP.HCM",
-        stock: "Có sẵn hàng • Nhận ngay sau 2 giờ",
-        hours: "08:00 - 21:30",
-    },
-    {
-        id: "sr-hcm-q7",
-        name: "ShopViet Crescent Mall Q.7 — 101 Tôn Dật Tiên, P. Tân Phú, Q.7, TP.HCM",
-        stock: "Có sẵn hàng • Nhận ngay sau 2 giờ",
-        hours: "08:30 - 22:00",
-    },
-    {
-        id: "sr-hn-cg",
-        name: "ShopViet Flagship Cầu Giấy — 245 Cầu Giấy, P. Dịch Vọng, Hà Nội",
-        stock: "Có sẵn hàng • Nhận ngay sau 2 giờ",
-        hours: "08:00 - 21:30",
-    },
-    {
-        id: "sr-dn-hc",
-        name: "ShopViet Đà Nẵng Center — 88 Nguyễn Văn Linh, Q. Hải Châu, Đà Nẵng",
-        stock: "Có sẵn hàng • Nhận ngay sau 2 giờ",
-        hours: "08:00 - 21:30",
-    },
-]
+import { useShowrooms } from "@/hooks/use-showrooms"
+import { useAddresses } from "@/hooks/use-addresses"
+import type { CustomerAddress } from "@/types/address"
 
 interface ShippingInformationProps {
     form: UseFormReturn<CheckoutFormValues>
@@ -107,41 +44,64 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
     } = useLocation()
 
     const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery")
-    const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("addr-1")
-    const [showNewAddressForm, setShowNewAddressForm] = useState<boolean>(!isMemberMode)
-    const [selectedShowroomId, setSelectedShowroomId] = useState<string>("sr-hcm-q1")
+    const { data: showrooms = [] } = useShowrooms()
+    const { data: userAddresses = [] } = useAddresses()
+    const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("")
+    const [showNewAddressForm, setShowNewAddressForm] = useState<boolean>(!isMemberMode || (userAddresses?.length || 0) === 0)
+    const [selectedShowroomId, setSelectedShowroomId] = useState<string>("")
     const [requireVatInvoice, setRequireVatInvoice] = useState<boolean>(false)
-    const [vatCompany, setVatCompany] = useState<string>("Công ty Cổ phần Công nghệ Số Minh Quân")
-    const [vatTaxCode, setVatTaxCode] = useState<string>("0316889922")
-    const [vatCompanyAddress, setVatCompanyAddress] = useState<string>(
-        "Tầng 18, Tòa nhà Vietcombank Tower, Số 5 Công Trường Mê Linh, P. Bến Nghé, Q.1, TP.HCM"
-    )
+    const [vatCompany, setVatCompany] = useState<string>("")
+    const [vatTaxCode, setVatTaxCode] = useState<string>("")
+    const [vatCompanyAddress, setVatCompanyAddress] = useState<string>("")
     const [isMobileCollapsed, setIsMobileCollapsed] = useState<boolean>(false)
 
     const city = form.watch("city")
     const district = form.watch("district")
 
-    // Sync form mode when switching between VIP Member & Guest
+    // Sync default showroom
     useEffect(() => {
-        if (isMemberMode && !showNewAddressForm) {
-            const addr = SAVED_VIP_ADDRESSES.find((a) => a.id === selectedSavedAddressId) || SAVED_VIP_ADDRESSES[0]
-            form.setValue("fullName", addr.recipient, { shouldValidate: true })
-            form.setValue("phoneNumber", addr.phone, { shouldValidate: true })
-            form.setValue("email", addr.email, { shouldValidate: true })
-            form.setValue("city", addr.city, { shouldValidate: true })
-            form.setValue("district", addr.district, { shouldValidate: true })
-            form.setValue("ward", addr.ward, { shouldValidate: true })
-            form.setValue("address", addr.address, { shouldValidate: true })
+        if (showrooms.length > 0 && !selectedShowroomId) {
+            setSelectedShowroomId(showrooms[0].id)
         }
-    }, [isMemberMode, selectedSavedAddressId, showNewAddressForm, form])
+    }, [showrooms, selectedShowroomId])
+
+    // Sync delivery method
+    useEffect(() => {
+        form.setValue("deliveryMethod", deliveryMethod)
+        if (deliveryMethod === "pickup") {
+            const sr = showrooms.find((s) => s.id === selectedShowroomId) || showrooms[0]
+            if (sr) {
+                form.setValue("showroomId", sr.id)
+                form.setValue("address", `${sr.name} — ${sr.address}`, { shouldValidate: true })
+            }
+        } else {
+            form.setValue("showroomId", undefined)
+        }
+    }, [deliveryMethod, showrooms, selectedShowroomId, form])
+
+    // Sync saved address when switching between VIP Member & Guest
+    useEffect(() => {
+        if (isMemberMode && !showNewAddressForm && userAddresses && userAddresses.length > 0) {
+            const addr = userAddresses.find((a) => a.id === selectedSavedAddressId) || userAddresses.find((a) => a.isDefault) || userAddresses[0]
+            if (addr) {
+                setSelectedSavedAddressId(addr.id)
+                form.setValue("fullName", addr.fullName, { shouldValidate: true })
+                form.setValue("phoneNumber", addr.phone, { shouldValidate: true })
+                form.setValue("city", addr.city, { shouldValidate: true })
+                form.setValue("district", addr.state, { shouldValidate: true })
+                form.setValue("ward", addr.ward || "", { shouldValidate: true })
+                form.setValue("address", addr.street, { shouldValidate: true })
+            }
+        }
+    }, [isMemberMode, selectedSavedAddressId, showNewAddressForm, userAddresses, form])
 
     useEffect(() => {
-        if (!isMemberMode) {
+        if (!isMemberMode || !userAddresses || userAddresses.length === 0) {
             setShowNewAddressForm(true)
         } else {
             setShowNewAddressForm(false)
         }
-    }, [isMemberMode])
+    }, [isMemberMode, userAddresses])
 
     // Handle initial data loading or when city/district matches available data
     useEffect(() => {
@@ -162,16 +122,15 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
         }
     }, [district, districts, fetchWards])
 
-    const handleSelectSavedAddress = (addr: SavedAddress) => {
+    const handleSelectSavedAddress = (addr: CustomerAddress) => {
         setSelectedSavedAddressId(addr.id)
         setShowNewAddressForm(false)
-        form.setValue("fullName", addr.recipient, { shouldValidate: true })
+        form.setValue("fullName", addr.fullName, { shouldValidate: true })
         form.setValue("phoneNumber", addr.phone, { shouldValidate: true })
-        form.setValue("email", addr.email, { shouldValidate: true })
         form.setValue("city", addr.city, { shouldValidate: true })
-        form.setValue("district", addr.district, { shouldValidate: true })
-        form.setValue("ward", addr.ward, { shouldValidate: true })
-        form.setValue("address", addr.address, { shouldValidate: true })
+        form.setValue("district", addr.state, { shouldValidate: true })
+        form.setValue("ward", addr.ward || "", { shouldValidate: true })
+        form.setValue("address", addr.street, { shouldValidate: true })
     }
 
     const handleSwitchToNewAddress = () => {
@@ -180,7 +139,7 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
     }
 
     return (
-        <div className="bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div className="bg-card text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
             {/* Step 1 Accordion Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-900/40">
                 <div className="flex items-center gap-3">
@@ -225,7 +184,7 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                         onClick={() => setDeliveryMethod("delivery")}
                         className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                             deliveryMethod === "delivery"
-                                ? "bg-white dark:bg-[#1E293B] text-primary shadow-xs border border-primary/30"
+                                ? "bg-card text-primary shadow-xs border border-primary/30"
                                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                         }`}
                     >
@@ -237,7 +196,7 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                         onClick={() => setDeliveryMethod("pickup")}
                         className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg text-sm font-bold transition-all cursor-pointer ${
                             deliveryMethod === "pickup"
-                                ? "bg-white dark:bg-[#1E293B] text-primary shadow-xs border border-primary/30"
+                                ? "bg-card text-primary shadow-xs border border-primary/30"
                                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                         }`}
                     >
@@ -258,19 +217,21 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                 Miễn phí giữ hàng 48H
                             </span>
                         </div>
-                        <div className="grid grid-cols-1 gap-2.5">
-                            {SHOWROOM_LOCATIONS.map((sr) => {
+                        <div className="grid grid-cols-1 gap-2.5 max-h-80 overflow-y-auto pr-1">
+                            {showrooms.map((sr) => {
                                 const active = selectedShowroomId === sr.id
                                 return (
                                     <label
                                         key={sr.id}
                                         onClick={() => {
                                             setSelectedShowroomId(sr.id)
-                                            form.setValue("address", sr.name, { shouldValidate: true })
+                                            form.setValue("deliveryMethod", "pickup")
+                                            form.setValue("showroomId", sr.id)
+                                            form.setValue("address", `${sr.name} — ${sr.address}`, { shouldValidate: true })
                                         }}
                                         className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                                             active
-                                                ? "border-primary bg-white dark:bg-[#111827] ring-2 ring-primary/15"
+                                                ? "border-primary bg-card ring-2 ring-primary/15"
                                                 : "border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 hover:border-slate-300"
                                         }`}
                                     >
@@ -278,20 +239,33 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                             type="radio"
                                             name="showroomPickup"
                                             checked={active}
-                                            onChange={() => setSelectedShowroomId(sr.id)}
+                                            onChange={() => {
+                                                setSelectedShowroomId(sr.id)
+                                                form.setValue("deliveryMethod", "pickup")
+                                                form.setValue("showroomId", sr.id)
+                                                form.setValue("address", `${sr.name} — ${sr.address}`, { shouldValidate: true })
+                                            }}
                                             className="mt-1 h-4 w-4 accent-blue-600"
                                         />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-bold text-slate-900 dark:text-white">{sr.name}</p>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{sr.address}</p>
                                             <div className="flex flex-wrap items-center gap-3 mt-1 text-xs">
                                                 <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
                                                     <CheckCircle2 className="h-3.5 w-3.5" />
-                                                    {sr.stock}
+                                                    Có sẵn hàng • Nhận sau 2H
                                                 </span>
-                                                <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                                                    <Clock className="h-3.5 w-3.5" />
-                                                    Mở cửa: {sr.hours}
-                                                </span>
+                                                {sr.openingHours && (
+                                                    <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                                                        <Clock className="h-3.5 w-3.5" />
+                                                        Mở cửa: {sr.openingHours}
+                                                    </span>
+                                                )}
+                                                {sr.phone && (
+                                                    <span className="text-slate-600 dark:text-slate-400 font-mono">
+                                                        Hotline: {sr.phone}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </label>
@@ -301,12 +275,12 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                     </div>
                 )}
 
-                {/* Saved Addresses Radio Cards (when in VIP Member Mode & Delivery) */}
-                {isMemberMode && deliveryMethod === "delivery" && (
+                {/* Saved Addresses Radio Cards (when in Member Mode & Delivery) */}
+                {isMemberMode && deliveryMethod === "delivery" && userAddresses && userAddresses.length > 0 && (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                                Sổ địa chỉ đã lưu của Nguyễn Minh Quân
+                                Sổ địa chỉ đã lưu
                             </span>
                             <button
                                 type="button"
@@ -319,7 +293,7 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {SAVED_VIP_ADDRESSES.map((addr) => {
+                            {userAddresses.map((addr) => {
                                 const isSelected = !showNewAddressForm && selectedSavedAddressId === addr.id
                                 return (
                                     <div
@@ -341,10 +315,10 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                                     className="h-4 w-4 accent-blue-600"
                                                 />
                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">
-                                                    {addr.recipient}
+                                                    {addr.fullName}
                                                 </span>
                                                 <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold">
-                                                    {addr.label}
+                                                    {addr.addressType || "Địa chỉ"}
                                                 </span>
                                             </div>
                                             {addr.isDefault && (
@@ -353,11 +327,11 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 tabular-nums">
-                                            SĐT: 0909 686 868 • {addr.email}
+                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 font-mono tabular-nums">
+                                            SĐT: {addr.phone}
                                         </p>
                                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                                            {addr.address}, {addr.ward}, {addr.district}, {addr.city}
+                                            {addr.street}, {addr.ward || ""}, {addr.state || ""}, {addr.city}
                                         </p>
                                     </div>
                                 )
@@ -376,7 +350,13 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                             </span>
                             <button
                                 type="button"
-                                onClick={() => handleSelectSavedAddress(SAVED_VIP_ADDRESSES[0])}
+                                onClick={() => {
+                                    if (userAddresses.length > 0) {
+                                        handleSelectSavedAddress(userAddresses[0])
+                                    } else {
+                                        setShowNewAddressForm(false)
+                                    }
+                                }}
                                 className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary cursor-pointer"
                             >
                                 Quay lại địa chỉ đã lưu
@@ -637,7 +617,10 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                         <input
                             type="checkbox"
                             checked={requireVatInvoice}
-                            onChange={(e) => setRequireVatInvoice(e.target.checked)}
+                            onChange={(e) => {
+                                setRequireVatInvoice(e.target.checked)
+                                form.setValue("requireInvoice", e.target.checked)
+                            }}
                             className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-blue-600"
                         />
                         <div className="flex-1">
@@ -663,7 +646,10 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                     <Building2 className="h-4 w-4 text-slate-400 absolute left-3.5 top-3.5" />
                                     <Input
                                         value={vatCompany}
-                                        onChange={(e) => setVatCompany(e.target.value)}
+                                        onChange={(e) => {
+                                            setVatCompany(e.target.value)
+                                            form.setValue("companyName", e.target.value)
+                                        }}
                                         placeholder="Nhập tên đầy đủ trên GPKD"
                                         className="pl-9 h-10 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                                     />
@@ -675,10 +661,13 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                 </label>
                                 <Input
                                     value={vatTaxCode}
-                                    onChange={(e) => setVatTaxCode(e.target.value)}
+                                    onChange={(e) => {
+                                        setVatTaxCode(e.target.value)
+                                        form.setValue("taxCode", e.target.value)
+                                    }}
                                     inputMode="numeric"
                                     placeholder="Ví dụ: 0316889922"
-                                    className="h-10 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm tabular-nums"
+                                    className="h-10 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-mono tabular-nums"
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -687,7 +676,10 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                 </label>
                                 <Input
                                     value={vatCompanyAddress}
-                                    onChange={(e) => setVatCompanyAddress(e.target.value)}
+                                    onChange={(e) => {
+                                        setVatCompanyAddress(e.target.value)
+                                        form.setValue("companyAddress", e.target.value)
+                                    }}
                                     placeholder="Nhập địa chỉ theo Giấy phép đăng ký kinh doanh"
                                     className="h-10 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                                 />

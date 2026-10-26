@@ -7,6 +7,7 @@ export interface User {
     email: string;
     phoneNumber: string;
     avatar: string;
+    loyaltyPoints?: number;
 }
 
 export interface Address {

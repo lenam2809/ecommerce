@@ -1,5 +1,5 @@
 import { logger } from '@/lib/logger'
-import { Product, ProductFilters, ProductsResponse, ReviewsResponse } from '@/types/product';
+import { Product, ProductComparison, ProductFilters, ProductsResponse, ReviewsResponse } from '@/types/product';
 import { BaseService } from './base-service';
 import { Result } from "@/types";
 
@@ -50,13 +50,17 @@ class ProductService extends BaseService {
   }
 
   async getBestsellingProducts(): Promise<Result<Product[]>> {
-    return await this.get<Product[]>('/products/bestselling'); // Fixed path and added await
+    return await this.get<Product[]>('/products/bestselling');
   }
 
   async getSearchSuggestions(): Promise<Result<Product[]>> {
     return await this.get<Product[]>('/products/search-suggestions');
   }
 
+  async getCompareMatrix(productIds: string[] | string): Promise<Result<ProductComparison>> {
+    const ids = Array.isArray(productIds) ? productIds.filter(Boolean).join(',') : productIds;
+    return await this.get<ProductComparison>('/products/compare', { ids });
+  }
 }
 
 function firstId(value?: string) {

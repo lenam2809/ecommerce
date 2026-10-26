@@ -146,7 +146,7 @@ function LoginContent() {
                     }}
                     className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         loginTab === "email"
-                            ? "bg-white dark:bg-[#1E293B] text-primary shadow-xs"
+                            ? "bg-card text-primary shadow-xs"
                             : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                 >
@@ -161,7 +161,7 @@ function LoginContent() {
                     }}
                     className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         loginTab === "phone"
-                            ? "bg-white dark:bg-[#1E293B] text-primary shadow-xs"
+                            ? "bg-card text-primary shadow-xs"
                             : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                 >
@@ -194,7 +194,7 @@ function LoginContent() {
                                     disabled={isLoading}
                                 />
                             </div>
-                            {errors.email && <p className="text-xs text-[#e11d48] font-medium">{errors.email}</p>}
+                            {errors.email && <p className="text-xs text-brand font-medium">{errors.email}</p>}
                         </div>
 
                         <div className="space-y-1.5">
@@ -234,7 +234,7 @@ function LoginContent() {
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
-                            {errors.password && <p className="text-xs text-[#e11d48] font-medium">{errors.password}</p>}
+                            {errors.password && <p className="text-xs text-brand font-medium">{errors.password}</p>}
                         </div>
                     </>
                 ) : (
@@ -258,7 +258,7 @@ function LoginContent() {
                                     onChange={(e) => setPhoneOtp(e.target.value)}
                                 />
                             </div>
-                            {errors.phone && <p className="text-xs text-[#e11d48] font-medium">{errors.phone}</p>}
+                            {errors.phone && <p className="text-xs text-brand font-medium">{errors.phone}</p>}
                         </div>
 
                         {otpSent && (

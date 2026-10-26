@@ -59,9 +59,9 @@ export default function ProductComparison() {
 
     return (
         <div className="fixed bottom-4 inset-x-0 z-50 max-w-5xl mx-auto px-3 sm:px-6 pointer-events-none">
-            <div className="pointer-events-auto bg-card/95 dark:bg-[#111827]/95 backdrop-blur-xl border border-primary/30 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+            <div className="pointer-events-auto bg-card/95 backdrop-blur-xl border border-primary/30 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
                 {/* Top Header Strip of Floating Compare Bar */}
-                <div className="px-4 py-2.5 bg-surface/80 dark:bg-[#090D16]/80 border-b border-border/60 flex items-center justify-between gap-2">
+                <div className="px-4 py-2.5 bg-surface/80 border-b border-border/60 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                         <span className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                             {comparedProducts.length}
@@ -106,7 +106,7 @@ export default function ProductComparison() {
                             {comparedProducts.map((product) => (
                                 <div
                                     key={product.id}
-                                    className="relative flex items-center gap-2.5 p-2 rounded-xl bg-surface dark:bg-[#182234] border border-border/80 min-w-0"
+                                    className="relative flex items-center gap-2.5 p-2 rounded-xl bg-surface border border-border/80 min-w-0"
                                 >
                                     <button
                                         type="button"
@@ -116,7 +116,7 @@ export default function ProductComparison() {
                                     >
                                         <X className="h-3 w-3" />
                                     </button>
-                                    <div className="relative h-10 w-10 rounded-lg bg-white dark:bg-[#090D16] p-1 shrink-0 overflow-hidden border border-border/50">
+                                    <div className="relative h-10 w-10 rounded-lg bg-card p-1 shrink-0 overflow-hidden border border-border/50">
                                         <Image
                                             src={formatImageUrl(product.mainImage)}
                                             alt={product.name}

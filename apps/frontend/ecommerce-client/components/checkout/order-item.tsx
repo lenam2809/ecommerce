@@ -26,7 +26,7 @@ export function OrderItem({ item }: OrderItemProps) {
                         onError={() => setImgSrc("/placeholder.svg")}
                     />
                 </div>
-                <span className="absolute -top-1.5 -right-1.5 bg-primary text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full shadow-xs ring-2 ring-white dark:ring-[#111827] z-10 tabular-nums">
+                <span className="absolute -top-1.5 -right-1.5 bg-primary text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full shadow-xs ring-2 ring-card z-10 tabular-nums">
                     {item.quantity}
                 </span>
             </div>

@@ -35,48 +35,33 @@ export default function ProductListItem({ product }: ProductListItemProps) {
         : 0
     const isSoldOut = (product.stockQuantity ?? 0) <= 0
 
-    // Standardize max 2 spec chips
+    // Render keySpecs directly from backend API
     const specChips = useMemo(() => {
+        if (product.keySpecs && product.keySpecs.length > 0) {
+            return product.keySpecs.slice(0, 2)
+        }
         const chips: string[] = []
         if (product.specifications && product.specifications.length > 0) {
             for (const spec of product.specifications) {
                 if (chips.length >= 2) break
-                const val = spec.value?.trim()
+                const val = (spec.value || spec.specValue)?.trim()
                 if (val && !chips.includes(val)) {
                     chips.push(val)
                 }
             }
         }
-        if (chips.length < 2 && product.name) {
-            const chipMatch = product.name.match(
-                /\b(M[1-4]\s*(?:Pro|Max)?|A1[5-8]\s*(?:Pro(?:\s*Max)?)?|Snapdragon\s*\d+|Ryzen\s*\d|Core\s*Ultra\s*\d)\b/i
-            )
-            if (chipMatch && !chips.includes(chipMatch[0])) {
-                chips.push(chipMatch[0])
-            }
-            const storageMatch = product.name.match(/\b(\d{1,3}GB(?:\/\d{1,2}TB)?|\d{1,2}TB)\b/i)
-            if (chips.length < 2 && storageMatch && !chips.includes(storageMatch[0])) {
-                chips.push(storageMatch[0])
-            }
-        }
-        if (chips.length === 0) {
-            if (product.categoryName) chips.push(product.categoryName)
-            chips.push("Bảo hành 24T")
-        } else if (chips.length === 1) {
-            chips.push("Chính hãng 24T")
-        }
         return chips.slice(0, 2)
-    }, [product.specifications, product.name, product.categoryName])
+    }, [product.keySpecs, product.specifications])
 
     return (
-        <article className="group relative bg-card dark:bg-[#111827] dark:hover:bg-[#182234] rounded-2xl border border-border/80 dark:border-white/[0.08] overflow-hidden transition-all duration-300 hover:border-border dark:hover:border-white/20 hover:shadow-md">
+        <article className="group relative bg-card rounded-2xl border border-border/80 dark:border-white/[0.08] overflow-hidden transition-all duration-300 hover:border-border dark:hover:border-white/20 hover:shadow-md">
             <div className="flex flex-col sm:flex-row items-stretch">
                 {/* Product Image Frame */}
-                <div className="relative sm:w-52 md:w-60 h-52 sm:h-auto overflow-hidden bg-slate-100 dark:bg-[#182234] flex-shrink-0">
+                <div className="relative sm:w-52 md:w-60 h-52 sm:h-auto overflow-hidden bg-surface flex-shrink-0">
                     {/* Badges container */}
                     <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start pointer-events-none">
                         {discount > 0 && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#e11d48] text-white text-tiny font-bold tracking-tight shadow-xs whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 rounded-full bg-brand text-white text-tiny font-bold tracking-tight shadow-xs whitespace-nowrap font-mono tabular-nums">
                                 -{discount}%
                             </span>
                         )}
@@ -102,7 +87,7 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                         className={`block h-full w-full ${isSoldOut ? "grayscale" : ""}`}
                     >
                         {imgError || !imgSrc ? (
-                            <div className="w-full h-full min-h-[180px] flex flex-col items-center justify-center bg-slate-100 dark:bg-[#182234] text-slate-400 dark:text-slate-500">
+                            <div className="w-full h-full min-h-[180px] flex flex-col items-center justify-center bg-surface text-slate-400 dark:text-slate-500">
                                 <Cpu className="h-10 w-10 mb-1 opacity-60 text-primary" />
                                 <span className="text-[10px] font-semibold uppercase tracking-wider">ShopViet Tech</span>
                             </div>
@@ -119,8 +104,8 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                         )}
 
                         {isSoldOut && (
-                            <div className="absolute inset-0 grid place-items-center bg-[#090D16]/80 backdrop-blur-xs">
-                                <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[#f8fafc] text-tiny font-semibold uppercase tracking-wider">
+                            <div className="absolute inset-0 grid place-items-center bg-background/80 backdrop-blur-xs">
+                                <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-tiny font-semibold uppercase tracking-wider">
                                     Hết hàng
                                 </span>
                             </div>
@@ -162,24 +147,27 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                         <div className="flex items-center mt-2.5 gap-2">
                             <div className="flex items-center gap-1">
                                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                <span className="text-tiny font-semibold text-foreground">
-                                    {product.rating > 0 ? product.rating.toFixed(1) : "5.0"}
+                                <span className="text-tiny font-semibold text-foreground font-mono tabular-nums">
+                                    {product.rating > 0 ? product.rating.toFixed(1) : "—"}
                                 </span>
                             </div>
-                            <span className="text-tiny text-muted-foreground">
-                                {product.reviewCount ? `(${product.reviewCount} đánh giá)` : "(Đã kiểm định)"}
-                            </span>
+                            {product.reviewCount ? (
+                                <span className="text-tiny text-muted-foreground font-mono tabular-nums">
+                                    ({product.reviewCount} đánh giá)
+                                </span>
+                            ) : null}
                             <span className="text-tiny text-muted-foreground">·</span>
-                            <span className="text-tiny font-medium text-primary">
+                            <span className="text-tiny font-medium text-tech-blue">
                                 Cam kết chính hãng
                             </span>
                         </div>
 
                         {/* Description */}
-                        <p className="mt-3 text-muted-foreground text-small line-clamp-2 leading-relaxed">
-                            {product.description ||
-                                "Trải nghiệm thiết bị thông minh thế hệ mới với hiệu năng vượt trội, độ bền cao và chế độ bảo hành chính hãng toàn diện."}
-                        </p>
+                        {product.description ? (
+                            <p className="mt-3 text-muted-foreground text-small line-clamp-2 leading-relaxed">
+                                {product.description}
+                            </p>
+                        ) : null}
                     </div>
 
                     {/* Bottom Action Bar */}
@@ -188,15 +176,15 @@ export default function ProductListItem({ product }: ProductListItemProps) {
                         <div>
                             {product.salePrice ? (
                                 <div className="flex items-baseline gap-2">
-                                    <span className="font-bold text-lg md:text-xl text-foreground dark:text-white tracking-tight tabular-nums whitespace-nowrap">
+                                    <span className="font-bold text-lg md:text-xl text-foreground dark:text-white tracking-tight font-mono tabular-nums whitespace-nowrap">
                                         {formatPrice(product.salePrice)}
                                     </span>
-                                    <span className="text-tiny text-muted-foreground line-through tabular-nums whitespace-nowrap">
+                                    <span className="text-tiny text-muted-foreground line-through font-mono tabular-nums whitespace-nowrap">
                                         {formatPrice(product.price)}
                                     </span>
                                 </div>
                             ) : (
-                                <span className="font-bold text-lg md:text-xl text-foreground dark:text-white tracking-tight tabular-nums whitespace-nowrap">
+                                <span className="font-bold text-lg md:text-xl text-foreground dark:text-white tracking-tight font-mono tabular-nums whitespace-nowrap">
                                     {formatPrice(product.price)}
                                 </span>
                             )}

@@ -17,12 +17,12 @@ export default function AuthLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="relative min-h-screen w-full flex flex-col justify-between bg-[#F8FAFC] dark:bg-[#090D16] text-slate-900 dark:text-slate-100 selection:bg-primary selection:text-white">
+        <div className="relative min-h-screen w-full flex flex-col justify-between bg-background text-slate-900 dark:text-slate-100 selection:bg-primary selection:text-white">
             {/* Top Bar */}
             <header className="w-full px-4 sm:px-8 py-4 flex justify-between items-center z-30 max-w-7xl mx-auto">
                 <Link
                     href="/"
-                    className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-2xs"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-card shadow-2xs"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Quay lại ShopViet</span>
@@ -33,7 +33,7 @@ export default function AuthLayout({
                         <ShieldCheck className="h-4 w-4 text-primary" />
                         <span>Hệ thống xác thực bảo mật 2026</span>
                     </span>
-                    <div className="rounded-xl p-0.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-2xs">
+                    <div className="rounded-xl p-0.5 border border-slate-200 dark:border-slate-800 bg-card shadow-2xs">
                         <ThemeToggle />
                     </div>
                 </div>
@@ -41,9 +41,9 @@ export default function AuthLayout({
 
             {/* Main Split-Screen Container */}
             <main className="flex-1 flex items-center justify-center px-4 py-6 sm:py-10 z-20">
-                <div className="w-full max-w-5xl rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+                <div className="w-full max-w-5xl rounded-3xl border border-slate-200 dark:border-slate-800 bg-card shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
                     {/* Left Column: ShopViet Privilege Black Diamond 3D Card & 4 Perks */}
-                    <div className="lg:col-span-6 bg-[#090D16] text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800">
+                    <div className="lg:col-span-6 bg-slate-950 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800">
                         {/* Subtle ambient glow */}
                         <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-blue-600/20 blur-3xl" />
                         <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-indigo-600/15 blur-3xl" />
@@ -70,7 +70,7 @@ export default function AuthLayout({
                             </div>
 
                             {/* 3D Black Diamond VIP Card — Clean 2-Column Metadata Layout (No overlap on HẾT HẠN 12/28) */}
-                            <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#1E293B] via-[#0F172A] to-[#090D16] border border-slate-700/80 shadow-2xl relative overflow-hidden">
+                            <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/80 shadow-2xl relative overflow-hidden">
                                 <div className="flex items-center justify-between gap-2 mb-5">
                                     <div>
                                         <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-amber-400 block">
@@ -155,13 +155,13 @@ export default function AuthLayout({
 
                         {/* Hotline Footer inside Dark Panel */}
                         <div className="relative z-10 pt-6 mt-6 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                            <span>Tổng đài CSKH: <strong className="text-white tabular-nums">1800 6868</strong></span>
-                            <span>Hỗ trợ KT: <strong className="text-white tabular-nums">1800 6869</strong></span>
+                            <span>Tổng đài CSKH: <strong className="text-white font-mono tabular-nums whitespace-nowrap">1800 6868</strong></span>
+                            <span>Hỗ trợ KT: <strong className="text-white font-mono tabular-nums whitespace-nowrap">1800 6869</strong></span>
                         </div>
                     </div>
 
                     {/* Right Column: Auth Form Area */}
-                    <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center bg-white dark:bg-[#111827]">
+                    <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center bg-card">
                         {children}
                     </div>
                 </div>

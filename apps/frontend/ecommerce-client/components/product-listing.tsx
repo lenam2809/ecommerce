@@ -24,154 +24,7 @@ import { ProductFilters } from "./product-filters"
 import ProductComparison from "./filter/product-comparison"
 import { formatPrice } from "@/lib/contants"
 
-/** SSoT 2026 Fallback Catalog when backend API is offline */
-const SSOT_FALLBACK_CATALOG: Product[] = [
-    {
-        id: "ssot-mbp-14-m3-pro",
-        name: "MacBook Pro 14 M3 Pro (36GB/1TB) — Space Black",
-        slug: "macbook-pro-14-m3-pro",
-        description: "MacBook Pro 14 inch trang bị chip Apple M3 Pro 12-core CPU, 18-core GPU, RAM 36GB Unified, SSD 1TB siêu tốc. Màn hình Liquid Retina XDR 120Hz ProMotion.",
-        price: 67990000,
-        salePrice: 61990000,
-        rating: 4.9,
-        reviewCount: 128,
-        stockQuantity: 15,
-        categoryId: "cat-laptop",
-        categoryName: "Laptop & MacBook",
-        categorySlug: "laptop-gaming",
-        brandId: "brand-apple",
-        brandSlug: "apple",
-        mainImage: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Vi xử lý", value: "M3 Pro 12-Core" },
-            { name: "Bộ nhớ", value: "36GB/1TB SSD" },
-        ],
-    },
-    {
-        id: "ssot-ip16-promax-256",
-        name: "iPhone 16 Pro Max 256GB Titan Tự Nhiên — Chính hãng VN/A",
-        slug: "iphone-16-pro-max-256gb",
-        description: "iPhone 16 Pro Max khung viền Titan cấp độ 5, chip A18 Pro 3nm thế hệ 2, Camera Fusion 48MP quay 4K 120fps Dolby Vision và nút Điều khiển Camera mới.",
-        price: 37990000,
-        salePrice: 34990000,
-        rating: 5.0,
-        reviewCount: 342,
-        stockQuantity: 28,
-        categoryId: "cat-phone",
-        categoryName: "Điện thoại AI",
-        categorySlug: "dien-thoai-ai",
-        brandId: "brand-apple",
-        brandSlug: "apple",
-        mainImage: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Vi xử lý", value: "A18 Pro 3nm" },
-            { name: "Dung lượng", value: "256GB Titan" },
-        ],
-    },
-    {
-        id: "ssot-ipad-pro-m4",
-        name: "iPad Pro M4 13 inch Wi-Fi 512GB — Màn hình Ultra Retina XDR OLED",
-        slug: "ipad-pro-m4-13-inch",
-        description: "Thiết kế siêu mỏng 5.1mm cùng màn hình Tandem OLED hai lớp rực rỡ và sức mạnh đột phá từ chip Apple M4 hỗ trợ Apple Intelligence.",
-        price: 39990000,
-        salePrice: 36490000,
-        rating: 4.9,
-        reviewCount: 84,
-        stockQuantity: 12,
-        categoryId: "cat-tablet",
-        categoryName: "Máy tính bảng",
-        categorySlug: "may-tinh-bang",
-        brandId: "brand-apple",
-        brandSlug: "apple",
-        mainImage: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Vi xử lý", value: "Apple M4" },
-            { name: "Màn hình", value: "13\" OLED 120Hz" },
-        ],
-    },
-    {
-        id: "ssot-rog-strix-g16",
-        name: "ASUS ROG Strix G16 (2026) Core Ultra 9 / 32GB / 1TB / RTX 4080",
-        slug: "asus-rog-strix-g16-2026",
-        description: "Laptop Gaming Esports đỉnh cao với màn hình ROG Nebula 240Hz, tản nhiệt 3 quạt Tri-Fan và hiệu năng đồ họa RTX 4080.",
-        price: 58990000,
-        salePrice: 53990000,
-        rating: 4.8,
-        reviewCount: 64,
-        stockQuantity: 9,
-        categoryId: "cat-laptop",
-        categoryName: "Laptop & Gaming",
-        categorySlug: "laptop-gaming",
-        brandId: "brand-asus",
-        brandSlug: "asus",
-        mainImage: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Vi xử lý", value: "Core Ultra 9" },
-            { name: "Cấu hình", value: "32GB/1TB RTX4080" },
-        ],
-    },
-    {
-        id: "ssot-airpods-pro-2",
-        name: "Tai nghe AirPods Pro 2 cổng USB-C MagSafe (2026) — Chống ồn chủ động",
-        slug: "airpods-pro-2-usb-c",
-        description: "Tai nghe chống ồn chủ động gấp 2 lần với chip H2, âm thanh thích ứng Adaptive Audio và hộp sạc MagSafe chuẩn USB-C kháng bụi IP54.",
-        price: 6490000,
-        salePrice: 5690000,
-        rating: 4.8,
-        reviewCount: 215,
-        stockQuantity: 45,
-        categoryId: "cat-audio",
-        categoryName: "Âm thanh Hi-Fi",
-        categorySlug: "am-thanh",
-        brandId: "brand-apple",
-        brandSlug: "apple",
-        mainImage: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Chip âm thanh", value: "Apple H2 ANC" },
-            { name: "Kết nối", value: "USB-C MagSafe" },
-        ],
-    },
-    {
-        id: "ssot-ugreen-cable-2m",
-        name: "Cáp sạc nhanh Ugreen Type-C to Type-C 100W PD 2m bọc dù chống đứt",
-        slug: "cap-ugreen-type-c-100w-2m",
-        description: "Cáp sạc siêu tốc Ugreen công suất 100W (20V/5A) tích hợp chip E-Marker thông minh, chiều dài 2m tiện lợi cho MacBook Pro, iPad Pro và iPhone 16.",
-        price: 590000,
-        salePrice: 450000,
-        rating: 4.9,
-        reviewCount: 419,
-        stockQuantity: 120,
-        categoryId: "cat-accessory",
-        categoryName: "Phụ kiện Pro",
-        categorySlug: "phu-kien",
-        brandId: "brand-ugreen",
-        brandSlug: "ugreen",
-        mainImage: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80",
-        specifications: [
-            { name: "Công suất", value: "100W E-Marker" },
-            { name: "Chiều dài", value: "2m Bọc dù" },
-        ],
-    },
-]
 
-function normalizeProductSSoT(product: Product): Product {
-    const lower = product.name.toLowerCase()
-    if (lower.includes("macbook pro 14") && lower.includes("m3 pro")) {
-        return { ...product, price: 67990000, salePrice: 61990000 }
-    }
-    if (lower.includes("iphone 16 pro max")) {
-        return { ...product, price: 37990000, salePrice: 34990000 }
-    }
-    if (lower.includes("ugreen") && lower.includes("type-c")) {
-        return {
-            ...product,
-            name: "Cáp sạc nhanh Ugreen Type-C to Type-C 100W PD 2m",
-            price: 590000,
-            salePrice: 450000,
-        }
-    }
-    return product
-}
 
 /** Virtual list for list-view mode — only activates when > 20 items */
 function VirtualProductList({ products }: { products: Product[] }) {
@@ -353,37 +206,12 @@ function ProductListingContent({
     const { data, isLoading: isLoadingProducts } = activeQuery
     const isLoading = isLoadingProducts || isCategoryPending || isBrandPending
 
-    // Use API products if present, otherwise fallback to SSoT 2026 catalog with instant client filtering
     const products = useMemo(() => {
-        const rawItems = (data?.items && data.items.length > 0 ? data.items : SSOT_FALLBACK_CATALOG).map(
-            normalizeProductSSoT
-        )
-
-        return rawItems.filter((item) => {
-            const effectivePrice = item.salePrice || item.price
-            if (filters.minPrice && effectivePrice < filters.minPrice) return false
-            if (filters.maxPrice && effectivePrice > filters.maxPrice) return false
-            if (filters.rating && item.rating < filters.rating) return false
-            if (trimmedSearchTerm) {
-                const hay = `${item.name} ${item.categoryName || ""} ${item.brandSlug || ""}`.toLowerCase()
-                if (!hay.includes(trimmedSearchTerm.toLowerCase())) return false
-            }
-            if (ramParam) {
-                const rams = ramParam.split(",")
-                const text = `${item.name} ${item.specifications?.map((s) => s.value).join(" ") || ""}`
-                if (!rams.some((r) => text.includes(r))) return false
-            }
-            if (ssdParam) {
-                const ssds = ssdParam.split(",")
-                const text = `${item.name} ${item.specifications?.map((s) => s.value).join(" ") || ""}`
-                if (!ssds.some((s) => text.includes(s))) return false
-            }
-            return true
-        })
-    }, [data?.items, filters.minPrice, filters.maxPrice, filters.rating, trimmedSearchTerm, ramParam, ssdParam])
+        return data?.items || []
+    }, [data?.items])
 
     const totalPages = data?.totalPages || 1
-    const totalCount = data?.totalCount || (products.length === SSOT_FALLBACK_CATALOG.length ? 148 : products.length)
+    const totalCount = data?.totalCount || 0
 
     // Filter Change Handler
     const handleFiltersChange = useCallback(

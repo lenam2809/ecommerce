@@ -133,7 +133,7 @@ export function ProductVariantSelector({
                                     <span
                                         className={`h-3.5 w-3.5 rounded-full border shrink-0 ${
                                             color.toLowerCase().includes("black") || color.toLowerCase().includes("đen")
-                                                ? "bg-[#1e2229] border-white/20"
+                                                ? "bg-slate-900 border-white/20"
                                                 : "bg-slate-300 border-slate-400"
                                         }`}
                                     />

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function WishlistPage() {
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] py-8 md:py-10">
+        <div className="min-h-screen bg-background py-8 md:py-10">
             <div className="container-app">
                 <WishlistClient />
             </div>

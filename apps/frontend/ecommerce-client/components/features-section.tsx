@@ -33,7 +33,7 @@ export function FeaturesSection() {
     return (
         <section className="py-4 md:py-8">
             <div className="container-app">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 bg-card dark:bg-[#111827] p-5 md:p-6 rounded-3xl border border-border/80 dark:border-white/[0.08] shadow-xs dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 bg-card p-5 md:p-6 rounded-3xl border border-border/80 dark:border-white/[0.08] shadow-xs dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
                     {features.map((feature) => (
                         <div
                             key={feature.title}

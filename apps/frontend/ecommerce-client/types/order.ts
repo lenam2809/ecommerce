@@ -1,13 +1,38 @@
+export interface OrderInvoice {
+    requireInvoice: boolean;
+    taxCode?: string;
+    companyName?: string;
+    companyAddress?: string;
+    invoiceEmail?: string;
+    invoiceFileUrl?: string;
+}
+
+export interface OrderItemSerial {
+    id: string;
+    serialNumber: string;
+    imei?: string;
+    warrantyMonths: number;
+    activatedAt?: string;
+    warrantyExpiresAt?: string;
+    warrantyStatus: string;
+}
+
 export interface OrderItem {
+    id?: string;
     productId: string;
     name: string;
     productName?: string;
     unitPrice: number;
+    price?: number;
     quantity: number;
     image: string;
     imageUrl?: string;
-    color: string;
-    size: string;
+    color?: string;
+    size?: string;
+    addOnId?: string;
+    addOnName?: string;
+    addOnPrice?: number;
+    assignedSerials?: OrderItemSerial[];
 }
 
 export interface Order {
@@ -22,12 +47,27 @@ export interface Order {
     orderDate: string;
     status: string;
     totalAmount: number;
+    subtotal?: number;
+    shippingCost?: number;
+    discountAmount?: number;
+    depositAmount?: number;
+    depositRequired?: number;
+    depositStatus?: number;
+    deliveryMethod?: string;
+    deliveryType?: number;
+    showroomId?: string;
+    pickupShowroomId?: string;
     shippingAddress: string;
     phone: string;
     email: string;
+    paymentMethod?: string;
+    paymentStatus?: string;
+    transactionId?: string;
     discountCode?: string;
     deliveryInstructions?: string;
     expectedDeliveryDate?: string;
+    requireInvoice?: boolean;
+    invoice?: OrderInvoice;
     orderItems: OrderItem[];
 }
 
@@ -54,9 +94,11 @@ export interface OrderFilters {
 
 export interface CreateOrderItemRequest {
     productId: string;
+    productVariantSkuId?: string;
     quantity: number;
     color?: string;
     size?: string;
+    addOnId?: string;
 }
 
 export interface CreateOrderRequest {
@@ -69,6 +111,19 @@ export interface CreateOrderRequest {
     discountCode?: string;
     deliveryInstructions?: string;
     expectedDeliveryDate?: string;
+    deliveryMethod?: string;
+    deliveryType?: number;
+    showroomId?: string;
+    pickupShowroomId?: string;
+    depositAmount?: number;
+    invoice?: OrderInvoice;
+    invoiceInfo?: OrderInvoice;
+    requireInvoice?: boolean;
+    taxCode?: string;
+    companyName?: string;
+    companyAddress?: string;
+    invoiceEmail?: string;
+    paymentMethod?: string;
     orderItems: CreateOrderItemRequest[];
 }
 

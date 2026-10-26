@@ -26,87 +26,28 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-const SSOT_DEFAULT_WISHLIST_ITEMS: WishlistProductItem[] = [
-    {
-        productId: "macbook-pro-14-m3-pro-2026",
-        productName: "MacBook Pro 14 inch M3 Pro 2026 (18GB | 512GB) — Chính hãng VN/A",
-        price: 49990000,
-        originalPrice: 54990000,
-        imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-        slug: "macbook-pro-14-m3-pro",
-        category: "Apple MacBook",
-        specs: "Apple M3 Pro 12-Core • 18GB RAM • 512GB SSD",
-        inStock: true,
-        rating: 4.9,
-    },
-    {
-        productId: "iphone-16-pro-max-256gb",
-        productName: "iPhone 16 Pro Max 256GB Titan Tự Nhiên — Chính hãng VN/A",
-        price: 34990000,
-        originalPrice: 37990000,
-        imageUrl: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&auto=format&fit=crop&q=80",
-        slug: "iphone-16-pro-max-256gb",
-        category: "iPhone 16 Series",
-        specs: "Chip A18 Pro • Màn hình 6.9\" 120Hz • 5G",
-        inStock: true,
-        rating: 5.0,
-    },
-    {
-        productId: "ipad-pro-m4-11-inch",
-        productName: "iPad Pro M4 11 inch Wi-Fi 256GB Ultra Retina XDR 2026",
-        price: 27490000,
-        originalPrice: 29990000,
-        imageUrl: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&auto=format&fit=crop&q=80",
-        slug: "ipad-pro-m4-11-inch",
-        category: "iPad Pro",
-        specs: "Chip Apple M4 • OLED Tandem • 256GB",
-        inStock: true,
-        rating: 4.9,
-    },
-    {
-        productId: "sony-wh-1000xm5-silver",
-        productName: "Tai nghe chống ồn Sony WH-1000XM5 Wireless Hi-Res Audio",
-        price: 6890000,
-        originalPrice: 8490000,
-        imageUrl: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&auto=format&fit=crop&q=80",
-        slug: "sony-wh-1000xm5",
-        category: "Âm thanh Hi-End",
-        specs: "ANC 8 Micro • Pin 30 giờ • LDAC Hi-Res",
-        inStock: true,
-        rating: 4.8,
-    },
-]
-
 export default function WishlistClient() {
     const router = useRouter()
-    const { wishlistItems, isLoading, removeFromWishlist } = useWishlist()
+    const { wishlistItems = [], isLoading, removeFromWishlist } = useWishlist()
     const { addToCart } = useCart()
 
-    const [localItems, setLocalItems] = useState<WishlistProductItem[]>(SSOT_DEFAULT_WISHLIST_ITEMS)
     const [searchQuery, setSearchQuery] = useState("")
     const [sortBy, setSortBy] = useState("dateAdded-desc")
-    // Default 2 items selected so indeterminate "-" checkbox & Bulk Action bar are immediately visible
-    const [selectedItems, setSelectedItems] = useState<Set<string>>(
-        () => new Set(["macbook-pro-14-m3-pro-2026", "iphone-16-pro-max-256gb"])
-    )
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
     const selectAllCheckboxRef = useRef<HTMLInputElement | null>(null)
 
     const activeSourceItems: WishlistProductItem[] = useMemo(() => {
-        if (wishlistItems && wishlistItems.length > 0) {
-            return wishlistItems.map((w) => ({
-                productId: w.productId,
-                productName: w.productName,
-                price: w.price,
-                imageUrl: w.imageUrl,
-                slug: w.slug,
-                category: "Thiết bị công nghệ",
-                inStock: true,
-                rating: 4.9,
-            }))
-        }
-        return localItems
-    }, [wishlistItems, localItems])
+        return (wishlistItems || []).map((w) => ({
+            productId: w.productId,
+            productName: w.productName,
+            price: w.price,
+            imageUrl: w.imageUrl,
+            slug: w.slug,
+            category: "Chính hãng",
+            inStock: true,
+        }))
+    }, [wishlistItems])
 
     const filteredAndSortedItems = useMemo(() => {
         let items = [...activeSourceItems]
@@ -161,26 +102,17 @@ export default function WishlistClient() {
     }
 
     const handleRemoveSingle = (productId: string) => {
-        if (wishlistItems && wishlistItems.length > 0) {
-            removeFromWishlist(productId)
-        } else {
-            setLocalItems((prev) => prev.filter((item) => item.productId !== productId))
-        }
+        removeFromWishlist(productId)
         setSelectedItems((prev) => {
             const next = new Set(prev)
             next.delete(productId)
             return next
         })
-        toast.success("Đã xóa sản phẩm khỏi danh sách yêu thích")
     }
 
     const handleBatchRemove = () => {
         const count = selectedItems.size
-        if (wishlistItems && wishlistItems.length > 0) {
-            selectedItems.forEach((id) => removeFromWishlist(id))
-        } else {
-            setLocalItems((prev) => prev.filter((item) => !selectedItems.has(item.productId)))
-        }
+        selectedItems.forEach((id) => removeFromWishlist(id))
         setSelectedItems(new Set())
         toast.success(`Đã xóa ${count} sản phẩm đã chọn khỏi danh sách yêu thích`)
     }
@@ -196,15 +128,27 @@ export default function WishlistClient() {
                     quantity: 1,
                 })
             } catch {
-                // ignore offline error
+                // ignore
             }
         })
-        toast.success(`Đã chuyển ${chosenProducts.length} sản phẩm đã chọn vào giỏ hàng!`)
+        toast.success(`Đã chuyển ${chosenProducts.length} sản phẩm vào giỏ hàng!`)
     }
 
-    const handleBatchCompare = () => {
-        toast.success("Đang mở bảng so sánh thông số kỹ thuật...")
-        router.push("/products/compare")
+    const handleBatchCompare = (singleItem?: WishlistProductItem) => {
+        const idsToCompare = singleItem
+            ? [singleItem.productId]
+            : Array.from(selectedItems)
+
+        if (idsToCompare.length === 0) return
+
+        try {
+            localStorage.setItem("comparedProducts", JSON.stringify(idsToCompare))
+            localStorage.setItem("comparedProductIds", JSON.stringify(idsToCompare))
+            window.dispatchEvent(new CustomEvent("comparisonUpdated"))
+        } catch {
+            // ignore
+        }
+        router.push(`/compare?ids=${idsToCompare.join(",")}`)
     }
 
     if (isLoading) return <WishlistLoading />
@@ -215,34 +159,34 @@ export default function WishlistClient() {
             {/* Header Banner */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-primary mb-1.5">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-tech-blue mb-1.5">
                         <Sparkles className="h-3.5 w-3.5" />
-                        <span>Lưu trữ & Theo dõi biến động giá</span>
+                        <span>Lưu trữ &amp; Theo dõi biến động giá</span>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-ink tracking-tight">
                         Danh sách sản phẩm yêu thích ({activeSourceItems.length})
                     </h1>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-ink-soft mt-1">
                         Chọn nhiều thiết bị để chuyển nhanh vào giỏ hàng hoặc so sánh cấu hình chi tiết.
                     </p>
                 </div>
             </div>
 
             {/* Unified Toolbar & Bulk Action Bar */}
-            <div className="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-4">
+            <div className="rounded-2xl bg-card border border-line p-4 shadow-xs space-y-4">
                 <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-                    {/* Select All with Indeterminate ("-") state */}
+                    {/* Select All */}
                     <div className="flex flex-wrap items-center gap-3">
-                        <label className="inline-flex items-center gap-2.5 cursor-pointer select-none px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                        <label className="inline-flex items-center gap-2.5 cursor-pointer select-none px-3 py-2 rounded-xl bg-surface border border-line">
                             <input
                                 ref={selectAllCheckboxRef}
                                 type="checkbox"
                                 checked={allSelected}
                                 onChange={handleSelectAll}
-                                className="h-4 w-4 rounded cursor-pointer accent-blue-600"
+                                className="h-4 w-4 rounded cursor-pointer accent-tech-blue"
                                 aria-label="Chọn tất cả sản phẩm yêu thích"
                             />
-                            <span className="text-xs font-bold text-slate-900 dark:text-white tabular-nums">
+                            <span className="text-xs font-bold text-ink font-mono tabular-nums">
                                 {allSelected
                                     ? `Đã chọn tất cả (${filteredAndSortedItems.length})`
                                     : isIndeterminate
@@ -258,7 +202,7 @@ export default function WishlistClient() {
                                     type="button"
                                     size="sm"
                                     onClick={handleBatchAddToCart}
-                                    className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
+                                    className="h-9 px-4 rounded-xl bg-tech-blue hover:bg-tech-blue/90 text-white text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
                                 >
                                     <ShoppingCart className="h-3.5 w-3.5" />
                                     <span>Chuyển {selectedItems.size} mục vào giỏ</span>
@@ -267,8 +211,8 @@ export default function WishlistClient() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={handleBatchCompare}
-                                    className="h-9 px-3.5 rounded-xl border-primary/30 text-primary hover:bg-primary/5 text-xs font-bold gap-1.5 cursor-pointer"
+                                    onClick={() => handleBatchCompare()}
+                                    className="h-9 px-3.5 rounded-xl border-tech-blue/30 text-tech-blue hover:bg-tech-blue/5 text-xs font-bold gap-1.5 cursor-pointer"
                                 >
                                     <ArrowLeftRight className="h-3.5 w-3.5" />
                                     <span>So sánh ({selectedItems.size})</span>
@@ -279,7 +223,7 @@ export default function WishlistClient() {
                                     size="sm"
                                     onClick={handleBatchRemove}
                                     aria-label="Xóa các mục đã chọn khỏi danh sách yêu thích"
-                                    className="h-9 px-3.5 rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#e11d48] hover:border-rose-300 text-xs font-bold gap-1.5 cursor-pointer"
+                                    className="h-9 px-3.5 rounded-xl border-line text-ink-soft hover:text-brand hover:border-brand/40 text-xs font-bold gap-1.5 cursor-pointer"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
                                     <span>Xóa mục đã chọn</span>
@@ -291,20 +235,20 @@ export default function WishlistClient() {
                     {/* Search & Sort */}
                     <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                         <div className="relative min-w-[220px]">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
                             <Input
                                 placeholder="Tìm trong danh sách yêu thích..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs"
+                                className="pl-9 h-10 rounded-xl border-line bg-surface text-xs"
                             />
                         </div>
 
                         <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-semibold">
+                            <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-line bg-surface text-xs font-semibold">
                                 <SelectValue placeholder="Sắp xếp theo" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
+                            <SelectContent className="rounded-xl border-line">
                                 <SelectItem value="dateAdded-desc">Mới lưu gần đây</SelectItem>
                                 <SelectItem value="price-asc">Giá: Thấp → Cao</SelectItem>
                                 <SelectItem value="price-desc">Giá: Cao → Thấp</SelectItem>
@@ -317,9 +261,9 @@ export default function WishlistClient() {
 
             {/* Items Grid */}
             {filteredAndSortedItems.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <Heart className="h-8 w-8 text-slate-400 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                <div className="text-center py-12 bg-card rounded-2xl border border-line">
+                    <Heart className="h-8 w-8 text-ink-faint mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-ink-soft">
                         Không tìm thấy sản phẩm phù hợp với từ khóa &ldquo;{searchQuery}&rdquo;
                     </p>
                 </div>
@@ -332,7 +276,7 @@ export default function WishlistClient() {
                             isSelected={selectedItems.has(product.productId)}
                             onToggleSelect={handleSelectItem}
                             onRemove={handleRemoveSingle}
-                            onCompare={() => handleBatchCompare()}
+                            onCompare={(prod) => handleBatchCompare(prod)}
                         />
                     ))}
                 </div>

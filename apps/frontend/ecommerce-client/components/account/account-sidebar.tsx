@@ -24,34 +24,38 @@ export function AccountSidebar() {
     const displayFullName =
         userData?.firstName || userData?.lastName
             ? `${userData.lastName || ""} ${userData.firstName || ""}`.trim()
-            : "Nguyễn Minh Quân"
-    const displayEmail = userData?.email || "quan.nguyen@shopviet.vn"
+            : userData?.fullName || userData?.email || "Thành viên ShopViet"
+    const displayEmail = userData?.email || ""
+    const avatarInitials = (displayFullName || "U")
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0].toUpperCase())
+        .join("") || "SV"
 
     const navItems = [
         {
             href: "/account",
             label: "Hồ sơ & Sổ địa chỉ",
-            sub: "Thông tin VIP & nhận hàng",
+            sub: "Thông tin cá nhân & nhận hàng",
             icon: User,
         },
         {
             href: "/account/orders",
             label: "Quản lý đơn hàng",
-            sub: "Serial/IMEI & Vận đơn 2H",
+            sub: "Serial/IMEI & Vận đơn",
             icon: Package,
-            badge: "2",
         },
         {
             href: "/account/returns",
             label: "Đổi trả & Bảo hành",
             sub: "1 đổi 1 & 45 Showroom",
             icon: RotateCcw,
-            badge: "1",
         },
         {
             href: "/account/addresses",
             label: "Sổ địa chỉ giao nhận",
-            sub: "2 địa chỉ đã xác thực",
+            sub: "Địa chỉ nhận hàng đã lưu",
             icon: MapPin,
         },
     ]
@@ -59,32 +63,33 @@ export function AccountSidebar() {
     return (
         <div className="flex flex-col space-y-4">
             {/* Desktop 300px Sidebar Card */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] overflow-hidden shadow-xs">
-                {/* Top Member Header with 64x64px "NA" Avatar */}
-                <div className="p-5 bg-gradient-to-br from-[#090D16] via-[#111827] to-[#1E293B] text-white border-b border-slate-800">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-card overflow-hidden shadow-xs">
+                {/* Top Member Header */}
+                <div className="p-5 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white border-b border-slate-800">
                     <div className="flex items-center gap-3.5">
-                        {/* Strictly 64x64px circular avatar with "NA" */}
                         <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-extrabold text-xl flex items-center justify-center ring-2 ring-amber-400/80 shadow-md shrink-0 select-none">
-                            NA
+                            {avatarInitials}
                         </div>
                         <div className="min-w-0 flex-1">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider mb-1">
                                 <Crown className="h-3 w-3" />
-                                VIP Diamond
+                                Thành viên ShopViet
                             </span>
                             <h2 className="font-extrabold text-base text-white truncate">
                                 {displayFullName}
                             </h2>
-                            <p className="text-xs text-slate-300 truncate">{displayEmail}</p>
+                            {displayEmail ? <p className="text-xs text-slate-300 truncate">{displayEmail}</p> : null}
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-800/90 flex items-center justify-between text-xs">
-                        <span className="text-slate-300">Điểm thưởng khả dụng:</span>
-                        <span className="font-extrabold text-amber-400 tabular-nums whitespace-nowrap">
-                            2.450 điểm
-                        </span>
-                    </div>
+                    {typeof userData?.loyaltyPoints === "number" && (
+                        <div className="mt-4 pt-3 border-t border-slate-800/90 flex items-center justify-between text-xs">
+                            <span className="text-slate-300">Điểm thưởng khả dụng:</span>
+                            <span className="font-extrabold text-amber-400 font-mono tabular-nums whitespace-nowrap">
+                                {userData.loyaltyPoints.toLocaleString("vi-VN")} điểm
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Desktop Navigation Links */}
@@ -131,18 +136,6 @@ export function AccountSidebar() {
                                         </span>
                                     </div>
                                 </div>
-                                {item.badge && (
-                                    <span
-                                        className={cn(
-                                            "px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums",
-                                            isActive
-                                                ? "bg-white text-primary"
-                                                : "bg-primary/10 text-primary"
-                                        )}
-                                    >
-                                        {item.badge}
-                                    </span>
-                                )}
                             </Link>
                         )
                     })}
@@ -152,7 +145,7 @@ export function AccountSidebar() {
                     <button
                         type="button"
                         onClick={() => logout()}
-                        className="flex items-center px-3.5 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-[#e11d48] rounded-xl transition-colors text-xs font-bold w-full cursor-pointer"
+                        className="flex items-center px-3.5 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-brand rounded-xl transition-colors text-xs font-bold w-full cursor-pointer"
                     >
                         <LogOut className="h-4 w-4 mr-3" />
                         <span>Đăng xuất tài khoản</span>
@@ -168,7 +161,7 @@ export function AccountSidebar() {
                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                         Hỗ trợ kỹ thuật &amp; bảo hành 1 đổi 1 tận nơi trong 2 giờ.
                     </p>
-                    <div className="flex items-center justify-between pt-1 font-bold text-primary tabular-nums">
+                    <div className="flex items-center justify-between pt-1 font-bold text-primary font-mono tabular-nums whitespace-nowrap">
                         <span className="inline-flex items-center gap-1">
                             <PhoneCall className="h-3.5 w-3.5" />
                             CSKH: 1800 6868
@@ -193,7 +186,7 @@ export function AccountSidebar() {
                                 "flex items-center whitespace-nowrap px-4 py-2.5 rounded-xl border transition-colors text-xs font-bold shrink-0",
                                 isActive
                                     ? "bg-primary border-primary text-white shadow-xs"
-                                    : "bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                                    : "bg-card border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
                             )}
                         >
                             <Icon className="h-4 w-4 mr-2" />

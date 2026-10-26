@@ -16,119 +16,13 @@ import { Header } from "@/components/header/index"
 import { CategorySection } from "@/components/category-section"
 import { FeaturesSection } from "@/components/features-section"
 import { PromotionBanner } from "@/components/promotion-banner"
-import { Product } from "@/types/product"
-
-const FALLBACK_FLAGSHIP_PRODUCTS: Product[] = [
-  {
-    id: "flagship-macbook-pro-14-m3-pro",
-    name: "MacBook Pro 14 M3 Pro (36GB/1TB) Chính hãng VN/A",
-    slug: "macbook-pro-16-inch-m3-max",
-    price: 67990000,
-    salePrice: 61990000,
-    rating: 5.0,
-    reviewCount: 142,
-    mainImage: "/uploads/products/macbook-pro-16-inch-m3-max-main.jpg",
-    categoryId: "laptop",
-    categoryName: "Laptop & Mac",
-    categorySlug: "laptop",
-    stockQuantity: 15,
-    specifications: [
-      { name: "Chip", value: "M3 Pro 12-Core" },
-      { name: "RAM/SSD", value: "36GB / 1TB" },
-    ],
-  },
-  {
-    id: "flagship-iphone-16-pro-max-256gb",
-    name: "iPhone 16 Pro Max 256GB Titan Tự Nhiên VN/A",
-    slug: "iphone-16-pro-max-256gb",
-    price: 39990000,
-    salePrice: 34990000,
-    rating: 4.9,
-    reviewCount: 328,
-    mainImage: "/uploads/products/iphone-16-pro-max-256gb-main.jpg",
-    categoryId: "smartphone",
-    categoryName: "Điện thoại",
-    categorySlug: "dien-thoai",
-    stockQuantity: 24,
-    specifications: [
-      { name: "Chip", value: "Apple A18 Pro" },
-      { name: "Dung lượng", value: "256GB Titan" },
-    ],
-  },
-  {
-    id: "flagship-samsung-s25-ultra",
-    name: "Samsung Galaxy S25 Ultra 5G 12GB/512GB Chính Hãng",
-    slug: "samsung-galaxy-s25-ultra",
-    price: 35990000,
-    salePrice: 31990000,
-    rating: 4.9,
-    reviewCount: 195,
-    mainImage: "/uploads/products/samsung-galaxy-s25-ultra-main.jpg",
-    categoryId: "smartphone",
-    categoryName: "Điện thoại",
-    categorySlug: "dien-thoai",
-    stockQuantity: 18,
-    specifications: [
-      { name: "Chip", value: "Snapdragon 8 Elite" },
-      { name: "RAM/ROM", value: "12GB / 512GB" },
-    ],
-  },
-  {
-    id: "flagship-sony-wh-1000xm5",
-    name: "Tai nghe chống ồn Sony WH-1000XM5 Hi-Res Audio",
-    slug: "tai-nghe-sony-wh-1000xm5",
-    price: 8490000,
-    salePrice: 7490000,
-    rating: 4.8,
-    reviewCount: 89,
-    mainImage: "/uploads/products/tai-nghe-sony-wh-1000xm5-main.jpg",
-    categoryId: "audio",
-    categoryName: "Âm thanh",
-    categorySlug: "am-thanh",
-    stockQuantity: 30,
-    specifications: [
-      { name: "Chống ồn", value: "ANC Đa điểm" },
-      { name: "Pin", value: "30 Giờ Hi-Res" },
-    ],
-  },
-]
-
-function normalizeSSoTProduct(p: Product): Product {
-  const lower = p.name.toLowerCase()
-  if (lower.includes("iphone 16 pro max")) {
-    return {
-      ...p,
-      price: 39990000,
-      salePrice: 34990000,
-    }
-  }
-  if (lower.includes("macbook pro") && (lower.includes("m3") || lower.includes("14") || lower.includes("16"))) {
-    return {
-      ...p,
-      price: 67990000,
-      salePrice: 61990000,
-    }
-  }
-  if (lower.includes("ugreen") && lower.includes("cáp")) {
-    return {
-      ...p,
-      name: "Cáp sạc nhanh Ugreen Type-C to Type-C 100W 2m",
-      price: 550000,
-      salePrice: 450000,
-    }
-  }
-  return p
-}
 
 export default function Home() {
   const { data: bestsellingProducts, isLoading: isLoadingProducts } = useBestsellingProducts()
   const { data: categories, isLoading: isLoadingCategories } = useCategories()
   const { data: banners, isLoading: isLoadingBanners } = useAllBanners()
 
-  const displayProducts =
-    bestsellingProducts && bestsellingProducts.length > 0
-      ? bestsellingProducts.slice(0, 8).map(normalizeSSoTProduct)
-      : FALLBACK_FLAGSHIP_PRODUCTS
+  const displayProducts = bestsellingProducts?.slice(0, 8) || []
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -157,7 +51,7 @@ export default function Home() {
             <Button
               variant="outline"
               asChild
-              className="rounded-full px-6 border-border/80 dark:border-white/15 bg-card dark:bg-[#111827] text-foreground hover:bg-slate-100 dark:hover:bg-[#182234] w-fit h-11 focus-ring font-semibold"
+              className="rounded-full px-6 border-border/80 bg-card text-foreground hover:bg-surface w-fit h-11 focus-ring font-semibold"
             >
               <Link href="/products?sortBy=featured" className="inline-flex items-center gap-2">
                 <span>Xem tất cả</span>
@@ -177,7 +71,7 @@ export default function Home() {
           <div className="mt-10 text-center">
             <Button
               asChild
-              className="rounded-full px-8 h-12 bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-all shadow-md hover:shadow-lg focus-ring font-semibold text-sm"
+              className="rounded-full px-8 h-12 bg-tech-blue text-white hover:bg-tech-blue-hover transition-all shadow-md hover:shadow-lg focus-ring font-semibold text-sm"
             >
               <Link href="/products" className="inline-flex items-center gap-2">
                 <span>Khám phá toàn bộ 500+ sản phẩm công nghệ</span>

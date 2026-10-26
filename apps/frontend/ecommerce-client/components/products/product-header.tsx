@@ -32,7 +32,7 @@ export function ProductHeader({
         )
     }
 
-    const displayRating = rating > 0 ? rating.toFixed(1) : "4.9"
+    const displayRating = rating > 0 ? rating.toFixed(1) : "—"
 
     return (
         <div className="space-y-2.5">
@@ -43,9 +43,11 @@ export function ProductHeader({
                         {categoryName}
                     </span>
                 )}
-                <span className="text-tiny text-ink-faint font-medium tabular-nums">
-                    SKU: {sku || "MBP14-M3P-36-1TB"}
-                </span>
+                {sku && (
+                    <span className="text-tiny text-ink-faint font-medium font-mono tabular-nums">
+                        SKU: {sku}
+                    </span>
+                )}
             </div>
 
             {/* Main Product Title */}
@@ -59,7 +61,7 @@ export function ProductHeader({
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                     <span className="font-bold text-ink tabular-nums">{displayRating}</span>
                     <span className="text-ink-faint text-tiny tabular-nums">
-                        ({reviewCount > 0 ? reviewCount : 128} đánh giá)
+                        ({reviewCount ?? 0} đánh giá)
                     </span>
                 </div>
 

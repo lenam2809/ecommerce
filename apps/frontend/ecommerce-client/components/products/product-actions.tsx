@@ -20,8 +20,8 @@ interface ProductActionsProps {
 /**
  * ProductActions — Hybrid Premium Tech (SSoT 2026)
  * Dual CTA:
- * - "Thêm vào giỏ": Electric Blue (#2563EB / bg-primary)
- * - "Mua ngay": Tech Crimson (#E11D48 / bg-[#e11d48])
+ * - "Thêm vào giỏ": Electric Blue (bg-tech-blue / bg-primary)
+ * - "Mua ngay": Tech Crimson (bg-brand)
  */
 export function ProductActions({
     productId,
@@ -66,11 +66,11 @@ export function ProductActions({
                     {isAddingToCart ? "Đang thêm..." : "Thêm vào giỏ"}
                 </Button>
 
-                {/* Primary Purchase CTA - Mua ngay (Tech Crimson #E11D48) */}
+                {/* Primary Purchase CTA - Mua ngay (Tech Crimson) */}
                 <Button
                     onClick={onBuyNow || onAddToCart}
                     disabled={isAddingToCart}
-                    className="flex-1 h-12 rounded-xl bg-[#e11d48] text-white hover:bg-[#be123c] text-small font-bold transition-all duration-200 shadow-sm hover:shadow-md focus-ring cursor-pointer"
+                    className="flex-1 h-12 rounded-xl bg-brand text-white hover:bg-brand-hover text-small font-bold transition-all duration-200 shadow-sm hover:shadow-md focus-ring cursor-pointer"
                 >
                     <Zap className="h-4 w-4 mr-2" />
                     Mua ngay

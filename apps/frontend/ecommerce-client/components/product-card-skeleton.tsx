@@ -2,9 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ProductCardSkeleton() {
   return (
-    <div className="group relative flex flex-col h-full bg-card dark:bg-[#111827] rounded-2xl border border-border/80 dark:border-white/[0.08] overflow-hidden shadow-xs dark:shadow-none transition-all duration-300">
+    <div className="group relative flex flex-col h-full bg-card rounded-2xl border border-border/80 dark:border-white/[0.08] overflow-hidden shadow-xs dark:shadow-none transition-all duration-300">
       {/* Image placeholder matching aspect-square */}
-      <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-[#182234] flex-shrink-0">
+      <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-surface flex-shrink-0">
         <Skeleton className="w-full h-full rounded-none bg-slate-200/60 dark:bg-white/5" />
       </div>
 

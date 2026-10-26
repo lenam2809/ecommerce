@@ -1,5 +1,50 @@
+export interface ProductSpecification {
+    id?: string;
+    name: string;
+    value: string;
+    specKey?: string;
+    specValue?: string;
+    groupName?: string;
+    isKeySpec?: boolean;
+    displayOrder?: number;
+    isHighlight?: boolean;
+}
+
+export interface ProductAddOn {
+    id: string;
+    productId?: string;
+    categoryId?: string;
+    brandId?: string;
+    code: string;
+    name: string;
+    description?: string;
+    addOnType?: string;
+    price: number;
+    originalPrice?: number;
+    durationMonths?: number;
+    isActive: boolean;
+    displayOrder?: number;
+}
+
+export interface ComparisonSpecRow {
+    name: string;
+    values: Record<string, string>;
+}
+
+export interface ComparisonSpecGroup {
+    groupName: string;
+    specs: ComparisonSpecRow[];
+}
+
+export interface ProductComparison {
+    products: Product[];
+    specGroups: ComparisonSpecGroup[];
+}
+
 export interface Product {
     id: string;
+    code?: string;
+    sku?: string;
     name: string;
     slug: string;
     price: number;
@@ -13,13 +58,18 @@ export interface Product {
     categorySlug: string;
     brandId?: string;
     brandSlug?: string;
+    brandName?: string;
     description?: string;
-    specifications?: { name: string; value: string }[];
+    specifications?: ProductSpecification[];
+    keySpecs?: string[];
+    addOns?: ProductAddOn[];
+    availableAddOns?: ProductAddOn[];
     variants?: {
         colors?: string[];
         sizes?: string[];
     };
     stockQuantity?: number;
+    soldQuantity?: number;
 }
 
 export interface ProductsResponse {

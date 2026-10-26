@@ -3,7 +3,6 @@ import { Cart } from '@/types/cart';
 import { BaseService } from './base-service';
 import { Result } from '@/types';
 
-
 class CartService extends BaseService {
   constructor() {
     super('/cart');
@@ -16,7 +15,7 @@ class CartService extends BaseService {
   async addToCart(
     productId: string,
     quantity: number,
-    options?: { color?: string; size?: string }
+    options?: { color?: string; size?: string; addOnId?: string; productVariantSkuId?: string }
   ): Promise<Result<Cart>> {
     return await this.post<Cart>('/cart/items', { productId, quantity, ...options });
   }

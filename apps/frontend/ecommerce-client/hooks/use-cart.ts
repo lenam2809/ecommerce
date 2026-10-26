@@ -61,7 +61,7 @@ export function useCart() {
     }: {
       productId: string
       quantity: number
-      options?: { color?: string; size?: string }
+      options?: { color?: string; size?: string; addOnId?: string; productVariantSkuId?: string }
     }) => cartService.addToCart(productId, quantity, options),
 
     onMutate: async ({ productId, quantity, options }) => {
@@ -77,7 +77,8 @@ export function useCart() {
         (item) =>
           item.productId === productId &&
           (item.color || "") === (options?.color || "") &&
-          (item.size || "") === (options?.size || "")
+          (item.size || "") === (options?.size || "") &&
+          (item.addOnId || "") === (options?.addOnId || "")
       )
 
       if (existingItem) {

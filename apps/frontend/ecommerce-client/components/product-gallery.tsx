@@ -74,7 +74,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             <div
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
-                className="relative w-full h-[33vh] max-h-[35vh] sm:h-auto sm:max-h-none aspect-[4/3] sm:aspect-square md:aspect-[5/4] rounded-3xl overflow-hidden bg-slate-100 dark:bg-[#111827] border border-line shadow-xs group select-none"
+                className="relative w-full h-[33vh] max-h-[35vh] sm:h-auto sm:max-h-none aspect-[4/3] sm:aspect-square md:aspect-[5/4] rounded-3xl overflow-hidden bg-card border border-line shadow-xs group select-none"
             >
                 {/* Floating authenticity badge */}
                 <div className="absolute top-3.5 left-3.5 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-md border border-primary/25 shadow-xs text-tiny font-semibold text-ink">
@@ -99,7 +99,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
                 </div>
 
                 {failedMap[currentImage] ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-[#111827] text-slate-400">
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-card text-slate-400">
                         <Cpu className="h-14 w-14 mb-2 text-primary opacity-70" />
                         <span className="text-xs font-semibold uppercase tracking-wider">ShopViet Studio Flagship</span>
                     </div>
@@ -166,7 +166,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
                                 }`}
                             >
                                 {failedMap[index] ? (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-[#111827]">
+                                    <div className="w-full h-full flex items-center justify-center bg-card">
                                         <Cpu className="h-5 w-5 text-primary/60" />
                                     </div>
                                 ) : (

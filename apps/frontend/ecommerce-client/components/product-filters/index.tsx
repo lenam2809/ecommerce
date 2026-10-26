@@ -327,7 +327,7 @@ export function ProductFilters({
             className={
                 isMobileDrawer
                     ? "flex flex-col h-full justify-between"
-                    : "bg-card dark:bg-[#111827] rounded-2xl border border-border/80 dark:border-white/[0.08] p-5 sticky top-28 shadow-xs"
+                    : "bg-card rounded-2xl border border-border/80 dark:border-white/[0.08] p-5 sticky top-28 shadow-xs"
             }
         >
             <div>
@@ -512,7 +512,7 @@ export function ProductFilters({
 
             {/* Mobile Sticky Footer Actions inside Drawer */}
             {isMobileDrawer && (
-                <div className="sticky bottom-0 left-0 right-0 pt-3 pb-2 bg-card dark:bg-[#111827] border-t border-border mt-4 flex items-center gap-2.5">
+                <div className="sticky bottom-0 left-0 right-0 pt-3 pb-2 bg-card border-t border-border mt-4 flex items-center gap-2.5">
                     <Button
                         type="button"
                         variant="outline"

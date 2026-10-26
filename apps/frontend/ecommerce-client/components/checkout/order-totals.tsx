@@ -150,12 +150,12 @@ export function OrderTotals({
                     </span>
                 </div>
                 <div className="text-right">
-                    <span className="text-2xl font-extrabold text-[#e11d48] tracking-tight tabular-nums whitespace-nowrap block">
+                    <span className="text-2xl font-extrabold text-brand tracking-tight font-mono tabular-nums whitespace-nowrap block">
                         {formatPrice(total)}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary mt-0.5">
                         <Sparkles className="h-3 w-3" />
-                        Tích lũy +620 điểm VIP Diamond
+                        Tích lũy +{Math.max(1, Math.round(total / 100000)).toLocaleString("vi-VN")} điểm VIP
                     </span>
                 </div>
             </div>

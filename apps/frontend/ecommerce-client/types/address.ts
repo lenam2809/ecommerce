@@ -6,6 +6,7 @@ export interface CustomerAddress {
     street: string;
     city: string;
     state: string;
+    ward?: string;
     postalCode: string;
     country: string;
     phone: string;

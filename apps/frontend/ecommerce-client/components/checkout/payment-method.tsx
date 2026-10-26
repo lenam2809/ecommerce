@@ -84,7 +84,7 @@ export function PaymentMethod({ form, total = 62390000 }: PaymentMethodProps) {
     ]
 
     return (
-        <div className="bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div className="bg-card text-slate-900 dark:text-slate-100 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
             {/* Step 2 Accordion Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-900/40">
                 <div className="flex items-center gap-3">

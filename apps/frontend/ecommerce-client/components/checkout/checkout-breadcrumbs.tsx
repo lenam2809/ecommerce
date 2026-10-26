@@ -31,7 +31,7 @@ export function CheckoutBreadcrumbs() {
             </div>
 
             {/* Visual 3-Step Progress Bar */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] px-4 py-3.5 shadow-xs">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-card px-4 py-3.5 shadow-xs">
                 <div className="flex items-center justify-between max-w-2xl mx-auto">
                     {/* Step 1: Cart (Completed) */}
                     <Link href="/cart" className="flex items-center gap-2.5 group">

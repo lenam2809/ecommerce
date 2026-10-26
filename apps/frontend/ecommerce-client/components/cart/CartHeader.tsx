@@ -81,7 +81,7 @@ export default function CartHeader({ itemCount = 0, subtotal = 62890000 }: CartH
 
                 {/* Freeship 500.000đ Bar */}
                 {itemCount > 0 && (
-                    <div className="p-3.5 sm:px-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xs min-w-[280px] sm:min-w-[360px]">
+                    <div className="p-3.5 sm:px-5 rounded-2xl bg-card border border-slate-200 dark:border-slate-800 shadow-2xs min-w-[280px] sm:min-w-[360px]">
                         <div className="flex items-center justify-between gap-2 text-tiny mb-2">
                             <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
                                 <Truck className="h-4 w-4 text-primary shrink-0" />
@@ -92,14 +92,14 @@ export default function CartHeader({ itemCount = 0, subtotal = 62890000 }: CartH
                                 ) : (
                                     <span>
                                         Mua thêm{" "}
-                                        <strong className="text-primary tabular-nums whitespace-nowrap">
+                                        <strong className="text-primary font-mono tabular-nums whitespace-nowrap">
                                             {formatPrice(FREESHIP_THRESHOLD - subtotal)}
                                         </strong>{" "}
                                         để được Freeship
                                     </span>
                                 )}
                             </span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono tabular-nums whitespace-nowrap">
                                 Mốc {formatPrice(FREESHIP_THRESHOLD)}
                             </span>
                         </div>

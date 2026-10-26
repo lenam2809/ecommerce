@@ -38,6 +38,30 @@ export interface ReturnStatusHistory {
     changedAt: string;
 }
 
+export interface ReturnRequestLog {
+    id: string;
+    step: number;
+    action: string;
+    title: string;
+    actorName?: string;
+    author?: string;
+    location?: string;
+    note?: string;
+    technicianNote?: string;
+    processingMethod?: string;
+    loggedAt: string;
+}
+
+export interface ReturnTimelineStep {
+    step: number;
+    title: string;
+    description: string;
+    status: string; // "Completed" | "Active" | "Pending"
+    completedAt?: string;
+    actor?: string;
+    location?: string;
+}
+
 export interface ReturnRequest {
     id: string;
     code: string;
@@ -56,8 +80,21 @@ export interface ReturnRequest {
     refundAmount: number;
     createdAt: string;
     resolvedAt?: string;
+    serialNumber?: string;
+    showroomId?: string;
+    showroomName?: string;
+    showroomAddress?: string;
+    assignedTechnicianName?: string;
+    processingMethod?: string;
     evidences: ReturnEvidence[];
     statusHistory: ReturnStatusHistory[];
+    logs?: ReturnRequestLog[];
+    timelineSteps?: ReturnTimelineStep[];
+}
+
+export interface ReturnRequestDetail extends ReturnRequest {
+    logs: ReturnRequestLog[];
+    timelineSteps: ReturnTimelineStep[];
 }
 
 export interface ReturnRequestList {
@@ -96,19 +133,4 @@ export const getReturnStatusName = (status: EReturnStatus): string => {
         [EReturnStatus.Completed]: "Hoàn tất",
     };
     return map[status] || "Không xác định";
-};
-
-export const getReturnStatusColor = (status: EReturnStatus): string => {
-    const map: Record<EReturnStatus, string> = {
-        [EReturnStatus.Requested]: "bg-amber-100 text-amber-700",
-        [EReturnStatus.UnderReview]: "bg-blue-100 text-blue-700",
-        [EReturnStatus.Approved]: "bg-green-100 text-green-700",
-        [EReturnStatus.Rejected]: "bg-red-100 text-red-700",
-        [EReturnStatus.ItemReceived]: "bg-indigo-100 text-indigo-700",
-        [EReturnStatus.QualityCheck]: "bg-cyan-100 text-cyan-700",
-        [EReturnStatus.RefundProcessing]: "bg-orange-100 text-orange-700",
-        [EReturnStatus.ExchangeProcessing]: "bg-purple-100 text-purple-700",
-        [EReturnStatus.Completed]: "bg-emerald-100 text-emerald-700",
-    };
-    return map[status] || "";
 };

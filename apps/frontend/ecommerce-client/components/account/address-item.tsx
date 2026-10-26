@@ -18,7 +18,7 @@ export function AddressItem({
             className={`rounded-2xl p-5 relative transition-all duration-200 border ${
                 address.isDefault
                     ? "border-primary bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-primary/20 shadow-xs"
-                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#111827] shadow-2xs"
+                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-card shadow-2xs"
             }`}
         >
             <div className="flex items-start justify-between gap-2 mb-2">
@@ -68,7 +68,7 @@ export function AddressItem({
                             variant="outline"
                             size="sm"
                             aria-label={`Xóa địa chỉ ${address.address}`}
-                            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#e11d48] hover:border-rose-300 text-xs font-bold h-8 px-3 cursor-pointer"
+                            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-brand hover:border-rose-300 text-xs font-bold h-8 px-3 cursor-pointer"
                             onClick={() => onDelete(address.id)}
                         >
                             <Trash2 className="h-3 w-3 mr-1" />

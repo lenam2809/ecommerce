@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -24,86 +24,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useAbout } from "@/hooks/use-about"
+import { useShowrooms } from "@/hooks/use-showrooms"
+import { Showroom } from "@/types/showroom"
+import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 
-interface ShowroomBranch {
-    id: string
-    city: "TP. Hồ Chí Minh" | "Hà Nội" | "Đà Nẵng" | "Cần Thơ"
-    name: string
-    address: string
-    phone: string
-    isFlagship?: boolean
-    services: string[]
-}
-
-const SHOWROOM_NETWORK_2026: ShowroomBranch[] = [
-    {
-        id: "sr-1",
-        city: "TP. Hồ Chí Minh",
-        name: "ShopViet Flagship सेंटर — Quận 1",
-        address: "125 Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh",
-        phone: "1800 6868 (Nhánh 101)",
-        isFlagship: true,
-        services: ["Apple Authorized Reseller", "Trung tâm Bảo hành 15p", "B2B Lounge"],
-    },
-    {
-        id: "sr-2",
-        city: "TP. Hồ Chí Minh",
-        name: "ShopViet Experience Store — Crescent Mall Q.7",
-        address: "Tầng G, 101 Tôn Dật Tiên, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh",
-        phone: "1800 6868 (Nhánh 102)",
-        isFlagship: true,
-        services: ["Khu trải nghiệm Mac Studio", "Bảo hành 1 đổi 1", "Trả góp 0%"],
-    },
-    {
-        id: "sr-3",
-        city: "TP. Hồ Chí Minh",
-        name: "ShopViet Landmark 81 — Quận Bình Thạnh",
-        address: "L2-15 Vinhomes Central Park, 208 Nguyễn Hữu Cảnh, Q. Bình Thạnh, TP.HCM",
-        phone: "1800 6868 (Nhánh 105)",
-        services: ["Giao hỏa tốc 2H", "Thu cũ đổi mới trợ giá 3Tr"],
-    },
-    {
-        id: "sr-4",
-        city: "Hà Nội",
-        name: "ShopViet Flagship Cầu Giấy — Hà Nội",
-        address: "245 Cầu Giấy, Phường Dịch Vọng, Quận Cầu Giấy, Hà Nội",
-        phone: "1800 6868 (Nhánh 201)",
-        isFlagship: true,
-        services: ["Apple Authorized Service", "Bảo hành lấy ngay 15p", "Phòng Lab Hi-End"],
-    },
-    {
-        id: "sr-5",
-        city: "Hà Nội",
-        name: "ShopViet Thái Hà — Đống Đa",
-        address: "168 Thái Hà, Phường Trung Liệt, Quận Đống Đa, Hà Nội",
-        phone: "1800 6868 (Nhánh 202)",
-        services: ["Trung tâm Laptop & Gaming", "Giao siêu tốc 2H"],
-    },
-    {
-        id: "sr-6",
-        city: "Đà Nẵng",
-        name: "ShopViet Flagship Nguyễn Văn Linh — Đà Nẵng",
-        address: "88 Nguyễn Văn Linh, Quận Hải Châu, TP. Đà Nẵng",
-        phone: "1800 6868 (Nhánh 301)",
-        isFlagship: true,
-        services: ["Trung tâm Bảo hành Miền Trung", "Apple & Samsung Flagship"],
-    },
-    {
-        id: "sr-7",
-        city: "Cần Thơ",
-        name: "ShopViet Ninh Kiều — Cần Thơ",
-        address: "52 Đại lộ Hòa Bình, Quận Ninh Kiều, TP. Cần Thơ",
-        phone: "1800 6868 (Nhánh 401)",
-        services: ["Showroom Ủy quyền", "Đổi mới 30 ngày"],
-    },
-]
-
 export default function AboutPage() {
-    // Keep useAbout hook intact for contract preservation
+    // Keep useAbout hook intact
     const { data: aboutInfo } = useAbout()
+    const { data: showrooms = [], isLoading: isLoadingShowrooms } = useShowrooms()
 
-    const [selectedCity, setSelectedCity] = useState<string>("Tất cả (45)")
+    const [selectedCity, setSelectedCity] = useState<string>("Tất cả")
+    const [selectedShowroom, setSelectedShowroom] = useState<Showroom | null>(null)
     const [b2bCompany, setB2bCompany] = useState("")
     const [b2bTaxId, setB2bTaxId] = useState("")
     const [b2bContact, setB2bContact] = useState("")
@@ -112,10 +44,27 @@ export default function AboutPage() {
     const [b2bNote, setB2bNote] = useState("")
     const [b2bFileName, setB2bFileName] = useState<string>("")
 
-    const filteredShowrooms =
-        selectedCity === "Tất cả (45)"
-            ? SHOWROOM_NETWORK_2026
-            : SHOWROOM_NETWORK_2026.filter((s) => s.city === selectedCity)
+    // Extract available cities/provinces from real API data
+    const availableCities = useMemo(() => {
+        const set = new Set<string>()
+        showrooms.forEach((s) => {
+            const loc = s.province || s.city
+            if (loc) set.add(loc)
+        })
+        return ["Tất cả", ...Array.from(set)]
+    }, [showrooms])
+
+    const filteredShowrooms = useMemo(() => {
+        if (selectedCity === "Tất cả") return showrooms
+        return showrooms.filter((s) => (s.province || s.city) === selectedCity)
+    }, [showrooms, selectedCity])
+
+    const activeMapUrl = useMemo(() => {
+        if (selectedShowroom?.googleMapIframeUrl) {
+            return selectedShowroom.googleMapIframeUrl
+        }
+        return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.513274621584!2d106.6972363!3d10.7719444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3f3129e64d%3A0x8d6b2d79522c7f30!2zMTI1IEzDqiBM4bujaSwgQuG6v24gVGjDoG5oLCBRdeG6rW4gMSwgSOG7kyBDaMOtIE1pbmgsIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1743667684381!5m2!1svi!2s"
+    }, [selectedShowroom])
 
     const handleB2bSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -132,32 +81,32 @@ export default function AboutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] py-8 md:py-12">
+        <div className="min-h-screen bg-background text-ink py-8 md:py-12">
             <div className="container-app space-y-12 md:space-y-16">
                 {/* Breadcrumb */}
                 <nav
                     aria-label="Breadcrumb"
-                    className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400"
+                    className="flex items-center gap-1.5 text-xs text-ink-soft"
                 >
                     <Link
                         href="/"
-                        className="hover:text-primary transition-colors inline-flex items-center gap-1 font-medium"
+                        className="hover:text-tech-blue transition-colors inline-flex items-center gap-1 font-medium"
                     >
                         <Home className="h-3.5 w-3.5" />
                         <span>Trang chủ</span>
                     </Link>
-                    <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="font-bold text-slate-900 dark:text-white">
+                    <ChevronRight className="h-3.5 w-3.5 text-ink-faint" />
+                    <span className="font-bold text-ink">
                         Về ShopViet &amp; Hệ thống 45 Showroom Công nghệ
                     </span>
                 </nav>
 
-                {/* Dark Obsidian Bento Hero (D3-06 SSoT 2026) */}
-                <section className="rounded-3xl bg-[#090D16] text-white border border-slate-800 p-6 sm:p-10 lg:p-12 relative overflow-hidden shadow-xl">
-                    <div className="pointer-events-none absolute -top-28 -right-28 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl" />
+                {/* Dark Bento Hero (D3-06 SSoT 2026) */}
+                <section className="rounded-3xl bg-slate-950 text-white border border-slate-800 p-6 sm:p-10 lg:p-12 relative overflow-hidden shadow-xl">
+                    <div className="pointer-events-none absolute -top-28 -right-28 w-96 h-96 rounded-full bg-tech-blue/20 blur-3xl" />
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
                         <div className="lg:col-span-7 space-y-5">
-                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-extrabold uppercase tracking-wider">
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-tech-blue/15 border border-tech-blue/30 text-tech-blue text-xs font-extrabold uppercase tracking-wider">
                                 <Award className="h-3.5 w-3.5" />
                                 <span>Đại lý Ủy quyền Cấp 1 Chính hãng • Năm 2026</span>
                             </div>
@@ -172,43 +121,43 @@ export default function AboutPage() {
 
                             {/* SSoT 2026 Key Metrics */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                                <div className="p-4 rounded-2xl bg-[#111827] border border-slate-800">
-                                    <span className="text-2xl font-extrabold text-blue-400 tabular-nums block">
+                                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                                    <span className="text-2xl font-extrabold text-tech-blue font-mono tabular-nums whitespace-nowrap block">
                                         45
                                     </span>
                                     <span className="text-xs text-slate-300 font-semibold mt-0.5 block">
                                         Showroom Toàn Quốc
                                     </span>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-[#111827] border border-slate-800">
-                                    <span className="text-2xl font-extrabold text-emerald-400 tabular-nums block">
+                                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                                    <span className="text-2xl font-extrabold text-emerald-400 font-mono tabular-nums whitespace-nowrap block">
                                         2 Giờ
                                     </span>
                                     <span className="text-xs text-slate-300 font-semibold mt-0.5 block">
                                         Giao Siêu Tốc Nội Thành
                                     </span>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-[#111827] border border-slate-800">
-                                    <span className="text-2xl font-extrabold text-amber-400 tabular-nums block">
+                                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                                    <span className="text-2xl font-extrabold text-amber-400 font-mono tabular-nums whitespace-nowrap block">
                                         1800 6868
                                     </span>
                                     <span className="text-xs text-slate-300 font-semibold mt-0.5 block">
-                                        Hotline CSKH Miễn Phí
+                                        Hotline Bán Hàng (0đ)
                                     </span>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-[#111827] border border-slate-800">
-                                    <span className="text-2xl font-extrabold text-white tabular-nums block">
+                                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                                    <span className="text-2xl font-extrabold text-white font-mono tabular-nums whitespace-nowrap block">
                                         1800 6869
                                     </span>
                                     <span className="text-xs text-slate-300 font-semibold mt-0.5 block">
-                                        Tổng Đài Kỹ Thuật 24/7
+                                        Hotline Kỹ Thuật 24/7
                                     </span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="lg:col-span-5">
-                            <div className="relative h-[280px] sm:h-[340px] rounded-2xl overflow-hidden border border-slate-700/80 bg-[#111827]">
+                            <div className="relative h-[280px] sm:h-[340px] rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-900">
                                 <Image
                                     src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1000&auto=format&fit=crop&q=80"
                                     alt="Không gian trải nghiệm công nghệ tại 45 Showroom ShopViet"
@@ -216,15 +165,15 @@ export default function AboutPage() {
                                     className="object-cover opacity-90"
                                     priority
                                 />
-                                <div className="absolute bottom-3 inset-x-3 p-3.5 rounded-xl bg-[#090D16]/90 backdrop-blur-md border border-slate-700/80 flex items-center justify-between text-xs">
+                                <div className="absolute bottom-3 inset-x-3 p-3.5 rounded-xl bg-slate-950/90 backdrop-blur-md border border-slate-700/80 flex items-center justify-between text-xs">
                                     <div className="flex items-center gap-2">
                                         <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
                                         <span className="font-bold text-white">
                                             Đang mở cửa • Đóng cửa lúc 21:30
                                         </span>
                                     </div>
-                                    <span className="text-blue-400 font-extrabold tabular-nums">
-                                        45 Chi nhánh
+                                    <span className="text-tech-blue font-extrabold font-mono tabular-nums whitespace-nowrap">
+                                        45 Showroom
                                     </span>
                                 </div>
                             </div>
@@ -260,15 +209,15 @@ export default function AboutPage() {
                         return (
                             <div
                                 key={i}
-                                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 shadow-xs space-y-2.5"
+                                className="rounded-2xl border border-line bg-card p-6 shadow-xs space-y-2.5"
                             >
-                                <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                                <div className="h-11 w-11 rounded-xl bg-tech-blue/10 text-tech-blue flex items-center justify-center">
                                     <Icon className="h-5 w-5" />
                                 </div>
-                                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                                <h3 className="text-base font-extrabold text-ink">
                                     {pillar.title}
                                 </h3>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                <p className="text-xs text-ink-soft leading-relaxed">
                                     {pillar.desc}
                                 </p>
                             </div>
@@ -277,38 +226,32 @@ export default function AboutPage() {
                 </section>
 
                 {/* Interactive 45 Showroom Locator & Map Filter */}
-                <section id="showrooms" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 md:p-8 shadow-xs space-y-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+                <section id="showrooms" className="rounded-3xl border border-line bg-card p-6 md:p-8 shadow-xs space-y-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-line pb-5">
                         <div>
-                            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-primary mb-1">
+                            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-tech-blue mb-1">
                                 <Store className="h-4 w-4" />
                                 <span>Mạng lưới O2O Toàn Quốc</span>
                             </div>
-                            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            <h2 className="text-2xl font-extrabold text-ink tracking-tight">
                                 Tra cứu 45 Showroom &amp; Trung tâm Bảo hành Ủy quyền
                             </h2>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <p className="text-xs text-ink-soft mt-1">
                                 Lọc theo Tỉnh/Thành phố để kiểm tra tồn kho và đặt lịch trải nghiệm sản phẩm
                             </p>
                         </div>
 
                         {/* Province/City Filter Pills */}
                         <div className="flex flex-wrap gap-2">
-                            {[
-                                "Tất cả (45)",
-                                "TP. Hồ Chí Minh",
-                                "Hà Nội",
-                                "Đà Nẵng",
-                                "Cần Thơ",
-                            ].map((city) => (
+                            {availableCities.map((city) => (
                                 <button
                                     key={city}
                                     type="button"
                                     onClick={() => setSelectedCity(city)}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                                         selectedCity === city
-                                            ? "bg-primary text-white shadow-xs"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+                                            ? "bg-tech-blue text-white shadow-xs"
+                                            : "bg-surface text-ink-soft hover:text-ink hover:bg-surface-2"
                                     }`}
                                 >
                                     {city}
@@ -320,57 +263,77 @@ export default function AboutPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Showroom Cards List */}
                         <div className="lg:col-span-7 space-y-3 max-h-[520px] overflow-y-auto pr-1">
-                            {filteredShowrooms.map((branch) => (
-                                <div
-                                    key={branch.id}
-                                    className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 hover:border-primary transition-all bg-slate-50/50 dark:bg-slate-900/40 space-y-2.5"
-                                >
-                                    <div className="flex flex-wrap items-start justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                                                {branch.name}
-                                            </h3>
-                                            {branch.isFlagship && (
-                                                <span className="px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-extrabold">
-                                                    Flagship
-                                                </span>
-                                            )}
-                                        </div>
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
-                                            <Clock className="h-3 w-3" />
-                                            Đang mở cửa • Đóng cửa lúc 21:30
-                                        </span>
-                                    </div>
-
-                                    <p className="text-xs text-slate-700 dark:text-slate-300 flex items-start gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                                        <span>{branch.address}</span>
-                                    </p>
-
-                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {branch.services.map((srv) => (
-                                                <span
-                                                    key={srv}
-                                                    className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold text-slate-700 dark:text-slate-300"
-                                                >
-                                                    {srv}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <span className="text-xs font-bold text-primary tabular-nums flex items-center gap-1">
-                                            <Navigation className="h-3 w-3" />
-                                            {branch.phone}
-                                        </span>
-                                    </div>
+                            {isLoadingShowrooms ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-28 w-full rounded-2xl" />
+                                    <Skeleton className="h-28 w-full rounded-2xl" />
+                                    <Skeleton className="h-28 w-full rounded-2xl" />
                                 </div>
-                            ))}
+                            ) : filteredShowrooms.length === 0 ? (
+                                <div className="p-8 text-center text-ink-soft bg-surface rounded-2xl border border-line">
+                                    Không tìm thấy showroom nào tại khu vực đã chọn.
+                                </div>
+                            ) : (
+                                filteredShowrooms.map((branch) => {
+                                    const isSelected = selectedShowroom?.id === branch.id
+                                    return (
+                                        <div
+                                            key={branch.id}
+                                            onClick={() => setSelectedShowroom(branch)}
+                                            className={`rounded-2xl border p-4 transition-all cursor-pointer space-y-2.5 ${
+                                                isSelected
+                                                    ? "border-tech-blue bg-tech-blue/[0.04] shadow-xs"
+                                                    : "border-line bg-surface/40 hover:border-tech-blue/50"
+                                            }`}
+                                        >
+                                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-sm font-extrabold text-ink">
+                                                        {branch.name}
+                                                    </h3>
+                                                    {branch.isFlagship && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-tech-blue text-white text-[10px] font-extrabold">
+                                                            Flagship
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
+                                                    <Clock className="h-3 w-3" />
+                                                    <span>{branch.openingHours || "08:00 - 21:30"}</span>
+                                                </span>
+                                            </div>
+
+                                            <p className="text-xs text-ink-soft flex items-start gap-1.5">
+                                                <MapPin className="h-3.5 w-3.5 text-tech-blue shrink-0 mt-0.5" />
+                                                <span>{branch.address}</span>
+                                            </p>
+
+                                            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {branch.hasInstantPickup && (
+                                                        <span className="px-2 py-0.5 rounded-md bg-card border border-line text-[11px] font-semibold text-ink-soft">
+                                                            Nhận máy tại Showroom
+                                                        </span>
+                                                    )}
+                                                    <span className="px-2 py-0.5 rounded-md bg-card border border-line text-[11px] font-semibold text-ink-soft">
+                                                        Bảo hành 1 đổi 1
+                                                    </span>
+                                                </div>
+                                                <span className="text-xs font-bold text-tech-blue font-mono tabular-nums whitespace-nowrap flex items-center gap-1">
+                                                    <Navigation className="h-3 w-3" />
+                                                    {branch.phone || "1800 6868"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            )}
                         </div>
 
                         {/* Interactive Map Preview */}
-                        <div className="lg:col-span-5 min-h-[380px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-900">
+                        <div className="lg:col-span-5 min-h-[380px] rounded-2xl overflow-hidden border border-line relative bg-surface">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.513274621584!2d106.6972363!3d10.7719444!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f3f3129e64d%3A0x8d6b2d79522c7f30!2zMTI1IEzDqiBM4bujaSwgQuG6v24gVGjDoG5oLCBRdeG6rW4gMSwgSOG7kyBDaMOtIE1pbmgsIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1743667684381!5m2!1svi!2s"
+                                src={activeMapUrl}
                                 width="100%"
                                 height="100%"
                                 style={{ border: 0 }}
@@ -384,22 +347,22 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* B2B Corporate & Project Partnership Form with File Attachment (D3-06 SSoT) */}
-                <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 md:p-10 shadow-xs">
+                {/* B2B Corporate & Project Partnership Form */}
+                <section className="rounded-3xl border border-line bg-card p-6 md:p-10 shadow-xs">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         <div className="lg:col-span-5 space-y-4">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-extrabold uppercase tracking-wider">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tech-blue/10 text-tech-blue text-xs font-extrabold uppercase tracking-wider">
                                 <Building2 className="h-3.5 w-3.5" />
                                 <span>Khối Khách hàng Doanh nghiệp (B2B)</span>
                             </div>
-                            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            <h2 className="text-2xl font-extrabold text-ink tracking-tight">
                                 Liên hệ Hợp tác B2B &amp; Báo giá Dự án Thiết bị Công nghệ
                             </h2>
-                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
                                 Cung cấp giải pháp trang thiết bị Apple MacBook, iPad, Workstation chính hãng số lượng lớn cho doanh nghiệp, trường học với chiết khấu dự án đặc biệt và xuất hóa đơn GTGT (VAT) chuẩn mực.
                             </p>
 
-                            <div className="space-y-2.5 pt-2 text-xs text-slate-700 dark:text-slate-300">
+                            <div className="space-y-2.5 pt-2 text-xs text-ink">
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                                     <span>Chiết khấu dự án doanh nghiệp từ 5% - 18%</span>
@@ -414,11 +377,11 @@ export default function AboutPage() {
                                 </div>
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
-                                <p className="font-bold text-slate-900 dark:text-white">
+                            <div className="p-4 rounded-2xl bg-surface border border-line text-xs space-y-1">
+                                <p className="font-bold text-ink">
                                     Đường dây nóng Khối Doanh nghiệp B2B:
                                 </p>
-                                <p className="text-primary font-extrabold text-sm tabular-nums">
+                                <p className="text-tech-blue font-extrabold text-sm font-mono tabular-nums whitespace-nowrap">
                                     1800 6868 (Nhánh 9) • b2b@shopviet.vn
                                 </p>
                             </div>
@@ -427,7 +390,7 @@ export default function AboutPage() {
                         <form onSubmit={handleB2bSubmit} className="lg:col-span-7 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Tên Doanh nghiệp / Tổ chức *
                                     </label>
                                     <Input
@@ -435,11 +398,11 @@ export default function AboutPage() {
                                         value={b2bCompany}
                                         onChange={(e) => setB2bCompany(e.target.value)}
                                         placeholder="Công ty Cổ phần Công nghệ..."
-                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                        className="h-11 rounded-xl border-line bg-surface text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Mã số thuế doanh nghiệp *
                                     </label>
                                     <Input
@@ -448,11 +411,11 @@ export default function AboutPage() {
                                         value={b2bTaxId}
                                         onChange={(e) => setB2bTaxId(e.target.value)}
                                         placeholder="0316889922"
-                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm tabular-nums"
+                                        className="h-11 rounded-xl border-line bg-surface text-sm font-mono tabular-nums"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Người đại diện liên hệ *
                                     </label>
                                     <Input
@@ -460,11 +423,11 @@ export default function AboutPage() {
                                         value={b2bContact}
                                         onChange={(e) => setB2bContact(e.target.value)}
                                         placeholder="Họ và tên người phụ trách"
-                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                        className="h-11 rounded-xl border-line bg-surface text-sm"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Số điện thoại liên hệ *
                                     </label>
                                     <Input
@@ -474,11 +437,11 @@ export default function AboutPage() {
                                         value={b2bPhone}
                                         onChange={(e) => setB2bPhone(e.target.value)}
                                         placeholder="0909 686 868"
-                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm tabular-nums"
+                                        className="h-11 rounded-xl border-line bg-surface text-sm font-mono tabular-nums"
                                     />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Email doanh nghiệp nhận báo giá *
                                     </label>
                                     <Input
@@ -487,21 +450,21 @@ export default function AboutPage() {
                                         value={b2bEmail}
                                         onChange={(e) => setB2bEmail(e.target.value)}
                                         placeholder="procurement@company.vn"
-                                        className="h-11 rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm"
+                                        className="h-11 rounded-xl border-line bg-surface text-sm"
                                     />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Đính kèm Hồ sơ năng lực / Danh mục yêu cầu báo giá (PDF, XLSX, DOCX)
                                     </label>
-                                    <label className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-dashed border-primary/40 bg-blue-50/40 dark:bg-blue-950/20 cursor-pointer hover:border-primary transition-colors">
+                                    <label className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-dashed border-tech-blue/40 bg-tech-blue/[0.03] cursor-pointer hover:border-tech-blue transition-colors">
                                         <div className="flex items-center gap-2.5 text-xs">
-                                            <FileUp className="h-4 w-4 text-primary shrink-0" />
-                                            <span className="font-bold text-slate-800 dark:text-slate-200">
+                                            <FileUp className="h-4 w-4 text-tech-blue shrink-0" />
+                                            <span className="font-bold text-ink">
                                                 {b2bFileName || "Chọn tệp hồ sơ năng lực hoặc danh sách cấu hình cần báo giá..."}
                                             </span>
                                         </div>
-                                        <span className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold shrink-0">
+                                        <span className="px-3 py-1 rounded-lg bg-tech-blue text-white text-xs font-bold shrink-0">
                                             Đính kèm tệp
                                         </span>
                                         <input
@@ -516,21 +479,21 @@ export default function AboutPage() {
                                     </label>
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    <label className="block text-xs font-bold text-ink mb-1">
                                         Nội dung yêu cầu chi tiết
                                     </label>
                                     <Textarea
                                         value={b2bNote}
                                         onChange={(e) => setB2bNote(e.target.value)}
-                                        placeholder="Ví dụ: Cần báo giá 25 máy MacBook Pro 14 M3 Pro 18GB/512GB kèm gói AppleCare+ cho văn phòng Quận 1..."
-                                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm min-h-[90px]"
+                                        placeholder="Ví dụ: Cần báo giá 25 máy MacBook Pro 14 M3 Pro kèm gói AppleCare+ cho văn phòng..."
+                                        className="rounded-xl border-line bg-surface text-sm min-h-[90px]"
                                     />
                                 </div>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="w-full sm:w-auto h-11 px-8 rounded-xl bg-primary text-white hover:bg-primary/90 text-xs font-bold cursor-pointer"
+                                className="w-full sm:w-auto h-11 px-8 rounded-xl bg-tech-blue text-white hover:bg-tech-blue/90 text-xs font-bold cursor-pointer"
                             >
                                 Gửi yêu cầu Báo giá B2B &amp; Hồ sơ
                             </Button>

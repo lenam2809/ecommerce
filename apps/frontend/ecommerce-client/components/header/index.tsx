@@ -101,7 +101,7 @@ export function Header() {
 
             {/* Top Announcement Bar — SSoT 2026 Alignment */}
             {showAnnouncement && (
-                <div className="bg-surface-2 dark:bg-[#111827] text-ink dark:text-[#a1a1aa] text-tiny border-b border-line dark:border-white/10 transition-all duration-200">
+                <div className="bg-surface-2 text-ink dark:text-muted-foreground text-tiny border-b border-line dark:border-white/10 transition-all duration-200">
                     <div className="container-app flex items-center justify-between py-2">
                         <div className="flex items-center gap-2 mx-auto md:mx-0 text-center md:text-left">
                             <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />

@@ -142,7 +142,7 @@ export function CategorySection({ categories }: CategorySectionProps) {
                 href={href}
                 aria-label={`${tile.title} — ${tile.cta}`}
                 className={cn(
-                  "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-[#090D16] transition-all duration-300 hover:shadow-lg hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                  "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-bento-dark transition-all duration-300 hover:shadow-lg hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   SIZE_CLASSES[tile.size]
                 )}
               >
@@ -155,12 +155,12 @@ export function CategorySection({ categories }: CategorySectionProps) {
                 />
                 {/* High contrast dark gradient overlay */}
                 <div
-                  className="absolute inset-0 bg-gradient-to-t from-[#090D16]/95 via-[#090D16]/50 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-t from-bento-dark/95 via-bento-dark/50 to-transparent"
                   aria-hidden="true"
                 />
 
                 <div className="relative z-10">
-                  <span className="inline-block bg-[#090D16]/80 backdrop-blur-md text-[#60A5FA] border border-[#2563EB]/30 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide">
+                  <span className="inline-block bg-bento-dark/80 backdrop-blur-md text-tech-blue border border-tech-blue/30 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide">
                     {tile.badge}
                   </span>
                 </div>
@@ -184,7 +184,7 @@ export function CategorySection({ categories }: CategorySectionProps) {
                       {tile.description}
                     </p>
                   )}
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-[#60A5FA] transition-colors">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-tech-blue transition-colors">
                     <span>{tile.cta}</span>
                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </span>

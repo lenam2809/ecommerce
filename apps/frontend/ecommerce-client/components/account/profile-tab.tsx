@@ -24,29 +24,35 @@ export function ProfileTab({
 }) {
     const [isEditing, setIsEditing] = useState(false)
 
-    const displayFirstName = userData.firstName || "Minh Quân"
-    const displayLastName = userData.lastName || "Nguyễn"
+    const displayFirstName = userData.firstName || ""
+    const displayLastName = userData.lastName || ""
     const displayFullName =
-        userData.fullName || `${displayLastName} ${displayFirstName}`.trim()
-    const displayEmail = userData.email || "quan.nguyen@shopviet.vn"
-    const displayPhone = userData.phoneNumber || "0909 686 868"
+        userData.fullName || [displayLastName, displayFirstName].filter(Boolean).join(" ") || userData.email || "Thành viên"
+    const displayEmail = userData.email || "—"
+    const displayPhone = userData.phoneNumber || "—"
+    const avatarInitials = (displayFullName || "U")
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0].toUpperCase())
+        .join("") || "SV"
 
     const form = useForm<FormUpdateUserSchema>({
         resolver: zodResolver(formUpdateUserSchema),
         defaultValues: {
             firstName: displayFirstName,
             lastName: displayLastName,
-            phoneNumber: displayPhone,
+            phoneNumber: displayPhone !== "—" ? displayPhone : "",
             avatar: undefined,
         },
     })
 
     useEffect(() => {
         form.reset({
-            id: userData.id || "vip-2026",
-            firstName: userData.firstName || "Minh Quân",
-            lastName: userData.lastName || "Nguyễn",
-            phoneNumber: userData.phoneNumber || "0909686868",
+            id: userData.id || "",
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
+            phoneNumber: userData.phoneNumber || "",
             avatar: undefined,
         })
     }, [userData, form])
@@ -54,15 +60,16 @@ export function ProfileTab({
     const onSubmit = async (data: FormUpdateUserSchema) => {
         try {
             await handleSubmit(data)
-        } catch {
-            // offline fallback
+            toast.success("Đã cập nhật hồ sơ cá nhân thành công!")
+            setIsEditing(false)
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } }; message?: string }
+            toast.error(err?.response?.data?.message || err?.message || "Cập nhật hồ sơ thất bại, vui lòng thử lại.")
         }
-        toast.success("Đã cập nhật hồ sơ cá nhân thành công!")
-        setIsEditing(false)
     }
 
     return (
-        <div className="flex flex-col bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="flex flex-col bg-card rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
             {/* Header */}
             <div className="p-6 bg-slate-50/60 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -107,8 +114,8 @@ export function ProfileTab({
                         {/* Top Identity Row with 64x64px "NA" Avatar */}
                         <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-slate-800">
                             <div className="flex items-center gap-4">
-                                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-extrabold text-xl flex items-center justify-center ring-2 ring-primary/30 shadow-sm shrink-0 select-none">
-                                    NA
+                                <div className="h-16 w-16 rounded-full bg-tech-blue text-white font-extrabold text-xl flex items-center justify-center ring-2 ring-tech-blue/30 shadow-sm shrink-0 select-none">
+                                    {avatarInitials}
                                 </div>
                                 <div>
                                     <div className="flex flex-wrap items-center gap-2">
@@ -121,7 +128,7 @@ export function ProfileTab({
                                         </span>
                                     </div>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                                        Mã thành viên: <strong className="text-slate-900 dark:text-white tabular-nums">SV-VIP-889201</strong> • Ngày tham gia: <span className="tabular-nums">12/03/2024</span>
+                                        Mã thành viên: <strong className="text-slate-900 dark:text-white font-mono tabular-nums">{userData.id ? userData.id.slice(0, 8).toUpperCase() : "SV-MEMBER"}</strong>
                                     </p>
                                 </div>
                             </div>
