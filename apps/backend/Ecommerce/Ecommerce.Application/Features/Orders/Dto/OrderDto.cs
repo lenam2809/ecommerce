@@ -55,7 +55,7 @@ namespace Ecommerce.Application.Features.Orders.Dto
                         ? $"{s.ApplicationUser.FirstName} {s.ApplicationUser.LastName}".Trim()
                         : (s.GuestName ?? string.Empty)))
                 .ForMember(d => d.ShowroomName, opt => opt.MapFrom(s => s.Showroom != null ? s.Showroom.Name : null))
-                .ForMember(d => d.Invoice, opt => opt.MapFrom(s => s.Invoice != null && s.Invoice.RequireInvoice ? s.Invoice : null))
+                .ForMember(d => d.Invoice, opt => opt.MapFrom(s => s.Invoice != null && (s.Invoice.RequireInvoice || !string.IsNullOrEmpty(s.Invoice.InvoiceFileUrl) || !string.IsNullOrEmpty(s.Invoice.TaxCode)) ? s.Invoice : null))
                 .ForMember(d => d.RowVersion, opt => opt.MapFrom(s => s.ConcurrencyToken != null ? Convert.ToBase64String(s.ConcurrencyToken) : null));
         }
     }

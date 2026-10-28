@@ -1,17 +1,23 @@
 # =============================================================================
-# Ecommerce Multi-Service Docker Compose
+# Ecommerce Multi-Service Docker Compose (Hybrid Development Ready)
 # =============================================================================
-# Services:
-#   - backend: .NET 8.0 Web API
-#   - frontend-client: Next.js 15 Customer Website
-#   - frontend-dashboard: Next.js 15 Admin Dashboard
-#   - postgres: PostgreSQL Database
-#   - redis: Redis Cache
+# Default `docker compose up -d` (Hybrid Mode):
+#   - postgres: PostgreSQL 15 Database (localhost:5432)
+#   - redis: Redis 7 Cache (localhost:6379)
+#   - rabbitmq: RabbitMQ 3.13 Broker & Management UI (localhost:5672, localhost:15672)
+#
+# Full Docker Mode (`docker compose --profile full-docker up -d`):
+#   - backend: .NET 8.0 Web API (localhost:5000)
+#   - frontend-client: Next.js 15 Customer Storefront (localhost:3000)
+#   - frontend-dashboard: Next.js 15 Admin Dashboard (localhost:3001)
+#   - elasticsearch, jaeger, prometheus, alertmanager, grafana
 # =============================================================================
+
+name: docker-compose
 
 services:
   # ===========================================================================
-  # PostgreSQL Database
+  # PostgreSQL Database (Core Infrastructure)
   # ===========================================================================
   postgres:
     image: postgres:15-alpine
@@ -28,13 +34,14 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ecommerce_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # ===========================================================================
-  # Redis Cache
+  # Redis Cache (Core Infrastructure)
   # ===========================================================================
   redis:
     image: redis:7-alpine
@@ -47,15 +54,42 @@ services:
     networks:
       - ecommerce-network
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
   # ===========================================================================
-  # Elasticsearch (Search Service)
+  # RabbitMQ Message Broker (Core Infrastructure)
+  # ===========================================================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ecommerce-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ===========================================================================
+  # Elasticsearch (Search Service - Profile: full-docker)
   # ===========================================================================
   elasticsearch:
+    profiles: ["full-docker"]
     build:
       context: .
       dockerfile: elasticsearch.Dockerfile
@@ -79,9 +113,10 @@ services:
       retries: 10
 
   # ===========================================================================
-  # Backend API (.NET 8.0)
+  # Backend API (.NET 8.0 - Profile: full-docker)
   # ===========================================================================
   backend:
+    profiles: ["full-docker"]
     build:
       context: ../apps/backend/Ecommerce
       dockerfile: Dockerfile
@@ -91,10 +126,18 @@ services:
       - "${BACKEND_PORT:-5000}:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING:-Host=postgres;Database=ecommerce_db;Username=postgres;Password=yourpassword;}
+      - Seed__Enabled=${SEED_ENABLED:-true}
+      - Seed__IncludeSampleData=${SEED_SAMPLE_DATA:-true}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING:-Host=postgres;Port=5432;Database=ecommerce_db;Username=postgres;Password=yourpassword;}
       - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING:-redis:6379}
       - Redis__ConnectionString=${REDIS_CONNECTION_STRING:-redis:6379}
       - Redis__InstanceName=${REDIS_INSTANCE_NAME:-ecommerce:}
+      - RabbitMQ__Host=${RABBITMQ_HOST:-rabbitmq}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__ManagementPort=${RABBITMQ_MANAGEMENT_PORT:-15672}
+      - RabbitMQ__Username=${RABBITMQ_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD:-guest}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
       - CacheSettings__UseRedis=true
       - CacheSettings__RedisConnection=${REDIS_CONNECTION_STRING:-redis:6379}
       - CacheSettings__InstanceName=${REDIS_INSTANCE_NAME:-ecommerce:}
@@ -147,6 +190,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
       elasticsearch:
         condition: service_healthy
       jaeger:
@@ -159,9 +204,10 @@ services:
       start_period: 40s
 
   # ===========================================================================
-  # Frontend Client (Next.js 15)
+  # Frontend Client (Next.js 15 - Profile: full-docker)
   # ===========================================================================
   frontend-client:
+    profiles: ["full-docker"]
     build:
       context: ../apps/frontend/ecommerce-client
       dockerfile: Dockerfile
@@ -179,9 +225,10 @@ services:
       - backend
 
   # ===========================================================================
-  # Frontend Dashboard (Next.js 15)
+  # Frontend Dashboard (Next.js 15 - Profile: full-docker)
   # ===========================================================================
   frontend-dashboard:
+    profiles: ["full-docker"]
     build:
       context: ../apps/frontend/ecommerce-dashboard
       dockerfile: Dockerfile
@@ -199,9 +246,10 @@ services:
       - backend
 
   # ===========================================================================
-  # Distributed Tracing
+  # Distributed Tracing (Profile: full-docker)
   # ===========================================================================
   jaeger:
+    profiles: ["full-docker"]
     image: jaegertracing/all-in-one:1.57
     container_name: ecommerce-jaeger
     restart: unless-stopped
@@ -215,9 +263,10 @@ services:
       - ecommerce-network
 
   # ===========================================================================
-  # Metrics, Alerting, and Dashboards
+  # Metrics, Alerting, and Dashboards (Profile: full-docker)
   # ===========================================================================
   prometheus:
+    profiles: ["full-docker"]
     image: prom/prometheus:v2.52.0
     container_name: ecommerce-prometheus
     restart: unless-stopped
@@ -237,6 +286,7 @@ services:
       - alertmanager
 
   alertmanager:
+    profiles: ["full-docker"]
     image: prom/alertmanager:v0.27.0
     container_name: ecommerce-alertmanager
     restart: unless-stopped
@@ -250,6 +300,7 @@ services:
       - ecommerce-network
 
   grafana:
+    profiles: ["full-docker"]
     image: grafana/grafana:10.4.3
     container_name: ecommerce-grafana
     restart: unless-stopped
@@ -282,6 +333,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  rabbitmq_data:
   elasticsearch_data:
   backend_uploads:
   prometheus_data:

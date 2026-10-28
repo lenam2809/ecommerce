@@ -31,22 +31,22 @@ export function BasicInfoSection({ form, isEditing = false, isDetail = false }: 
     const currentCategoryId = form.getValues("categoryId")
     const currentBrandId = form.getValues("brandId")
 
-    if (currentCategoryId) {
-      const categoryExists = categories.data.some((cat: any) => String(cat.id) === String(currentCategoryId)) // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (currentCategoryId && currentCategoryId !== "undefined") {
+      const categoryExists = categories.data.some((cat: any) => String(cat.id || cat.value) === String(currentCategoryId)) // eslint-disable-line @typescript-eslint/no-explicit-any
       if (!categoryExists && categories.data.length > 0) {
-        form.setValue("categoryId", String(categories.data[0].value))
+        form.setValue("categoryId", String(categories.data[0].id || categories.data[0].value))
       }
     } else if (categories.data.length > 0) {
-      form.setValue("categoryId", String(categories.data[0].value))
+      form.setValue("categoryId", String(categories.data[0].id || categories.data[0].value))
     }
 
-    if (currentBrandId) {
-      const brandExists = brands.data.some((brand: any) => String(brand.id) === String(currentBrandId)) // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (currentBrandId && currentBrandId !== "undefined") {
+      const brandExists = brands.data.some((brand: any) => String(brand.id || brand.value) === String(currentBrandId)) // eslint-disable-line @typescript-eslint/no-explicit-any
       if (!brandExists && brands.data.length > 0) {
-        form.setValue("brandId", String(brands.data[0].value))
+        form.setValue("brandId", String(brands.data[0].id || brands.data[0].value))
       }
     } else if (brands.data.length > 0) {
-      form.setValue("brandId", String(brands.data[0].value))
+      form.setValue("brandId", String(brands.data[0].id || brands.data[0].value))
     }
   }, [form, isEditing, categories?.data, brands?.data])
 

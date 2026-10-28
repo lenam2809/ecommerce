@@ -42,11 +42,16 @@ namespace Ecommerce.Application.Policies
             options.AddPolicy(AuthorizationPolicyNames.ProductDelete, policy =>
                 policy.RequireRole(EUserRoles.Admin, EUserRoles.Manager));
 
-            // Role-specific policy
+            // Role-specific policies (cho phép cả Admin hoặc tài khoản có claim quyền tương ứng)
             options.AddPolicy(AuthorizationPolicyNames.Staff.CreateProduct, policy =>
                 policy.RequireAssertion(context =>
-                    context.User.IsInRole(EUserRoles.Staff) &&
+                    context.User.IsInRole(EUserRoles.Admin) ||
                     context.User.HasClaim(c => c.Type == AuthorizationClaimTypes.Permission && c.Value == EPermissions.CreateProduct)));
+
+            options.AddPolicy(AuthorizationPolicyNames.Staff.EditProduct, policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole(EUserRoles.Admin) ||
+                    context.User.HasClaim(c => c.Type == AuthorizationClaimTypes.Permission && c.Value == EPermissions.EditProduct)));
 
             // Tự động đăng ký tất cả các quyền từ EPermissions.
             // Nếu user có role Admin -> tự động validate THÀNH CÔNG cho mọi endpoint yêu cầu claim Permission.

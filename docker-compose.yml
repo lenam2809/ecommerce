@@ -1,0 +1,8 @@
+# =============================================================================
+# Root Docker Compose Entrypoint (Includes docker-compose/docker-compose.yml)
+# =============================================================================
+name: docker-compose
+
+include:
+  - path: ./docker-compose/docker-compose.yml
+    env_file: ./docker-compose/.env

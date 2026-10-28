@@ -196,7 +196,7 @@ export function OrderSerialManager({ order, isReadOnly = false }: OrderSerialMan
                   {item.addOnName && (
                     <Badge variant="outline" className="border-tech-blue/30 text-tech-blue bg-tech-blue/5 text-xs py-0.5">
                       <Sparkles className="mr-1 h-3 w-3" />
-                      {item.addOnName} (+{formatVnd(item.addOnPrice || 0)})
+                      {item.addOnName} (<span className="price-tag font-mono tabular-nums whitespace-nowrap">+{formatVnd(item.addOnPrice || 0)}</span>)
                     </Badge>
                   )}
                   <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-50/50 text-xs py-0.5">

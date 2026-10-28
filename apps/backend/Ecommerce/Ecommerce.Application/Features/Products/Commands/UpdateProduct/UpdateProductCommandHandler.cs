@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
 {
-    [Authorize(Policy = AuthorizationPolicyNames.Staff.EditProduct)]
+    [Authorize(Policy = EPermissions.EditProduct)]
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<Unit>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -66,10 +66,14 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products", $"{SlugHelper.GenerateSlug(request.Name)}-main");
                 }
 
-                // Cập nhật thông tin cơ bản
+                // Cập nhật thông tin cơ bản (giữ nguyên Slug nếu sản phẩm đã có Slug để không làm gãy URL SEO Storefront)
+                var effectiveSlug = !string.IsNullOrWhiteSpace(existingProduct.Slug)
+                    ? existingProduct.Slug
+                    : SlugHelper.GenerateSlug(request.Name);
+
                 existingProduct.UpdateInfo(
                     request.Name,
-                    SlugHelper.GenerateSlug(request.Name),
+                    effectiveSlug,
                     request.Description,
                     mainImageUrl,
                     request.CategoryId,
@@ -138,9 +142,28 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     }
                 }
 
-                // Xử lý cập nhật và thêm mới thông số kỹ thuật (truyền đủ 7 tham số theo SSoT 2026)
-                if (request.Specifications != null)
+                // Xử lý cập nhật và thêm mới thông số kỹ thuật (thay thế đồng bộ theo danh sách gửi lên từ Admin)
+                if (request.Specifications != null && request.Specifications.Count > 0)
                 {
+                    var specRepo = _unitOfWork.BaseRepository<ProductSpecification>();
+                    var incomingIds = request.Specifications
+                        .Where(s => s.Id.HasValue && s.Id.Value != Guid.Empty)
+                        .Select(s => s.Id!.Value)
+                        .ToHashSet();
+
+                    var specsToRemove = existingProduct.Specifications
+                        .Where(s => !incomingIds.Contains(s.Id))
+                        .ToList();
+
+                    if (specsToRemove.Count > 0)
+                    {
+                        specRepo?.DeleteRange(specsToRemove);
+                        foreach (var specToRemove in specsToRemove)
+                        {
+                            existingProduct.Specifications.Remove(specToRemove);
+                        }
+                    }
+
                     foreach (var spec in request.Specifications)
                     {
                         if (spec.Id.HasValue && spec.Id.Value != Guid.Empty)
@@ -157,31 +180,35 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                                 existingSpec.FilterKey = spec.FilterKey;
                                 existingSpec.IsHighlight = spec.IsHighlight || spec.IsKeySpec;
                             }
-                            else
+                            else if (specRepo != null)
                             {
-                                existingProduct.AddSpecification(
-                                    spec.Name,
-                                    spec.Value,
-                                    spec.GroupName,
-                                    spec.IsKeySpec,
-                                    spec.DisplayOrder,
-                                    spec.FilterKey,
-                                    spec.IsHighlight
-                                );
+                                await specRepo.AddAsync(new ProductSpecification
+                                {
+                                    ProductId = existingProduct.Id,
+                                    Name = spec.Name,
+                                    Value = spec.Value,
+                                    GroupName = spec.GroupName,
+                                    IsKeySpec = spec.IsKeySpec,
+                                    DisplayOrder = spec.DisplayOrder,
+                                    FilterKey = spec.FilterKey,
+                                    IsHighlight = spec.IsHighlight || spec.IsKeySpec
+                                }, cancellationToken);
                             }
                         }
-                        else
+                        else if (specRepo != null)
                         {
                             // Thêm thông số mới
-                            existingProduct.AddSpecification(
-                                spec.Name,
-                                spec.Value,
-                                spec.GroupName,
-                                spec.IsKeySpec,
-                                spec.DisplayOrder,
-                                spec.FilterKey,
-                                spec.IsHighlight
-                            );
+                            await specRepo.AddAsync(new ProductSpecification
+                            {
+                                ProductId = existingProduct.Id,
+                                Name = spec.Name,
+                                Value = spec.Value,
+                                GroupName = spec.GroupName,
+                                IsKeySpec = spec.IsKeySpec,
+                                DisplayOrder = spec.DisplayOrder,
+                                FilterKey = spec.FilterKey,
+                                IsHighlight = spec.IsHighlight || spec.IsKeySpec
+                            }, cancellationToken);
                         }
                     }
                 }
@@ -243,8 +270,7 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     );
                 }
 
-                // Cập nhật sản phẩm vào database
-                _unitOfWork.Products.Update(existingProduct);
+                // Cập nhật sản phẩm vào database (existingProduct đã được tracking bởi GetByIdWithIncludeAsync)
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
                 await _logger.LogAsync(

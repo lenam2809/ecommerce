@@ -73,8 +73,8 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
       description: product.description || "",
       stockQuantity: product.stockQuantity,
       isActive: true,
-      categoryId: String(product.categoryId),
-      brandId: String(product.brandId),
+      categoryId: product.categoryId ? String(product.categoryId) : "",
+      brandId: product.brandId ? String(product.brandId) : "",
       mainImage: product.mainImage,
       additionalImages: product.additionalImages || [],
       specifications: (product.specifications || []).map((s) => ({

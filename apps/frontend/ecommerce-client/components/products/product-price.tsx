@@ -56,7 +56,7 @@ export function ProductPrice({
             {includeAppleCare && appleCarePlusPrice > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-tiny font-semibold text-primary tabular-nums">
                     <ShieldPlus className="h-3.5 w-3.5 shrink-0" />
-                    <span>Đã bao gồm gói bảo hành mở rộng AppleCare+ (+{formatPrice(appleCarePlusPrice)})</span>
+                    <span>Đã bao gồm gói bảo hành mở rộng AppleCare+ (<span className="price-tag font-mono tabular-nums whitespace-nowrap">+{formatPrice(appleCarePlusPrice)}</span>)</span>
                 </div>
             )}
 

@@ -34,7 +34,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.UploadOrderInvoicePdf
         {
             try
             {
-                var order = await _unitOfWork.Orders.GetQueryable()
+                var order = await _unitOfWork.Orders.GetQueryable(tracking: true)
                     .FirstOrDefaultAsync(o => o.Id == request.OrderId, cancellationToken);
 
                 if (order == null)

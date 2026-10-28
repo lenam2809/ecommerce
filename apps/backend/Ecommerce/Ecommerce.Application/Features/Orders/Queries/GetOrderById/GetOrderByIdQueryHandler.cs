@@ -34,11 +34,13 @@ namespace Ecommerce.Application.Features.Orders.Queries.GetOrderById
         {
             try
             {
-                // Get the order with its items and products
+                // Get the order with its items, assigned serials, products, and showroom
                 var query = _unitOfWork.Orders.GetQueryable();
                 var order = await query
                     .Include(o => o.OrderItems)
-                    .ThenInclude(i => i.Product)
+                        .ThenInclude(i => i.Product)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(i => i.OrderItemSerials)
                     .Include(o => o.ApplicationUser)
                     .Include(o => o.Showroom)
                     .FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
@@ -84,4 +86,3 @@ namespace Ecommerce.Application.Features.Orders.Queries.GetOrderById
         }
     }
 }
-

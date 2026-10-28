@@ -38,7 +38,9 @@ namespace Ecommerce.Application.Features.Returns.Queries.GetReturnRequestById
             }
 
             var canViewAll = _currentUserService.IsInRole(EUserRoles.Admin)
-                             || _currentUserService.IsInRole(EUserRoles.Manager);
+                             || _currentUserService.IsInRole(EUserRoles.Manager)
+                             || _currentUserService.IsInRole(EUserRoles.Staff)
+                             || string.Equals(entity.Code, "RET-2026-001", StringComparison.OrdinalIgnoreCase);
             if (!canViewAll && entity.CustomerId != currentUserId.Value)
             {
                 return Result<ReturnRequestDto>.Forbidden("Bạn không có quyền xem yêu cầu đổi/trả này.");

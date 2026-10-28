@@ -112,7 +112,7 @@ namespace Ecommerce.Domain.Entities
         {
             if (stockQuantity < 0) throw new ArgumentException("Stock quantity cannot be negative.");
             if (price < 0) throw new ArgumentException("Price cannot be negative.");
-            if (salePrice.HasValue && salePrice.Value >= price) throw new ArgumentException("Sale price must be less than regular price.");
+            if (salePrice.HasValue && salePrice.Value > price) throw new ArgumentException("Sale price cannot be greater than regular price.");
 
             return new Product
             {
@@ -161,7 +161,7 @@ namespace Ecommerce.Domain.Entities
         {
             if (price < 0) throw new ArgumentException("Price cannot be negative.");
             if (salePrice.HasValue && salePrice.Value < 0) throw new ArgumentException("Sale price cannot be negative.");
-            if (salePrice.HasValue && salePrice.Value >= price) throw new ArgumentException("Sale price must be less than regular price.");
+            if (salePrice.HasValue && salePrice.Value > price) throw new ArgumentException("Sale price cannot be greater than regular price.");
 
             Price = price;
             SalePrice = salePrice;

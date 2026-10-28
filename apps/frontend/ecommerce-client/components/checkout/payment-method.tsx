@@ -209,11 +209,11 @@ export function PaymentMethod({ form, total = 62390000 }: PaymentMethodProps) {
                             </p>
                             <p>
                                 Để đảm bảo quyền lợi giữ sản phẩm nguyên seal chính hãng, quý khách vui lòng đặt cọc trước{" "}
-                                <strong className="font-extrabold tabular-nums whitespace-nowrap">
+                                <strong className="font-extrabold font-mono tabular-nums whitespace-nowrap">
                                     {formatPrice(depositAmount)}
                                 </strong>{" "}
                                 (10% giá trị đơn hàng) qua VietQR/VNPAY sau khi xác nhận đặt hàng. Phần còn lại{" "}
-                                <strong className="font-extrabold tabular-nums whitespace-nowrap">
+                                <strong className="font-extrabold font-mono tabular-nums whitespace-nowrap">
                                     {formatPrice(total - depositAmount)}
                                 </strong>{" "}
                                 sẽ thanh toán trực tiếp khi nhận và kiểm tra máy.

@@ -38,6 +38,7 @@ import {
     MapPin,
     Clock,
     Loader2,
+    AlertTriangle,
 } from "lucide-react";
 import { Showroom } from "@/types/showroom";
 import {
@@ -90,12 +91,16 @@ export default function ShowroomsPage() {
             (acc, s) => acc + (s.totalStockQuantity ?? 0),
             0
         );
+        const lowStockCount = showrooms.filter(
+            (s) => s.isActive && (s.totalStockQuantity ?? 0) <= 5
+        ).length;
 
         return {
             total: total > 0 ? total : 45, // Chuẩn SSoT 2026: 45 showroom
             flagships,
             instantPickup,
             totalStock,
+            lowStockCount,
         };
     }, [showrooms]);
 
@@ -205,6 +210,22 @@ export default function ShowroomsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* LOW STOCK WARNING BANNER */}
+            {kpiStats.lowStockCount > 0 && (
+                <div className="rounded-lg border border-amber-500/40 bg-amber-50/80 dark:bg-amber-950/30 p-3.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                        <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>
+                            <strong>Cảnh báo tồn kho thấp (Low Stock):</strong> Hiện có{" "}
+                            <strong className="font-mono tabular-nums text-brand">
+                                {kpiStats.lowStockCount} cơ sở
+                            </strong>{" "}
+                            đang có tổng tồn kho O2O ở mức cảnh báo (≤ 5 máy). Vui lòng điều chuyển bổ sung để đảm bảo SLA nhận máy sau 2H.
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* FILTER & SEARCH BAR */}
             <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -335,13 +356,22 @@ export default function ShowroomsPage() {
                                     </TableCell>
 
                                     <TableCell className="align-middle text-center">
-                                        <div>
+                                        <div className="flex flex-col items-center gap-0.5">
                                             <span className="font-mono tabular-nums whitespace-nowrap text-xs font-semibold text-tech-blue">
                                                 {sr.totalSkusWithStock ?? 0} SKUs
                                             </span>
                                             <p className="text-[10px] text-muted-foreground font-mono tabular-nums">
                                                 ({sr.totalStockQuantity ?? 0} sp)
                                             </p>
+                                            {(sr.totalStockQuantity ?? 0) <= 5 && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="mt-0.5 border-amber-500/50 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 text-[10px] px-1.5 py-0 font-semibold"
+                                                >
+                                                    <AlertTriangle className="size-2.5 mr-1 text-amber-600" />
+                                                    {(sr.totalStockQuantity ?? 0) === 0 ? "Hết hàng" : "Sắp hết hàng"}
+                                                </Badge>
+                                            )}
                                         </div>
                                     </TableCell>
 

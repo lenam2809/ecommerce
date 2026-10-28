@@ -75,7 +75,7 @@ export function ReturnList({ items, loading }: ReturnListProps) {
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-right">{item.quantity}</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(item.refundAmount)}</TableCell>
+                                <TableCell className="text-right font-medium price-tag font-mono tabular-nums whitespace-nowrap">{formatCurrency(item.refundAmount)}</TableCell>
                                 <TableCell className="text-muted-foreground">
                                     {new Date(item.createdAt).toLocaleDateString("vi-VN")}
                                 </TableCell>

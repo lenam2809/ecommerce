@@ -98,37 +98,43 @@ namespace Ecommerce.Infrastructure.Elasticsearch
                 var size = pageSize < 1 ? 10 : pageSize;
                 var skip = (page - 1) * size;
 
-                var items = await query
+                var rawProducts = await query
                     .Include(p => p.Category)
                     .Include(p => p.Brand)
+                    .Include(p => p.Specifications)
                     .Skip(skip)
                     .Take(size)
-                    .Select(p => new ProductSearchResultDto
-                    {
-                        Id = p.Id,
-                        Code = p.Code,
-                        Name = p.Name,
-                        Sku = p.Sku,
-                        Slug = p.Slug,
-                        Price = p.Price,
-                        SalePrice = p.SalePrice,
-                        Image = p.Image,
-                        MainImage = p.Image,
-                        Description = p.Description,
-                        StockQuantity = p.StockQuantity,
-                        Rating = p.Rating,
-                        ReviewCount = p.ReviewCount,
-                        IsActive = p.IsActive,
-                        CategoryId = p.CategoryId,
-                        CategoryName = p.Category != null ? p.Category.Name : string.Empty,
-                        CategorySlug = p.Category != null ? p.Category.Slug : string.Empty,
-                        BrandId = p.BrandId,
-                        BrandName = p.Brand != null ? p.Brand.Name : string.Empty,
-                        BrandSlug = p.Brand != null ? p.Brand.Slug : string.Empty,
-                        CreatedAt = p.CreatedAt,
-                        Tags = new List<string>()
-                    })
                     .ToListAsync(cancellationToken);
+
+                var items = rawProducts.Select(p => new ProductSearchResultDto
+                {
+                    Id = p.Id,
+                    Code = p.Code,
+                    Name = p.Name,
+                    Sku = p.Sku,
+                    Slug = p.Slug,
+                    Price = p.Price,
+                    SalePrice = p.SalePrice,
+                    Image = p.Image,
+                    MainImage = p.Image,
+                    Description = p.Description,
+                    StockQuantity = p.StockQuantity,
+                    Rating = p.Rating,
+                    ReviewCount = p.ReviewCount,
+                    IsActive = p.IsActive,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : string.Empty,
+                    CategorySlug = p.Category != null ? p.Category.Slug : string.Empty,
+                    BrandId = p.BrandId,
+                    BrandName = p.Brand != null ? p.Brand.Name : string.Empty,
+                    BrandSlug = p.Brand != null ? p.Brand.Slug : string.Empty,
+                    CreatedAt = p.CreatedAt,
+                    Tags = new List<string>(),
+                    WarrantyMonths = p.WarrantyMonths > 0 ? p.WarrantyMonths : 24,
+                    OriginBadge = p.OriginBadge,
+                    KeySpecs = Ecommerce.Application.Features.Products.Helpers.ProductSpecHelper.ExtractKeySpecs(
+                        p.Specifications, p.Name, p.Category?.Name)
+                }).ToList();
 
                 return (items, totalCount);
             }

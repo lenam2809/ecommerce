@@ -333,7 +333,7 @@ export default function ReturnDetailPage() {
                                     </div>
                                     <div className="flex-1 min-w-0 bg-surface/60 rounded-xl p-3 border border-line">
                                         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                                            <span className="font-extrabold text-xs text-ink">
+                                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-100">
                                                 {log.title}
                                             </span>
                                             <span className="text-[11px] text-ink-soft font-mono tabular-nums">
@@ -341,7 +341,7 @@ export default function ReturnDetailPage() {
                                             </span>
                                         </div>
                                         {log.note && (
-                                            <p className="text-xs text-ink leading-relaxed mt-0.5">
+                                            <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed mt-0.5">
                                                 {log.note}
                                             </p>
                                         )}

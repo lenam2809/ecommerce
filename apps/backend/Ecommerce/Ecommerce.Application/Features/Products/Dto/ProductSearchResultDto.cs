@@ -30,5 +30,8 @@ namespace Ecommerce.Application.Features.Products.Dto
 
         public DateTime CreatedAt { get; set; }
         public List<string> Tags { get; set; } = [];
+        public List<string> KeySpecs { get; set; } = [];
+        public int WarrantyMonths { get; set; } = 24;
+        public string? OriginBadge { get; set; }
     }
 }

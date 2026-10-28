@@ -31,7 +31,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.ActivateOrderWarranty
         {
             try
             {
-                var order = await _unitOfWork.Orders.GetQueryable()
+                var order = await _unitOfWork.Orders.GetQueryable(tracking: true)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.OrderItemSerials)
                     .FirstOrDefaultAsync(o => o.Id == request.OrderId, cancellationToken);

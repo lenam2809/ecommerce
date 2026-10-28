@@ -113,6 +113,7 @@ const data = {
       title: "Kho hàng (IMEI)",
       url: "/inventory",
       icon: IconBarcode,
+      permissions: [...PermissionGroups.InventoryManagement],
     },
     {
       title: "Hệ thống Showroom (O2O)",
@@ -132,6 +133,7 @@ const data = {
       title: "Đổi/Trả hàng",
       url: "/returns",
       icon: IconRotate,
+      permissions: [...PermissionGroups.ReturnManagement],
     },
   ],
   navSystem: [
@@ -207,11 +209,13 @@ const data = {
           title: "Gói bảo hành & Mua kèm",
           url: "/configs/product-addons",
           icon: IconShieldCheck,
+          permissions: [...PermissionGroups.ProductManagement],
         },
         {
           title: "Chiến dịch Flash Sale",
           url: "/configs/flash-sales",
           icon: IconFlame,
+          permissions: [...PermissionGroups.PromotionManagement],
         },
       ],
     },

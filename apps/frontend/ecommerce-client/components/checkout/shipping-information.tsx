@@ -22,16 +22,17 @@ import {
     Clock,
 } from "lucide-react"
 
-import { useShowrooms } from "@/hooks/use-showrooms"
+import { useShowrooms, useProductStock } from "@/hooks/use-showrooms"
 import { useAddresses } from "@/hooks/use-addresses"
 import type { CustomerAddress } from "@/types/address"
 
 interface ShippingInformationProps {
     form: UseFormReturn<CheckoutFormValues>
     isMemberMode?: boolean
+    primaryProductId?: string
 }
 
-export function ShippingInformation({ form, isMemberMode = true }: ShippingInformationProps) {
+export function ShippingInformation({ form, isMemberMode = true, primaryProductId }: ShippingInformationProps) {
     const {
         provinces,
         districts,
@@ -45,6 +46,7 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
 
     const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery")
     const { data: showrooms = [] } = useShowrooms()
+    const { data: productShowroomStock = [] } = useProductStock(primaryProductId)
     const { data: userAddresses = [] } = useAddresses()
     const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<string>("")
     const [showNewAddressForm, setShowNewAddressForm] = useState<boolean>(!isMemberMode || (userAddresses?.length || 0) === 0)
@@ -220,6 +222,10 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                         <div className="grid grid-cols-1 gap-2.5 max-h-80 overflow-y-auto pr-1">
                             {showrooms.map((sr) => {
                                 const active = selectedShowroomId === sr.id
+                                const stockEntry = productShowroomStock.find(
+                                    (st) => st.showroomId === sr.id || st.code === sr.code
+                                )
+                                const stockQty = stockEntry?.quantity ?? stockEntry?.stockQuantity
                                 return (
                                     <label
                                         key={sr.id}
@@ -251,9 +257,13 @@ export function ShippingInformation({ form, isMemberMode = true }: ShippingInfor
                                             <p className="text-sm font-bold text-slate-900 dark:text-white">{sr.name}</p>
                                             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{sr.address}</p>
                                             <div className="flex flex-wrap items-center gap-3 mt-1 text-xs">
-                                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1 font-mono tabular-nums">
                                                     <CheckCircle2 className="h-3.5 w-3.5" />
-                                                    Có sẵn hàng • Nhận sau 2H
+                                                    {typeof stockQty === "number"
+                                                        ? stockQty > 0
+                                                            ? `Sẵn hàng (${stockQty} máy) • Nhận sau 2H`
+                                                            : "Tạm hết hàng tại cơ sở (Điều chuyển 2H)"
+                                                        : "Có sẵn hàng • Nhận sau 2H"}
                                                 </span>
                                                 {sr.openingHours && (
                                                     <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">

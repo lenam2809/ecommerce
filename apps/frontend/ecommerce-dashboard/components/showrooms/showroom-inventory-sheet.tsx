@@ -46,6 +46,7 @@ import {
     Store,
     Phone,
     MapPin,
+    AlertTriangle,
 } from "lucide-react";
 
 interface ShowroomInventorySheetProps {
@@ -290,29 +291,40 @@ export function ShowroomInventorySheet({
                                                     </TableCell>
 
                                                     <TableCell className="text-center align-middle">
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            <Input
-                                                                type="number"
-                                                                min="0"
-                                                                value={currentQty}
-                                                                onChange={(e) =>
-                                                                    handleQuantityChange(
-                                                                        item.productId,
-                                                                        parseInt(e.target.value) || 0
-                                                                    )
-                                                                }
-                                                                className="w-16 h-8 text-center font-mono text-xs"
-                                                            />
-                                                            {isDirty && (
-                                                                <Button
-                                                                    size="icon"
-                                                                    variant="ghost"
-                                                                    className="size-8 text-tech-blue hover:bg-tech-blue/10"
-                                                                    onClick={() => handleSaveQuantity(item)}
-                                                                    disabled={updateInventoryMutation.isPending}
+                                                        <div className="flex flex-col items-center justify-center gap-1">
+                                                            <div className="flex items-center justify-center gap-1">
+                                                                <Input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={currentQty}
+                                                                    onChange={(e) =>
+                                                                        handleQuantityChange(
+                                                                            item.productId,
+                                                                            parseInt(e.target.value) || 0
+                                                                        )
+                                                                    }
+                                                                    className="w-16 h-8 text-center font-mono text-xs"
+                                                                />
+                                                                {isDirty && (
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="ghost"
+                                                                        className="size-8 text-tech-blue hover:bg-tech-blue/10"
+                                                                        onClick={() => handleSaveQuantity(item)}
+                                                                        disabled={updateInventoryMutation.isPending}
+                                                                    >
+                                                                        <Check className="size-4" />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                            {currentQty <= 3 && (
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    className="border-amber-500/50 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 text-[10px] px-1.5 py-0 font-semibold"
                                                                 >
-                                                                    <Check className="size-4" />
-                                                                </Button>
+                                                                    <AlertTriangle className="size-2.5 mr-1 text-amber-600" />
+                                                                    {currentQty === 0 ? "Hết hàng" : "Sắp hết hàng"}
+                                                                </Badge>
                                                             )}
                                                         </div>
                                                     </TableCell>

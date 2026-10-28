@@ -129,9 +129,22 @@ export function OrderDetails({
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() =>
-                                    toast.success("Đang chuẩn bị Hóa đơn điện tử GTGT (PDF) — Đơn #" + (order.code || order.id))
-                                }
+                                onClick={() => {
+                                    const fileUrl = order.invoice?.invoiceFileUrl
+                                    if (fileUrl) {
+                                        const resolvedUrl = formatImageUrl(fileUrl)
+                                        const link = document.createElement("a")
+                                        link.href = resolvedUrl
+                                        link.target = "_blank"
+                                        link.download = `VAT-Invoice-${order.code || order.id}.pdf`
+                                        document.body.appendChild(link)
+                                        link.click()
+                                        document.body.removeChild(link)
+                                        toast.success("Đang tải Hóa đơn điện tử GTGT (PDF) — Đơn #" + (order.code || order.id))
+                                    } else {
+                                        toast.success("Đang chuẩn bị Hóa đơn điện tử GTGT (PDF) — Đơn #" + (order.code || order.id))
+                                    }
+                                }}
                                 className="rounded-xl border-tech-blue/30 text-tech-blue hover:bg-tech-blue/5 text-xs font-bold h-9 px-4 cursor-pointer"
                             >
                                 <Download className="h-3.5 w-3.5 mr-1.5" />
@@ -214,7 +227,7 @@ export function OrderDetails({
                                         Phương thức: {order.deliveryMethod || "Giao hàng tiêu chuẩn"}
                                     </span>
                                     <span className="text-xs font-mono tabular-nums text-tech-blue bg-tech-blue/10 border border-tech-blue/20 px-2 py-0.5 rounded-md font-semibold">
-                                        Shipper phụ trách: {order.driverName || "Nguyễn Văn Hưng"} ({order.driverPhone ? order.driverPhone.replace(/(\d{4})\d{3}(\d{3})/, "$1***$2") : "0912***789"})
+                                        Shipper phụ trách: {order.driverName || "Nguyễn Văn Hưng"} ({order.driverPhone ? order.driverPhone.replace(/(\d{4})\d{3,4}(\d{3})/, "$1***$2") : "0912***789"})
                                     </span>
                                 </div>
                                 <p className="text-xs text-ink-soft mt-0.5">
@@ -275,7 +288,7 @@ export function OrderDetails({
                                                         {item.size && <span>• Cấu hình: {item.size}</span>}
                                                         {item.addOnName && (
                                                             <span className="text-tech-blue font-semibold">
-                                                                • Kèm: {item.addOnName} (+{formatPrice(item.addOnPrice || 0)})
+                                                                • Kèm: {item.addOnName} (<span className="price-tag font-mono tabular-nums whitespace-nowrap">+{formatPrice(item.addOnPrice || 0)}</span>)
                                                             </span>
                                                         )}
                                                         <span className="font-bold text-ink font-mono tabular-nums">

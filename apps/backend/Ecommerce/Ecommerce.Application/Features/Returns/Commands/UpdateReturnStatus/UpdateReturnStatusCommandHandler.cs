@@ -1,4 +1,5 @@
 using Ecommerce.Application.Common.Models;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Enums;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Interfaces.Logging;
@@ -27,6 +28,11 @@ namespace Ecommerce.Application.Features.Returns.Commands.UpdateReturnStatus
             if (returnRequest is null)
             {
                 return Result<bool>.NotFound("Yêu cầu đổi/trả không tồn tại.");
+            }
+
+            if (returnRequest.Status == request.NewStatus)
+            {
+                return Result<bool>.Success(true);
             }
 
             try
@@ -59,6 +65,12 @@ namespace Ecommerce.Application.Features.Returns.Commands.UpdateReturnStatus
             catch (Exception ex)
             {
                 return Result<bool>.BadRequest(ex.Message);
+            }
+
+            var latestHistory = returnRequest.StatusHistory.OrderByDescending(h => h.ChangedAt).FirstOrDefault();
+            if (latestHistory != null && latestHistory.Id == Guid.Empty)
+            {
+                await _unitOfWork.BaseRepository<ReturnStatusHistory>().AddAsync(latestHistory, cancellationToken);
             }
 
             await _unitOfWork.CompleteAsync(cancellationToken);

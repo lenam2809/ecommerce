@@ -1,4 +1,51 @@
 import { NextResponse } from 'next/server'
+import { isRoleAllowedForDashboard, type AuthProfile } from '../../../../middleware'
+
+/** Quyền được phép dùng AI Spec Generator (Admin được bypass). */
+const AI_SPEC_ALLOWED_PERMISSIONS = ['CreateProduct', 'EditProduct']
+
+/**
+ * Xác thực phiên đăng nhập quản trị (cookie httpOnly) bằng cách hỏi Backend.
+ * Trả về `null` nếu hợp lệ, ngược lại trả về NextResponse 401/403 để chặn truy cập ẩn danh
+ * làm cạn kiệt quota Gemini.
+ */
+async function authorizeAdminRequest(request: Request): Promise<NextResponse | null> {
+  const headers = new Headers()
+  const cookie = request.headers.get('cookie')
+  if (cookie) headers.set('cookie', cookie)
+  const authorization = request.headers.get('authorization')
+  if (authorization) headers.set('authorization', authorization)
+
+  let profile: AuthProfile | null = null
+  try {
+    const res = await fetch(new URL('/api/auth/me/profile', request.url), {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+      redirect: 'manual',
+    })
+    if (res.status === 401 || res.status === 403 || !res.ok) {
+      return NextResponse.json({ success: false, error: 'Chưa đăng nhập' }, { status: 401 })
+    }
+    profile = (await res.json()) as AuthProfile
+  } catch {
+    return NextResponse.json({ success: false, error: 'Không thể xác thực phiên đăng nhập' }, { status: 401 })
+  }
+
+  if (!isRoleAllowedForDashboard(profile)) {
+    return NextResponse.json({ success: false, error: 'Không có quyền truy cập' }, { status: 403 })
+  }
+
+  const roles = profile?.roles ?? []
+  const permissions = profile?.permissions ?? []
+  const allowed =
+    roles.includes('Admin') || AI_SPEC_ALLOWED_PERMISSIONS.some((p) => permissions.includes(p))
+  if (!allowed) {
+    return NextResponse.json({ success: false, error: 'Không đủ quyền tạo/sửa sản phẩm' }, { status: 403 })
+  }
+
+  return null
+}
 
 export interface SpecItem {
   groupName: string
@@ -175,6 +222,9 @@ function generateHeuristicSpecs(productName: string): GenerateSpecsResult {
 }
 
 export async function POST(request: Request) {
+  const authError = await authorizeAdminRequest(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { productName } = body
@@ -208,7 +258,7 @@ YÊU CẦU QUAN TRỌNG:
 - Dữ liệu giá trị (value) phải chân thực, chính xác theo cấu hình thực tế của máy.`
 
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

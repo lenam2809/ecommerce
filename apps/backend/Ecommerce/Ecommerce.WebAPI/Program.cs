@@ -239,17 +239,26 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var startupLogger = services.GetRequiredService<ILogger<Program>>();
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    // Always apply migrations
+    // Always apply pending EF Core migrations automatically on startup
+    var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
+    if (pendingMigrations.Count > 0)
+    {
+        startupLogger.LogInformation("Applying {Count} pending EF Core migration(s): {Migrations}", pendingMigrations.Count, string.Join(", ", pendingMigrations));
+    }
     await context.Database.MigrateAsync();
+    startupLogger.LogInformation("EF Core database migrations verified and up to date.");
+
     var configuration = services.GetRequiredService<IConfiguration>();
     var isDevelopment = app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "IntegrationTesting";
     var seedEnabled = configuration.GetValue<bool?>("Seed:Enabled") ?? isDevelopment;
+    var seedSampleData = configuration.GetValue<bool?>("Seed:IncludeSampleData") ?? isDevelopment;
 
     if (seedEnabled)
     {
-        await ApplicationDbContextSeed.SeedAsync(services, isDevelopment, configuration);
+        await ApplicationDbContextSeed.SeedAsync(services, seedSampleData, configuration);
     }
 }
 
