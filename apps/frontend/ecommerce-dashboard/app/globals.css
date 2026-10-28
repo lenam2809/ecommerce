@@ -55,6 +55,11 @@
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+
+  --color-brand: #E11D48;
+  --color-tech-blue: #2563EB;
+  --color-surface: #F1F5F9;
+  --color-line: #E2E8F0;
 }
 
 :root {
@@ -152,4 +157,10 @@ body {
   right: 0;
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
   /* Tùy chọn: thêm bóng để phân biệt */
+}
+
+.price-tag {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

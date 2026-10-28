@@ -10,6 +10,7 @@ using Ecommerce.Domain.Interfaces.Logging;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 {
@@ -22,7 +23,6 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         private readonly ICacheInvalidationService _cacheInvalidationService;
         private readonly IMediator _mediator;
         private readonly IFileStorageService _fileStorageService;
-
 
         public CreateProductCommandHandler(IUnitOfWork unitOfWork,
             IEnhancedLogger logger,
@@ -79,13 +79,32 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
                 }
             }
 
-            // Xử lý thông số kỹ thuật
+            // Xử lý thông số kỹ thuật (truyền đủ 7 tham số theo SSoT 2026)
             if (request.Specifications != null)
             {
                 foreach (var spec in request.Specifications)
                 {
-                    product.AddSpecification(spec.Name, spec.Value, spec.GroupName, spec.IsKeySpec, spec.DisplayOrder);
+                    product.AddSpecification(
+                        spec.Name,
+                        spec.Value,
+                        spec.GroupName,
+                        spec.IsKeySpec,
+                        spec.DisplayOrder,
+                        spec.FilterKey,
+                        spec.IsHighlight
+                    );
                 }
+            }
+
+            // Bổ sung thông tin bảo hành và xuất xứ SSoT 2026
+            if (request.WarrantyMonths > 0)
+            {
+                product.WarrantyMonths = request.WarrantyMonths;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.OriginBadge))
+            {
+                product.OriginBadge = request.OriginBadge;
             }
 
             // Xử lý variants (colors, sizes)
@@ -100,6 +119,20 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 
             // Lưu sản phẩm vào database
             var result = await _unitOfWork.Products.AddAsync(product, cancellationToken);
+
+            // Gắn gói dịch vụ mua kèm (ProductAddOns) nếu có
+            if (request.AddOnIds != null && request.AddOnIds.Count > 0)
+            {
+                var addOnRepo = _unitOfWork.BaseRepository<ProductAddOn>();
+                var addOns = await addOnRepo.GetQueryable(tracking: true)
+                    .Where(a => request.AddOnIds.Contains(a.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var addOn in addOns)
+                {
+                    addOn.ProductId = product.Id;
+                }
+            }
 
             await _unitOfWork.CompleteAsync(cancellationToken);
             await _logger.LogAsync(
@@ -121,4 +154,3 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
         }
     }
 }
-

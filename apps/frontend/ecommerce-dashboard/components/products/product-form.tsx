@@ -1,7 +1,6 @@
 "use client"
 
 import { logger } from '@/lib/logger'
-// src/components/products/product-form.tsx
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,6 +12,7 @@ import { BasicInfoSection } from "./form-sections/basic-info"
 import { PricingSection } from "./form-sections/pricing"
 import { ImagesUploadSection } from "./form-sections/images-upload"
 import { SpecificationsSection } from "./form-sections/specifications"
+import { ProductAddOnsSection } from "./form-sections/product-addons"
 import { VariantsSection } from "./form-sections/variants"
 import { useCreateProduct } from "@/hooks/use-products"
 import { Loader2 } from "lucide-react"
@@ -24,7 +24,7 @@ export function ProductForm() {
   const { mutate: createProduct, isPending } = useCreateProduct()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const form = useForm<CreateProductDto>({
+  const form = useForm<any>({
     resolver: zodResolver(formCreateSchema),
     defaultValues: {
       code: "",
@@ -43,16 +43,19 @@ export function ProductForm() {
       mainImage: undefined as unknown as File,
       additionalImages: [],
       specifications: [],
+      warrantyMonths: 24,
+      originBadge: "",
+      addOnIds: [],
       colors: [],
       sizes: [],
     },
   })
 
-  const onSubmit = async (values: z.infer<typeof formCreateSchema>) => {
+  const onSubmit = async (values: any) => {
     setIsSubmitting(true)
 
     try {
-      createProduct(values)
+      createProduct(values as CreateProductDto)
       // Điều hướng được xử lý trong onSuccess của hook
     } catch (error) {
       logger.error("Error submitting form:", error)
@@ -69,6 +72,7 @@ export function ProductForm() {
         <PricingSection form={form} />
         <ImagesUploadSection form={form} />
         <SpecificationsSection form={form} />
+        <ProductAddOnsSection form={form} />
         <VariantsSection form={form} />
 
         <div className="mt-8 flex justify-end gap-4">
@@ -76,7 +80,7 @@ export function ProductForm() {
             Huỷ
           </Button>
 
-          <Button type="submit" disabled={isBusy}>
+          <Button type="submit" disabled={isBusy} className="bg-brand text-white hover:bg-brand/90 font-medium">
             {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Thêm sản phẩm
           </Button>

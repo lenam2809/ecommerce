@@ -40,6 +40,7 @@ const PROTECTED_PATH_PREFIXES = [
     '/returns',
     '/roles',
     '/settings',
+    '/showrooms',
     '/user-activities',
     '/users',
 ];
@@ -164,6 +165,7 @@ export const config = {
         '/returns/:path*',
         '/roles/:path*',
         '/settings/:path*',
+        '/showrooms/:path*',
         '/user-activities/:path*',
         '/users/:path*',
         '/login',

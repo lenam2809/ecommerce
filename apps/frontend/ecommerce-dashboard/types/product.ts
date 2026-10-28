@@ -1,6 +1,14 @@
+import { ProductAddOn } from './product-addon'
+
 export interface ProductSpecification {
+    id?: string;
     name: string;
     value: string;
+    groupName?: string;
+    isKeySpec?: boolean;
+    displayOrder?: number;
+    filterKey?: string | null;
+    isHighlight?: boolean;
 }
 
 export interface Product {
@@ -24,4 +32,10 @@ export interface Product {
     specifications?: ProductSpecification[];
     colors?: string[];
     sizes?: string[];
+    warrantyMonths?: number;
+    warrantyPolicy?: string;
+    originBadge?: string;
+    addOnIds?: string[];
+    addOns?: ProductAddOn[];
+    availableAddOns?: ProductAddOn[];
 }

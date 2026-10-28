@@ -14,10 +14,12 @@ namespace Ecommerce.Application.Features.Products.Dto
         public string GroupName { get; set; } = "Chung";
         public bool IsKeySpec { get; set; } = false;
         public int DisplayOrder { get; set; } = 0;
+        public bool IsHighlight { get; set; } = false;
+        public string? FilterKey { get; set; }
 
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<ProductSpecificationDto, ProductSpecification>();
+            profile.CreateMap<ProductSpecification, ProductSpecificationDto>().ReverseMap();
         }
     }
 }

@@ -66,6 +66,10 @@ export interface Order {
     discountCode?: string;
     deliveryInstructions?: string;
     expectedDeliveryDate?: string;
+    carrierName?: string;
+    trackingNumber?: string;
+    driverName?: string;
+    driverPhone?: string;
     requireInvoice?: boolean;
     invoice?: OrderInvoice;
     orderItems: OrderItem[];

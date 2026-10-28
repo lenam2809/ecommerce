@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { orderService } from '@/services/order-service';
 import { toast } from '@/hooks/use-toast';
-import { EOrderStatus, GetOrderHistoryOverviewParams, GetOrderHistoryParams } from '@/types/order';
+import { EOrderStatus, GetOrderHistoryOverviewParams, GetOrderHistoryParams, EDepositStatus } from '@/types/order';
 import { handleApiError } from '@/lib/api-error';
 
 // Key factory for efficient cache management
@@ -161,5 +161,159 @@ export const useGetOrderHistoryOverview = (params?: GetOrderHistoryOverviewParam
     queryKey: orderKeys.overview(params || {}),
     queryFn: () => orderService.getOrderHistoryOverview(params),
     staleTime: 1000 * 60 * 15, // 15 minutes - admin overview doesn't change frequently
+  });
+};
+
+export const useAssignItemSerial = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      orderItemId,
+      serialNumber,
+      imei,
+      warrantyMonths,
+    }: {
+      orderId: string;
+      orderItemId: string;
+      serialNumber: string;
+      imei?: string;
+      warrantyMonths?: number;
+    }) => orderService.assignItemSerial(orderId, orderItemId, { serialNumber, imei, warrantyMonths }),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Gán Serial/IMEI",
+        description: `Đã gán mã Serial ${variables.serialNumber} thành công!`,
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+    },
+    onError: (error: unknown) => {
+      handleApiError({
+        error,
+        context: { operation: 'assignItemSerial' },
+        devTitle: "Lỗi gán Serial/IMEI",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+      });
+    },
+  });
+};
+
+export const useRemoveSerial = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, serialId }: { orderId: string; serialId: string }) =>
+      orderService.removeSerial(orderId, serialId),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Gỡ Serial/IMEI",
+        description: "Đã gỡ mã Serial/IMEI thành công!",
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+    },
+    onError: (error: unknown) => {
+      handleApiError({
+        error,
+        context: { operation: 'removeSerial' },
+        devTitle: "Lỗi gỡ Serial/IMEI",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+      });
+    },
+  });
+};
+
+export const useActivateWarranty = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, orderItemId }: { orderId: string; orderItemId?: string }) =>
+      orderService.activateWarranty(orderId, orderItemId),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Kích hoạt e-Warranty",
+        description: "Đã kích hoạt bảo hành điện tử 24T thành công!",
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+    },
+    onError: (error: unknown) => {
+      handleApiError({
+        error,
+        context: { operation: 'activateWarranty' },
+        devTitle: "Lỗi kích hoạt bảo hành",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+      });
+    },
+  });
+};
+
+export const useUploadInvoicePdf = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, formData }: { orderId: string; formData: FormData }) =>
+      orderService.uploadInvoicePdf(orderId, formData),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Hóa đơn VAT",
+        description: "Upload file hóa đơn VAT thành công!",
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+    },
+    onError: (error: unknown) => {
+      handleApiError({
+        error,
+        context: { operation: 'uploadInvoicePdf' },
+        devTitle: "Lỗi upload hóa đơn VAT",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+      });
+    },
+  });
+};
+
+export const useUpdateDepositStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      depositStatus,
+      depositAmount,
+      carrierName,
+      trackingNumber,
+      driverName,
+      driverPhone,
+    }: {
+      orderId: string;
+      depositStatus: EDepositStatus;
+      depositAmount?: number;
+      carrierName?: string;
+      trackingNumber?: string;
+      driverName?: string;
+      driverPhone?: string;
+    }) =>
+      orderService.updateDepositStatus(orderId, {
+        depositStatus,
+        depositAmount,
+        carrierName,
+        trackingNumber,
+        driverName,
+        driverPhone,
+      }),
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Đặt cọc & Vận đơn",
+        description: "Cập nhật trạng thái đặt cọc và vận đơn thành công!",
+      });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+    },
+    onError: (error: unknown) => {
+      handleApiError({
+        error,
+        context: { operation: 'updateDepositStatus' },
+        devTitle: "Lỗi cập nhật cọc/vận đơn",
+        notify: (ui) => toast({ title: ui.title, description: ui.description, variant: ui.variant }),
+      });
+    },
   });
 };

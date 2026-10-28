@@ -12,6 +12,7 @@ using Ecommerce.Domain.Interfaces.Logging;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
 {
@@ -63,7 +64,6 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 if (request.MainImage != null)
                 {
                     mainImageUrl = await _fileStorageService.SaveFileAsync(request.MainImage, "products", $"{SlugHelper.GenerateSlug(request.Name)}-main");
-                    // Lưu ý: Có thể cân nhắc xóa ảnh cũ trên storage ở đây nếu cần
                 }
 
                 // Cập nhật thông tin cơ bản
@@ -81,14 +81,10 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 existingProduct.UpdateStock(request.StockQuantity);
 
                 // Replace semantics for additional images:
-                // - Frontend hiện gửi lại "toàn bộ danh sách ảnh phụ" cần có (URL cũ còn giữ + ảnh mới).
-                // - Backend trước đây chỉ AddImage mà không Clear nên ảnh cũ đã bị xoá trên UI vẫn còn trong DB.
                 bool hasAdditionalImagesPayload =
                     (request.AdditionalImages != null && request.AdditionalImages.Count > 0) ||
                     (request.AdditionalImageUrls != null && request.AdditionalImageUrls.Count > 0);
 
-                // Nếu request không có ảnh bổ sung nào (cả file lẫn URL) và cũng không có danh sách ID cần xoá,
-                // coi như người dùng muốn xoá hết ảnh phụ => clear toàn bộ.
                 bool wantsClearAllAdditionalImages =
                     !hasAdditionalImagesPayload &&
                     (request.AdditionalImages == null || request.AdditionalImages.Count == 0) &&
@@ -101,7 +97,6 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 }
                 else
                 {
-                    // Chỉ xử lý xoá theo ID khi không phải replace/toàn bộ.
                     if (request.ImageIdsToDelete != null && request.ImageIdsToDelete.Count != 0)
                     {
                         foreach (var imageId in request.ImageIdsToDelete)
@@ -130,7 +125,7 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     }
                 }
 
-                // Xử lý xóa thông số kỹ thuật (Giữ nguyên logic truy cập collection vì chưa có method chuyên biệt RemoveSpecificationById)
+                // Xử lý xóa thông số kỹ thuật
                 if (request.SpecificationIdsToDelete != null && request.SpecificationIdsToDelete.Count != 0)
                 {
                     foreach (var specId in request.SpecificationIdsToDelete)
@@ -143,12 +138,12 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                     }
                 }
 
-                // Xử lý cập nhật và thêm mới thông số kỹ thuật
+                // Xử lý cập nhật và thêm mới thông số kỹ thuật (truyền đủ 7 tham số theo SSoT 2026)
                 if (request.Specifications != null)
                 {
                     foreach (var spec in request.Specifications)
                     {
-                        if (spec.Id.HasValue)
+                        if (spec.Id.HasValue && spec.Id.Value != Guid.Empty)
                         {
                             // Cập nhật thông số hiện có
                             var existingSpec = existingProduct.Specifications.FirstOrDefault(s => s.Id == spec.Id.Value);
@@ -159,12 +154,69 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                                 existingSpec.GroupName = spec.GroupName;
                                 existingSpec.IsKeySpec = spec.IsKeySpec;
                                 existingSpec.DisplayOrder = spec.DisplayOrder;
+                                existingSpec.FilterKey = spec.FilterKey;
+                                existingSpec.IsHighlight = spec.IsHighlight || spec.IsKeySpec;
+                            }
+                            else
+                            {
+                                existingProduct.AddSpecification(
+                                    spec.Name,
+                                    spec.Value,
+                                    spec.GroupName,
+                                    spec.IsKeySpec,
+                                    spec.DisplayOrder,
+                                    spec.FilterKey,
+                                    spec.IsHighlight
+                                );
                             }
                         }
                         else
                         {
                             // Thêm thông số mới
-                            existingProduct.AddSpecification(spec.Name, spec.Value, spec.GroupName, spec.IsKeySpec, spec.DisplayOrder);
+                            existingProduct.AddSpecification(
+                                spec.Name,
+                                spec.Value,
+                                spec.GroupName,
+                                spec.IsKeySpec,
+                                spec.DisplayOrder,
+                                spec.FilterKey,
+                                spec.IsHighlight
+                            );
+                        }
+                    }
+                }
+
+                // Cập nhật bảo hành & xuất xứ SSoT 2026
+                if (request.WarrantyMonths.HasValue && request.WarrantyMonths.Value > 0)
+                {
+                    existingProduct.WarrantyMonths = request.WarrantyMonths.Value;
+                }
+
+                if (request.OriginBadge != null)
+                {
+                    existingProduct.OriginBadge = request.OriginBadge;
+                }
+
+                // Gắn / gỡ các gói dịch vụ mua kèm (ProductAddOns)
+                if (request.AddOnIds != null && request.AddOnIds.Count > 0)
+                {
+                    var addOnRepo = _unitOfWork.BaseRepository<ProductAddOn>();
+                    if (addOnRepo != null)
+                    {
+                        var currentAddOns = await addOnRepo.GetQueryable(tracking: true)
+                            .Where(a => a.ProductId == existingProduct.Id || request.AddOnIds.Contains(a.Id))
+                            .ToListAsync(cancellationToken);
+
+                        foreach (var addOn in currentAddOns)
+                        {
+                            if (request.AddOnIds.Contains(addOn.Id))
+                            {
+                                addOn.ProductId = existingProduct.Id;
+                            }
+                            else if (addOn.ProductId == existingProduct.Id)
+                            {
+                                addOn.ProductId = null;
+                            }
                         }
                     }
                 }
@@ -173,35 +225,18 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 if ((request.Colors != null && request.Colors.Count != 0) ||
                     (request.Sizes != null && request.Sizes.Count != 0))
                 {
-                    // Cần clear cũ trước khi set mới theo logic của handler cũ? 
-                    // Handler cũ clear rồi add lại. Method SetVariants trong Entity làm việc replace list.
-                    // Tuy nhiên Entity SetVariants chưa xử lý việc xóa dữ liệu cũ trong DB (EF Core tracking).
-                    // Vì vậy ta cần cẩn thận.
-                    // Nếu dùng SetVariants đơn giản:
-                    
-                    // Logic cũ: Xóa Colors/Sizes cũ bằng _unitOfWork.Products.ClearColorAsync...
-                    // Để an toàn và nhất quán với Rich Domain, Entity nên quản lý việc này.
-                    // Nhưng EF Core cần biết là items bị xóa.
-                    // Tạm thời ta gọi SetVariants và hy vọng EF Core nhận diện thay đổi (nếu Variants là Owned Entity hoặc được cấu hình đúng).
-                    // Tuy nhiên, Variants là một Entity riêng (ProductVariants), chứa Collections.
-                    
-                    // Để đơn giản hóa cho Giai đoạn này, ta sẽ dùng SetVariants nhưng trước đó cần clear thủ công nếu Entity không tự handle việc xóa con.
-                    // Với EF Core, thay thế List mới vào Navigation Property thường sẽ track đc insert mới, nhưng delete cũ có thể cần cấu hình orphan removal.
-                    
-                    // Ta sẽ tái sử dụng logic xóa cũ thủ công để đảm bảo:
                     if (existingProduct.Variants != null)
                     {
-                         if (request.Colors != null) 
-                         {
-                             await _unitOfWork.Products.ClearColorAsync(existingProduct.Id, cancellationToken);
-                         }
-                         if (request.Sizes != null)
-                         {
-                             await _unitOfWork.Products.ClearSizeAsync(existingProduct.Id, cancellationToken);
-                         }
+                        if (request.Colors != null) 
+                        {
+                            await _unitOfWork.Products.ClearColorAsync(existingProduct.Id, cancellationToken);
+                        }
+                        if (request.Sizes != null)
+                        {
+                            await _unitOfWork.Products.ClearSizeAsync(existingProduct.Id, cancellationToken);
+                        }
                     }
 
-                    // Sau đó dùng SetVariants (Entity sẽ new lại list, kết hợp với EF add mới)
                     existingProduct.SetVariants(
                         request.Colors ?? existingProduct.Variants?.Colors?.Select(c => c.Color).ToList() ?? new List<string>(),
                         request.Sizes ?? existingProduct.Variants?.Sizes?.Select(s => s.Size).ToList() ?? new List<string>()
@@ -241,4 +276,3 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
         }
     }
 }
-

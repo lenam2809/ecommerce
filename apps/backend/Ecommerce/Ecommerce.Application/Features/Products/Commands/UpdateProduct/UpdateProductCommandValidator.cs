@@ -1,4 +1,4 @@
-﻿using Ecommerce.Domain.Interfaces;
+using Ecommerce.Domain.Interfaces;
 using FluentValidation;
 
 namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
@@ -59,7 +59,10 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
             RuleForEach(p => p.AdditionalImages)
                 .Must(file => file == null || file.Length <= 10 * 1024 * 1024)
                 .WithMessage("Kích thước mỗi hình ảnh không được vượt quá 10MB");
+
+            RuleFor(p => p.Specifications)
+                .Must(specs => specs == null || specs.Count(s => s.IsKeySpec) <= 2)
+                .WithMessage("Sản phẩm chỉ được có tối đa 2 thông số nổi bật (Key Specs)");
         }
     }
 }
-

@@ -5,8 +5,6 @@ import { Product } from '@/types/product';
 import { CreateProductDto } from '@/schemas/product/createProductSchema';
 import { UpdateProductDto } from '@/schemas/product/updateProductSchema';
 
-
-
 // Hàm helper để xử lý tải file lên
 const createFormDataFromProduct = (productData: CreateProductDto | UpdateProductDto) => {
     const formData = new FormData();
@@ -67,7 +65,7 @@ const createFormDataFromProduct = (productData: CreateProductDto | UpdateProduct
         });
     }
 
-    // Xử lý thông số kỹ thuật
+    // Xử lý thông số kỹ thuật (SSoT 2026: đủ 7 trường)
     if (productData.specifications && productData.specifications.length > 0) {
         productData.specifications.forEach((spec, index) => {
             if (spec.id) {
@@ -75,6 +73,36 @@ const createFormDataFromProduct = (productData: CreateProductDto | UpdateProduct
             }
             formData.append(`specifications[${index}].name`, spec.name);
             formData.append(`specifications[${index}].value`, spec.value);
+            if (spec.groupName) {
+                formData.append(`specifications[${index}].groupName`, spec.groupName);
+            }
+            if (spec.isKeySpec !== undefined) {
+                formData.append(`specifications[${index}].isKeySpec`, String(spec.isKeySpec));
+            }
+            if (spec.displayOrder !== undefined) {
+                formData.append(`specifications[${index}].displayOrder`, String(spec.displayOrder));
+            }
+            if (spec.filterKey) {
+                formData.append(`specifications[${index}].filterKey`, spec.filterKey);
+            }
+            if (spec.isHighlight !== undefined) {
+                formData.append(`specifications[${index}].isHighlight`, String(spec.isHighlight));
+            }
+        });
+    }
+
+    // Xử lý bảo hành & xuất xứ SSoT 2026
+    if (productData.warrantyMonths !== undefined && productData.warrantyMonths !== null) {
+        formData.append('warrantyMonths', productData.warrantyMonths.toString());
+    }
+    if (productData.originBadge) {
+        formData.append('originBadge', productData.originBadge);
+    }
+
+    // Xử lý gói dịch vụ mua kèm (ProductAddOns)
+    if (productData.addOnIds && productData.addOnIds.length > 0) {
+        productData.addOnIds.forEach((id, index) => {
+            formData.append(`addOnIds[${index}]`, id);
         });
     }
 
@@ -117,7 +145,6 @@ export class ProductService extends BaseService {
     async getProductsByBrandId(id: string): Promise<Result<Product[]>> {
         return this.get<Product[]>(`/products/products-by-brand/${id}`);
     }
-
 
     // Phương thức tạo sản phẩm sử dụng FormData
     async createProduct(productData: CreateProductDto): Promise<Result<Product>> {

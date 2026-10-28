@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
 import { BaseService } from './base-service';
 import { Result } from '@/types';
-import { EOrderStatus, GetOrderHistoryOverviewParams, GetOrderHistoryParams, Order, OrderHistory, OrderHistoryOverview } from '@/types/order';
+import { EOrderStatus, GetOrderHistoryOverviewParams, GetOrderHistoryParams, Order, OrderHistory, OrderHistoryOverview, OrderItemSerial, OrderInvoice, EDepositStatus } from '@/types/order';
 
 export class OrderService extends BaseService {
     constructor() {
@@ -57,6 +57,56 @@ export class OrderService extends BaseService {
                 toDate: params.toDate
             } : undefined
         });
+        return response.data;
+    }
+
+    // Gán Serial/IMEI cho OrderItem
+    async assignItemSerial(
+        orderId: string,
+        orderItemId: string,
+        payload: { serialNumber: string; imei?: string; warrantyMonths?: number }
+    ): Promise<Result<OrderItemSerial>> {
+        const response = await api.post(`/orders/${orderId}/items/${orderItemId}/serials`, payload);
+        return response.data;
+    }
+
+    // Xóa/gỡ Serial khỏi OrderItem
+    async removeSerial(orderId: string, serialId: string): Promise<Result<void>> {
+        const response = await api.delete(`/orders/${orderId}/serials/${serialId}`);
+        return response.data;
+    }
+
+    // Kích hoạt e-Warranty độc lập 24T
+    async activateWarranty(orderId: string, orderItemId?: string): Promise<Result<OrderItemSerial[]>> {
+        const response = await api.post(`/orders/${orderId}/activate-warranty`, null, {
+            params: orderItemId ? { orderItemId } : undefined
+        });
+        return response.data;
+    }
+
+    // Upload PDF hóa đơn VAT từ kế toán
+    async uploadInvoicePdf(orderId: string, formData: FormData): Promise<Result<OrderInvoice>> {
+        const response = await api.post(`/orders/${orderId}/invoice-upload`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    }
+
+    // Cập nhật trạng thái cọc COD 10% và thông tin vận đơn
+    async updateDepositStatus(
+        orderId: string,
+        payload: {
+            depositStatus: EDepositStatus;
+            depositAmount?: number;
+            carrierName?: string;
+            trackingNumber?: string;
+            driverName?: string;
+            driverPhone?: string;
+        }
+    ): Promise<Result<Order>> {
+        const response = await api.put(`/orders/${orderId}/deposit-status`, payload);
         return response.data;
     }
 }

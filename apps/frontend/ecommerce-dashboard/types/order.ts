@@ -1,5 +1,40 @@
+export interface OrderItemSerial {
+    id: string;
+    orderItemId: string;
+    inventoryItemId?: string | null;
+    serialNumber: string;
+    imei?: string | null;
+    warrantyMonths: number;
+    activatedAt?: string | null;
+    warrantyExpiresAt?: string | null;
+    warrantyStatus: string;
+}
+
+export interface OrderInvoice {
+    requireInvoice: boolean;
+    taxCode?: string | null;
+    companyName?: string | null;
+    companyAddress?: string | null;
+    invoiceEmail?: string | null;
+    invoiceFileUrl?: string | null;
+}
+
+export enum EDepositStatus {
+    None = 0,
+    Pending = 1,
+    Paid = 2,
+    Refunded = 3
+}
+
+export enum EDeliveryType {
+    HomeDelivery = 0,
+    ShowroomPickup = 1,
+    Express2H = 2
+}
+
 // Define the Order interface based on the OrderDto.cs
 export interface OrderItem {
+    id: string;
     orderId: string;
     productId: string;
     quantity: number;
@@ -9,27 +44,59 @@ export interface OrderItem {
     image: string;
     color: string;
     size: string;
-    dateAdded: string;
+    dateAdded?: string;
+    addOnId?: string | null;
+    addOnName?: string | null;
+    addOnPrice?: number;
+    warrantyMonths?: number;
+    productVariantSkuId?: string | null;
+    skuCode?: string | null;
+    variantInfo?: string | null;
+    assignedSerials?: OrderItemSerial[];
 }
 
 export interface Order {
     id: string;
     code: string;
-    applicationUserId: string;
+    applicationUserId?: string;
+    customerName: string;
+    isGuestOrder?: boolean;
+    guestName?: string | null;
+    guestEmail?: string | null;
+    guestId?: string | null;
     totalAmount: number;
     orderDate: string;
     shippingAddress: string;
     phone: string;
     email: string;
     status: EOrderStatus;
-    statusName: string;
-    discountCode: string;
-    deliveryInstructions: string;
-    expectedDeliveryDate: string;
-    createdAt: string;
-    updatedAt: string;
-    customerName: string;
+    statusName?: string;
+    discountCode?: string;
+    deliveryInstructions?: string;
+    expectedDeliveryDate?: string;
+    rowVersion?: string;
+    showroomId?: string | null;
+    pickupShowroomId?: string | null;
+    showroomName?: string | null;
+    deliveryMethod?: string;
+    deliveryType?: EDeliveryType;
+    depositRequired?: number;
+    depositStatus?: EDepositStatus;
+    depositAmount?: number;
+    subtotal?: number;
+    shippingCost?: number;
+    discountAmount?: number;
+    remainingAmount?: number;
+    paymentMethod?: string;
+    paymentStatus?: string;
+    carrierName?: string | null;
+    trackingNumber?: string | null;
+    driverName?: string | null;
+    driverPhone?: string | null;
+    invoice?: OrderInvoice | null;
     orderItems: OrderItem[];
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 

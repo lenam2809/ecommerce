@@ -15,6 +15,7 @@ namespace Ecommerce.Application.Features.Products.Dto
         public bool IsKeySpec { get; set; }
         public int DisplayOrder { get; set; }
         public bool IsHighlight { get; set; }
+        public string? FilterKey { get; set; }
 
         public void Mapping(Profile profile)
         {

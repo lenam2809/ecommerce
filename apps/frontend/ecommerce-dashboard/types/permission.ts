@@ -54,6 +54,24 @@ export const EPermissions = {
     CreateOrder: "CreateOrder",
     EditOrder: "EditOrder",
     DeleteOrder: "DeleteOrder",
+
+    // Showroom permissions
+    ViewShowrooms: "ViewShowrooms",
+    ManageShowrooms: "ManageShowrooms",
+
+    // Inventory permissions
+    ViewInventory: "ViewInventory",
+    ManageInventory: "ManageInventory",
+
+    // Return permissions
+    ViewReturns: "ViewReturns",
+    ManageReturns: "ManageReturns",
+
+    // Promotion permissions
+    ViewPromotions: "ViewPromotions",
+    CreatePromotion: "CreatePromotion",
+    EditPromotion: "EditPromotion",
+    DeletePromotion: "DeletePromotion",
 } as const;
 
 /**
@@ -109,6 +127,28 @@ const OrderManagement = [
     EPermissions.DeleteOrder,
 ] as const;
 
+const ShowroomManagement = [
+    EPermissions.ViewShowrooms,
+    EPermissions.ManageShowrooms,
+] as const;
+
+const InventoryManagement = [
+    EPermissions.ViewInventory,
+    EPermissions.ManageInventory,
+] as const;
+
+const ReturnManagement = [
+    EPermissions.ViewReturns,
+    EPermissions.ManageReturns,
+] as const;
+
+const PromotionManagement = [
+    EPermissions.ViewPromotions,
+    EPermissions.CreatePromotion,
+    EPermissions.EditPromotion,
+    EPermissions.DeletePromotion,
+] as const;
+
 const AdminPermissions = [
     ...UserManagement,
     ...RoleManagement,
@@ -117,6 +157,10 @@ const AdminPermissions = [
     ...CategoryManagement,
     ...BrandManagement,
     ...OrderManagement,
+    ...ShowroomManagement,
+    ...InventoryManagement,
+    ...ReturnManagement,
+    ...PromotionManagement,
 ] as const;
 
 const StaffPermissions = [
@@ -124,6 +168,9 @@ const StaffPermissions = [
     ...CategoryManagement,
     ...BrandManagement,
     ...OrderManagement,
+    ...ShowroomManagement,
+    ...InventoryManagement,
+    ...ReturnManagement,
     EPermissions.ViewUsers,
     EPermissions.EditUser,
 ] as const;
@@ -143,6 +190,10 @@ export const PermissionGroups: {
     CategoryManagement: readonly EPermission[];
     BrandManagement: readonly EPermission[];
     OrderManagement: readonly EPermission[];
+    ShowroomManagement: readonly EPermission[];
+    InventoryManagement: readonly EPermission[];
+    ReturnManagement: readonly EPermission[];
+    PromotionManagement: readonly EPermission[];
     AdminPermissions: readonly EPermission[];
     StaffPermissions: readonly EPermission[];
     CustomerPermissions: readonly EPermission[];
@@ -154,6 +205,10 @@ export const PermissionGroups: {
     CategoryManagement,
     BrandManagement,
     OrderManagement,
+    ShowroomManagement,
+    InventoryManagement,
+    ReturnManagement,
+    PromotionManagement,
     AdminPermissions,
     StaffPermissions,
     CustomerPermissions,

@@ -1,4 +1,4 @@
-﻿namespace Ecommerce.Domain.Enums
+namespace Ecommerce.Domain.Enums
 {
     /// <summary>
     /// Constants chứa các quyền trong hệ thống
@@ -76,6 +76,18 @@
         public const string EditNotification = "EditNotification";
         public const string DeleteNotification = "DeleteNotification";
 
+        // Showroom permissions
+        public const string ViewShowrooms = "ViewShowrooms";
+        public const string ManageShowrooms = "ManageShowrooms";
+
+        // Inventory permissions
+        public const string ViewInventory = "ViewInventory";
+        public const string ManageInventory = "ManageInventory";
+
+        // Return permissions
+        public const string ViewReturns = "ViewReturns";
+        public const string ManageReturns = "ManageReturns";
+
 
         // Các nhóm quyền
         public static class Groups
@@ -133,6 +145,18 @@
                 ViewNotifications, CreateNotification, EditNotification, DeleteNotification
             };
 
+            public static readonly string[] ShowroomManagement = [
+                ViewShowrooms, ManageShowrooms
+            ];
+
+            public static readonly string[] InventoryManagement = [
+                ViewInventory, ManageInventory
+            ];
+
+            public static readonly string[] ReturnManagement = [
+                ViewReturns, ManageReturns
+            ];
+
             // Quyền của Admin
             public static readonly string[] AdminPermissions =
                 [.. UserManagement,
@@ -147,7 +171,10 @@
                 .. SettingsManagement,
                 .. LogManagement,
                 .. FeedbackManagement,
-                .. NotificationManagement
+                .. NotificationManagement,
+                .. ShowroomManagement,
+                .. InventoryManagement,
+                .. ReturnManagement
                 ];
 
             // Quyền của Staff
@@ -155,6 +182,9 @@
                 [.. ProductManagement,
                 .. CategoryManagement,
                 .. OrderManagement,
+                .. ShowroomManagement,
+                .. InventoryManagement,
+                .. ReturnManagement,
                 .. new[] { ViewUsers, EditUser }];
 
             // Quyền của Customer

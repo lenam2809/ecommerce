@@ -89,7 +89,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
 
                             decimal addOnPrice = 0;
                             string? addOnName = null;
-                            int warrantyMonths = 24;
+                            int warrantyMonths = product.WarrantyMonths > 0 ? product.WarrantyMonths : 24;
                             if (item.AddOnId.HasValue && item.AddOnId.Value != Guid.Empty)
                             {
                                 var addOn = await _unitOfWork.BaseRepository<ProductAddOn>()
@@ -98,7 +98,7 @@ namespace Ecommerce.Application.Features.Orders.Commands.CreateOrder
                                 {
                                     addOnPrice = addOn.Price;
                                     addOnName = addOn.Name;
-                                    warrantyMonths = addOn.DurationMonths ?? 24;
+                                    warrantyMonths = (product.WarrantyMonths > 0 ? product.WarrantyMonths : 24) + (addOn.DurationMonths ?? 0);
                                 }
                             }
 

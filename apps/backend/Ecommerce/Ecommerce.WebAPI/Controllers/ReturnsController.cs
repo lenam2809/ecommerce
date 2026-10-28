@@ -1,3 +1,4 @@
+using Ecommerce.Application.Features.Returns.Commands.AddReturnRequestLog;
 using Ecommerce.Application.Features.Returns.Commands.ApproveReturn;
 using Ecommerce.Application.Features.Returns.Commands.CreateReturnRequest;
 using Ecommerce.Application.Features.Returns.Commands.RejectReturn;
@@ -69,7 +70,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Lấy tất cả yêu cầu đổi/trả (filter theo status)
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = EUserRoles.Admin)]
+        [Authorize(Policy = EPermissions.ViewReturns)]
         public async Task<IActionResult> GetAll([FromQuery] EReturnStatus? status)
         {
             var query = new GetReturnRequestsQuery { Status = status };
@@ -81,7 +82,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Lấy đổi/trả theo đơn hàng
         /// </summary>
         [HttpGet("order/{orderId}")]
-        [Authorize(Roles = EUserRoles.Admin)]
+        [Authorize(Policy = EPermissions.ViewReturns)]
         public async Task<IActionResult> GetByOrder(Guid orderId)
         {
             var query = new GetReturnRequestsQuery { OrderId = orderId };
@@ -93,7 +94,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Duyệt yêu cầu đổi/trả
         /// </summary>
         [HttpPut("{id}/approve")]
-        [Authorize(Roles = EUserRoles.Admin)]
+        [Authorize(Policy = EPermissions.ManageReturns)]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveReturnCommand command)
         {
             command.ReturnRequestId = id;
@@ -106,7 +107,7 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Từ chối yêu cầu đổi/trả
         /// </summary>
         [HttpPut("{id}/reject")]
-        [Authorize(Roles = EUserRoles.Admin)]
+        [Authorize(Policy = EPermissions.ManageReturns)]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectReturnCommand command)
         {
             command.ReturnRequestId = id;
@@ -119,8 +120,20 @@ namespace Ecommerce.WebAPI.Controllers
         /// Admin: Cập nhật trạng thái RMA (ItemReceived → QualityCheck → Processing → Completed)
         /// </summary>
         [HttpPut("{id}/status")]
-        [Authorize(Roles = EUserRoles.Admin)]
+        [Authorize(Policy = EPermissions.ManageReturns)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateReturnStatusCommand command)
+        {
+            command.ReturnRequestId = id;
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Admin / Kỹ thuật viên: Ghi nhận nhật ký kiểm định 5 bước (RMA) & cập nhật thông tin thiết bị/kỹ thuật viên
+        /// </summary>
+        [HttpPost("{id}/logs")]
+        [Authorize(Policy = EPermissions.ManageReturns)]
+        public async Task<IActionResult> AddLog(Guid id, [FromBody] AddReturnRequestLogCommand command)
         {
             command.ReturnRequestId = id;
             var result = await _mediator.Send(command);

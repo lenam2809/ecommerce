@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
@@ -47,6 +47,11 @@ namespace Ecommerce.Application.Features.Products.Commands.CreateProduct
 
         // Danh sách thông số kỹ thuật
         public List<ProductSpecificationDto> Specifications { get; set; } = new List<ProductSpecificationDto>();
+
+        // Warranty & Origin & Add-ons SSoT 2026
+        public int WarrantyMonths { get; set; } = 24;
+        public string? OriginBadge { get; set; }
+        public List<Guid> AddOnIds { get; set; } = [];
 
         // Variants
         public List<string> Colors { get; set; } = [];

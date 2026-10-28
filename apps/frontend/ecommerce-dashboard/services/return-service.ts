@@ -1,7 +1,13 @@
 import api from '@/lib/axios';
 import { BaseService } from './base-service';
 import { Result } from '@/types';
-import { ReturnRequest, ReturnRequestList, EReturnStatus } from '@/types/return-request';
+import {
+    ReturnRequest,
+    ReturnRequestList,
+    EReturnStatus,
+    ReturnRequestLog,
+    AddReturnLogRequest
+} from '@/types/return-request';
 
 export class ReturnService extends BaseService {
     constructor() {
@@ -51,6 +57,14 @@ export class ReturnService extends BaseService {
      */
     async updateStatus(id: string, data: { newStatus: EReturnStatus; note?: string }): Promise<Result<boolean>> {
         const response = await api.put(`/returns/${id}/status`, data);
+        return response.data;
+    }
+
+    /**
+     * Admin / Kỹ thuật viên: Ghi nhận nhật ký kiểm định 5 bước (RMA) & cập nhật thông tin thiết bị
+     */
+    async addReturnLog(id: string, data: AddReturnLogRequest): Promise<Result<ReturnRequestLog>> {
+        const response = await api.post(`/returns/${id}/logs`, data);
         return response.data;
     }
 }

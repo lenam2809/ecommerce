@@ -16,6 +16,11 @@ using Ecommerce.WebAPI.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Ecommerce.Application.Features.Orders.Commands.AssignOrderItemSerials;
+using Ecommerce.Application.Features.Orders.Commands.RemoveOrderItemSerial;
+using Ecommerce.Application.Features.Orders.Commands.ActivateOrderWarranty;
+using Ecommerce.Application.Features.Orders.Commands.UploadOrderInvoicePdf;
+using Ecommerce.Application.Features.Orders.Commands.UpdateOrderDepositStatus;
 
 namespace Ecommerce.WebAPI.Controllers
 {
@@ -176,6 +181,76 @@ namespace Ecommerce.WebAPI.Controllers
                 ToDate = toDate
             });
 
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Gán Serial/IMEI cho OrderItem
+        /// </summary>
+        [HttpPost("{orderId}/items/{orderItemId}/serials")]
+        [Authorize(Policy = EPermissions.EditOrder)]
+        public async Task<IActionResult> AssignItemSerial(Guid orderId, Guid orderItemId, [FromBody] AssignOrderItemSerialsCommand command)
+        {
+            command.OrderId = orderId;
+            command.OrderItemId = orderItemId;
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Xóa/gỡ Serial khỏi OrderItem
+        /// </summary>
+        [HttpDelete("{orderId}/serials/{serialId}")]
+        [Authorize(Policy = EPermissions.EditOrder)]
+        public async Task<IActionResult> RemoveSerial(Guid orderId, Guid serialId)
+        {
+            var command = new RemoveOrderItemSerialCommand
+            {
+                OrderId = orderId,
+                SerialId = serialId
+            };
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Kích hoạt e-Warranty độc lập 24T
+        /// </summary>
+        [HttpPost("{orderId}/activate-warranty")]
+        [Authorize(Policy = EPermissions.EditOrder)]
+        public async Task<IActionResult> ActivateWarranty(Guid orderId, [FromQuery] Guid? orderItemId)
+        {
+            var command = new ActivateOrderWarrantyCommand
+            {
+                OrderId = orderId,
+                OrderItemId = orderItemId
+            };
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Upload PDF hóa đơn VAT từ kế toán và cập nhật thông tin xuất hóa đơn
+        /// </summary>
+        [HttpPost("{orderId}/invoice-upload")]
+        [Authorize(Policy = EPermissions.EditOrder)]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadInvoicePdf(Guid orderId, [FromForm] UploadOrderInvoicePdfCommand command)
+        {
+            command.OrderId = orderId;
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        /// <summary>
+        /// Cập nhật DepositStatus (None, Pending, Paid, Refunded), DepositAmount (10% COD) và thông tin vận đơn
+        /// </summary>
+        [HttpPut("{orderId}/deposit-status")]
+        [Authorize(Policy = EPermissions.EditOrder)]
+        public async Task<IActionResult> UpdateDepositStatus(Guid orderId, [FromBody] UpdateOrderDepositStatusCommand command)
+        {
+            command.OrderId = orderId;
+            var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
     }

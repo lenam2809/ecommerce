@@ -16,6 +16,9 @@ import { useRouter } from "next/navigation";
 import { EOrderStatus, Order } from "@/types/order";
 import { formUpdateOrderSchema, UpdateOrderDto } from "@/schemas/order/order-schema";
 import { OrderHistoryComponent } from "./order-history";
+import { OrderFinancialCard } from "./order-financial-card";
+import { OrderSerialManager } from "./order-serial-manager";
+import { OrderInvoiceCard } from "./order-invoice-card";
 
 interface OrderEditFormProps {
   order: Order;
@@ -53,7 +56,7 @@ export function OrderEditForm({ order, isDetail = false }: OrderEditFormProps) {
     const defaultValues: UpdateOrderDto = {
       id: order.id,
       code: order.code,
-      applicationUserId: order.applicationUserId,
+      applicationUserId: order.applicationUserId || "",
       totalAmount: order.totalAmount,
       orderDate: new Date(order.orderDate),
       shippingAddress: order.shippingAddress,
@@ -89,6 +92,9 @@ export function OrderEditForm({ order, isDetail = false }: OrderEditFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <OrderInfoSection form={form} isEditing isDetail={isDetail} />
         <ShippingSection form={form} isEditing isDetail={isDetail} />
+        <OrderFinancialCard order={order} />
+        <OrderSerialManager order={order} />
+        <OrderInvoiceCard order={order} />
         <OrderItemsSection form={form} isEditing isDetail={isDetail} />
         <OrderHistoryComponent orderId={order.id} />
 

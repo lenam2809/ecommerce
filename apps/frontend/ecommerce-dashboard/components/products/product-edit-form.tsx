@@ -11,6 +11,7 @@ import { BasicInfoSection } from "./form-sections/basic-info"
 import { PricingSection } from "./form-sections/pricing"
 import { ImagesUploadSection } from "./form-sections/images-upload"
 import { SpecificationsSection } from "./form-sections/specifications"
+import { ProductAddOnsSection } from "./form-sections/product-addons"
 import { VariantsSection } from "./form-sections/variants"
 import { useUpdateProduct } from "@/hooks/use-products"
 import { Loader2 } from "lucide-react"
@@ -28,7 +29,7 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
   const { mutate: updateProduct, isPending } = useUpdateProduct()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const form = useForm<UpdateProductDto>({
+  const form = useForm<any>({
     resolver: zodResolver(formUpdateSchema),
     defaultValues: {
       id: "",
@@ -48,6 +49,9 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
       mainImage: "",
       additionalImages: [],
       specifications: [],
+      warrantyMonths: 24,
+      originBadge: "",
+      addOnIds: [],
       colors: [],
       sizes: [],
     },
@@ -57,7 +61,7 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
   useEffect(() => {
     if (!product) return
 
-    const defaultValues: UpdateProductDto = {
+    const defaultValues: any = {
       id: product.id,
       code: product.code,
       name: product.name,
@@ -73,7 +77,19 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
       brandId: String(product.brandId),
       mainImage: product.mainImage,
       additionalImages: product.additionalImages || [],
-      specifications: product.specifications || [],
+      specifications: (product.specifications || []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        value: s.value,
+        groupName: s.groupName ?? "Chung",
+        isKeySpec: Boolean(s.isKeySpec),
+        displayOrder: s.displayOrder ?? 0,
+        filterKey: s.filterKey ?? null,
+        isHighlight: Boolean(s.isHighlight || s.isKeySpec),
+      })),
+      warrantyMonths: product.warrantyMonths ?? 24,
+      originBadge: product.originBadge || "",
+      addOnIds: product.addOnIds || product.addOns?.map((a) => a.id) || [],
       colors: product.colors || [],
       sizes: product.sizes || [],
     }
@@ -81,11 +97,11 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
     form.reset(defaultValues)
   }, [product, form])
 
-  const onSubmit = async (values: UpdateProductDto) => {
+  const onSubmit = async (values: any) => {
     setIsSubmitting(true)
 
     try {
-      updateProduct(values)
+      updateProduct(values as UpdateProductDto)
       // Điều hướng được xử lý trong onSuccess của hook
     } catch (error) {
       logger.error(`Lỗi khi cập nhật sản phẩm ${values.code}: `, error)
@@ -103,6 +119,7 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
         <PricingSection form={form} isEditing isDetail={isDetail} />
         <ImagesUploadSection form={form} isEditing isDetail={isDetail} />
         <SpecificationsSection form={form} isEditing isDetail={isDetail} />
+        <ProductAddOnsSection form={form} isEditing isDetail={isDetail} />
         <VariantsSection form={form} isEditing isDetail={isDetail} />
 
         <div className="mt-8 flex justify-end gap-4">
@@ -115,7 +132,11 @@ export function ProductEditForm({ product, isDetail = false }: ProductEditFormPr
             Huỷ
           </Button>
           {!isDetail && (
-            <Button type="submit" disabled={isBusy}>
+            <Button
+              type="submit"
+              disabled={isBusy}
+              className="bg-brand text-white hover:bg-brand/90 font-medium"
+            >
               {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Cập nhật sản phẩm
             </Button>

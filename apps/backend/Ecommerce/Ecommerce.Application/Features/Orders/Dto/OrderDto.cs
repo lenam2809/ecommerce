@@ -40,6 +40,10 @@ namespace Ecommerce.Application.Features.Orders.Dto
         public decimal RemainingAmount { get; set; }
         public string PaymentMethod { get; set; } = "COD";
         public string PaymentStatus { get; set; } = "Pending";
+        public string? CarrierName { get; set; }
+        public string? TrackingNumber { get; set; }
+        public string? DriverName { get; set; }
+        public string? DriverPhone { get; set; }
         public OrderInvoiceDto? Invoice { get; set; }
         public List<OrderItemDto> OrderItems { get; set; } = [];
 

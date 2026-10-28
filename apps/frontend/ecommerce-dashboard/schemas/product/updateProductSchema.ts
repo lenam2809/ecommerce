@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Schema validation cho form
+// Schema validation cho form cập nhật sản phẩm
 export const formUpdateSchema = z.object({
     id: z.string(),
     code: z.string()
@@ -32,8 +32,16 @@ export const formUpdateSchema = z.object({
     specifications: z.array(z.object({
         id: z.string().optional(),
         name: z.string().min(1, { message: 'Tên thông số không được để trống' }),
-        value: z.string().min(1, { message: 'Giá trị không được để trống' })
+        value: z.string().min(1, { message: 'Giá trị không được để trống' }),
+        groupName: z.string().optional().default('Chung'),
+        isKeySpec: z.boolean().optional().default(false),
+        displayOrder: z.coerce.number().optional().default(0),
+        filterKey: z.string().nullable().optional(),
+        isHighlight: z.boolean().optional().default(false),
     })).optional(),
+    warrantyMonths: z.coerce.number().min(0).optional().default(24),
+    originBadge: z.string().optional(),
+    addOnIds: z.array(z.string()).optional().default([]),
     colors: z.array(z.string()).optional(),
     sizes: z.array(z.string()).optional()
 }).refine(data => {
@@ -44,6 +52,15 @@ export const formUpdateSchema = z.object({
 }, {
     message: 'Giá khuyến mãi phải nhỏ hơn hoặc bằng giá gốc',
     path: ['salePrice']
+}).refine(data => {
+    if (data.specifications) {
+        const keySpecs = data.specifications.filter(s => s.isKeySpec);
+        return keySpecs.length <= 2;
+    }
+    return true;
+}, {
+    message: 'Chỉ được chọn tối đa 2 thông số nổi bật (Key Specs)',
+    path: ['specifications']
 });
 
 export type UpdateProductDto = z.infer<typeof formUpdateSchema>;

@@ -1,4 +1,4 @@
-﻿using Ecommerce.Application.Common.Mappings;
+using Ecommerce.Application.Common.Mappings;
 using Ecommerce.Application.Common.Models;
 using Ecommerce.Application.Features.Products.Dto;
 using Ecommerce.Domain.Entities;
@@ -55,6 +55,11 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
 
         // Danh sách ID của thông số kỹ thuật cần xóa
         public List<Guid> SpecificationIdsToDelete { get; set; } = new List<Guid>();
+
+        // Warranty & Origin & Add-ons SSoT 2026
+        public int? WarrantyMonths { get; set; }
+        public string? OriginBadge { get; set; }
+        public List<Guid> AddOnIds { get; set; } = [];
 
         // Variants
         public List<string> Colors { get; set; } = new List<string>();

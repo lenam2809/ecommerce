@@ -96,51 +96,118 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
         {
             _logger.LogInformation("Seeding permissions");
 
-            var permissions = new List<Permission>();
-
-            if (!await _context.Permissions.AnyAsync())
+            var targetPermissions = new List<Permission>
             {
                 // User permissions
-                permissions.Add(new Permission { Name = EPermissions.ViewUsers, Description = "Can view user list" });
-                permissions.Add(new Permission { Name = EPermissions.CreateUser, Description = "Can create new users" });
-                permissions.Add(new Permission { Name = EPermissions.EditUser, Description = "Can edit user details" });
-                permissions.Add(new Permission { Name = EPermissions.DeleteUser, Description = "Can delete users" });
+                new() { Name = EPermissions.ViewUsers, Description = "Can view user list" },
+                new() { Name = EPermissions.CreateUser, Description = "Can create new users" },
+                new() { Name = EPermissions.EditUser, Description = "Can edit user details" },
+                new() { Name = EPermissions.DeleteUser, Description = "Can delete users" },
+
+                // Role permissions
+                new() { Name = EPermissions.ViewRoles, Description = "Can view role list" },
+                new() { Name = EPermissions.CreateRole, Description = "Can create new roles" },
+                new() { Name = EPermissions.EditRole, Description = "Can edit role details" },
+                new() { Name = EPermissions.DeleteRole, Description = "Can delete roles" },
+
+                // Permission management
+                new() { Name = EPermissions.ViewPermissions, Description = "Can view permission list" },
+                new() { Name = EPermissions.CreatePermission, Description = "Can create new permissions" },
+                new() { Name = EPermissions.EditPermission, Description = "Can edit permission details" },
+                new() { Name = EPermissions.DeletePermission, Description = "Can delete permissions" },
+                new() { Name = EPermissions.AssignPermission, Description = "Can assign permissions" },
 
                 // Product permissions
-                permissions.Add(new Permission { Name = EPermissions.ViewProducts, Description = "Can view product list" });
-                permissions.Add(new Permission { Name = EPermissions.CreateProduct, Description = "Can create new products" });
-                permissions.Add(new Permission { Name = EPermissions.EditProduct, Description = "Can edit product details" });
-                permissions.Add(new Permission { Name = EPermissions.DeleteProduct, Description = "Can delete products" });
+                new() { Name = EPermissions.ViewProducts, Description = "Can view product list" },
+                new() { Name = EPermissions.CreateProduct, Description = "Can create new products" },
+                new() { Name = EPermissions.EditProduct, Description = "Can edit product details" },
+                new() { Name = EPermissions.DeleteProduct, Description = "Can delete products" },
 
                 // Category permissions
-                permissions.Add(new Permission { Name = EPermissions.ViewCategories, Description = "Can view category list" });
-                permissions.Add(new Permission { Name = EPermissions.CreateCategory, Description = "Can create new categories" });
-                permissions.Add(new Permission { Name = EPermissions.EditCategory, Description = "Can edit category details" });
-                permissions.Add(new Permission { Name = EPermissions.DeleteCategory, Description = "Can delete categories" });
+                new() { Name = EPermissions.ViewCategories, Description = "Can view category list" },
+                new() { Name = EPermissions.CreateCategory, Description = "Can create new categories" },
+                new() { Name = EPermissions.EditCategory, Description = "Can edit category details" },
+                new() { Name = EPermissions.DeleteCategory, Description = "Can delete categories" },
+
+                // Brand permissions
+                new() { Name = EPermissions.ViewBrands, Description = "Can view brand list" },
+                new() { Name = EPermissions.CreateBrand, Description = "Can create new brands" },
+                new() { Name = EPermissions.EditBrand, Description = "Can edit brand details" },
+                new() { Name = EPermissions.DeleteBrand, Description = "Can delete brands" },
 
                 // Order permissions
-                permissions.Add(new Permission { Name = EPermissions.ViewOrders, Description = "Can view order list" });
-                permissions.Add(new Permission { Name = EPermissions.CreateOrder, Description = "Can create new orders" });
-                permissions.Add(new Permission { Name = EPermissions.EditOrder, Description = "Can edit order details" });
-                permissions.Add(new Permission { Name = EPermissions.DeleteOrder, Description = "Can delete orders" });
+                new() { Name = EPermissions.ViewOrders, Description = "Can view order list" },
+                new() { Name = EPermissions.CreateOrder, Description = "Can create new orders" },
+                new() { Name = EPermissions.EditOrder, Description = "Can edit order details" },
+                new() { Name = EPermissions.DeleteOrder, Description = "Can delete orders" },
 
-                // Admin permissions
-                permissions.Add(new Permission { Name = "ManageRoles", Description = "Can manage roles and permissions" });
-                permissions.Add(new Permission { Name = EPermissions.ViewLogs, Description = "Can view system logs" });
-                permissions.Add(new Permission { Name = "ManageSettings", Description = "Can manage system settings" });
+                // Showroom permissions
+                new() { Name = EPermissions.ViewShowrooms, Description = "Can view showroom list and inventory" },
+                new() { Name = EPermissions.ManageShowrooms, Description = "Can manage showrooms" },
 
-                await _context.Permissions.AddRangeAsync(permissions);
+                // Inventory permissions
+                new() { Name = EPermissions.ViewInventory, Description = "Can view inventory" },
+                new() { Name = EPermissions.ManageInventory, Description = "Can manage inventory and transfer stock" },
+
+                // Return permissions
+                new() { Name = EPermissions.ViewReturns, Description = "Can view return requests" },
+                new() { Name = EPermissions.ManageReturns, Description = "Can manage and inspect return requests" },
+
+                // Reports
+                new() { Name = EPermissions.ViewReports, Description = "Can view reports" },
+
+                // Promotion permissions
+                new() { Name = EPermissions.ViewPromotions, Description = "Can view promotions and flash sales" },
+                new() { Name = EPermissions.CreatePromotion, Description = "Can create promotions and flash sales" },
+                new() { Name = EPermissions.EditPromotion, Description = "Can edit promotions and flash sales" },
+                new() { Name = EPermissions.DeletePromotion, Description = "Can delete promotions and flash sales" },
+
+                // Banner permissions
+                new() { Name = EPermissions.ViewBanners, Description = "Can view banners" },
+                new() { Name = EPermissions.CreateBanner, Description = "Can create banners" },
+                new() { Name = EPermissions.EditBanner, Description = "Can edit banners" },
+                new() { Name = EPermissions.DeleteBanner, Description = "Can delete banners" },
+
+                // Settings permissions
+                new() { Name = EPermissions.ViewSettings, Description = "Can view system settings" },
+                new() { Name = EPermissions.EditSettings, Description = "Can edit system settings" },
+
+                // Log permissions
+                new() { Name = EPermissions.ViewLogs, Description = "Can view system logs" },
+                new() { Name = EPermissions.DeleteLogs, Description = "Can delete system logs" },
+
+                // Feedback permissions
+                new() { Name = EPermissions.ViewFeedbacks, Description = "Can view feedbacks" },
+                new() { Name = EPermissions.RespondFeedbacks, Description = "Can respond to feedbacks" },
+
+                // Notification permissions
+                new() { Name = EPermissions.ViewNotifications, Description = "Can view notifications" },
+                new() { Name = EPermissions.CreateNotification, Description = "Can create notifications" },
+                new() { Name = EPermissions.EditNotification, Description = "Can edit notifications" },
+                new() { Name = EPermissions.DeleteNotification, Description = "Can delete notifications" },
+
+                // Legacy alias if needed
+                new() { Name = "ManageRoles", Description = "Can manage roles and permissions" },
+                new() { Name = "ManageSettings", Description = "Can manage system settings" }
+            };
+
+            var existingPermissions = await _context.Permissions.ToListAsync();
+            var existingNames = existingPermissions.Select(p => p.Name).ToHashSet();
+            var missingPermissions = targetPermissions.Where(p => !existingNames.Contains(p.Name)).ToList();
+
+            if (missingPermissions.Count > 0)
+            {
+                await _context.Permissions.AddRangeAsync(missingPermissions);
                 await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Seeded {PermissionCount} permissions", permissions.Count);
+                _logger.LogInformation("Seeded/Upserted {Count} new permissions", missingPermissions.Count);
+                existingPermissions.AddRange(missingPermissions);
             }
             else
             {
-                permissions = await _context.Permissions.ToListAsync();
-                _logger.LogInformation("Permissions already exist. Skipping seeding.");
+                _logger.LogInformation("All permissions already exist. No new permissions added.");
             }
 
-            return permissions;
+            return existingPermissions;
         }
 
         private async Task<List<Role>> SeedRolesAsync()
@@ -400,78 +467,84 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
             // Check if roles exist in the database
             if (adminRole != null && managerRole != null && staffRole != null && customerRole != null)
             {
-                // Check if role permissions are already seeded
-                if (!await _context.RolePermissions.AnyAsync())
+                var existingRolePermissions = await _context.RolePermissions.ToListAsync();
+                var existingMap = existingRolePermissions
+                    .Select(rp => (rp.RoleId, rp.PermissionId))
+                    .ToHashSet();
+
+                var newRolePermissions = new List<RolePermission>();
+
+                void EnsureRolePermission(Guid roleId, Guid permissionId)
                 {
-                    var rolePermissions = new List<RolePermission>();
-
-                    // Admin has all permissions
-                    foreach (var permission in permissions)
+                    if (existingMap.Add((roleId, permissionId)))
                     {
-                        rolePermissions.Add(new RolePermission
+                        newRolePermissions.Add(new RolePermission
                         {
-                            RoleId = adminRole.Id,
-                            PermissionId = permission.Id
+                            RoleId = roleId,
+                            PermissionId = permissionId
                         });
                     }
+                }
 
-                    // Manager permissions
-                    var managerPermissions = permissions.Where(p =>
-                        p.Name.StartsWith("View") ||
-                        p.Name.StartsWith("Create") ||
-                        p.Name.StartsWith("Edit") ||
-                        p.Name == "CreateOrder" ||
-                        p.Name == "EditOrder");
+                // Admin has all permissions
+                foreach (var permission in permissions)
+                {
+                    EnsureRolePermission(adminRole.Id, permission.Id);
+                }
 
-                    foreach (var permission in managerPermissions)
-                    {
-                        rolePermissions.Add(new RolePermission
-                        {
-                            RoleId = managerRole.Id,
-                            PermissionId = permission.Id
-                        });
-                    }
+                // Manager permissions
+                var managerPermissions = permissions.Where(p =>
+                    p.Name.StartsWith("View") ||
+                    p.Name.StartsWith("Create") ||
+                    p.Name.StartsWith("Edit") ||
+                    p.Name == "CreateOrder" ||
+                    p.Name == "EditOrder" ||
+                    p.Name == EPermissions.ManageShowrooms ||
+                    p.Name == EPermissions.ManageInventory ||
+                    p.Name == EPermissions.ManageReturns);
 
-                    // Staff permissions
-                    var staffPermissions = permissions.Where(p =>
-                        p.Name.StartsWith("View") ||
-                        p.Name == "CreateProduct" ||
-                        p.Name == "EditProduct" ||
-                        p.Name == "CreateOrder" ||
-                        p.Name == "EditOrder");
+                foreach (var permission in managerPermissions)
+                {
+                    EnsureRolePermission(managerRole.Id, permission.Id);
+                }
 
-                    foreach (var permission in staffPermissions)
-                    {
-                        rolePermissions.Add(new RolePermission
-                        {
-                            RoleId = staffRole.Id,
-                            PermissionId = permission.Id
-                        });
-                    }
+                // Staff permissions
+                var staffPermissionNames = EPermissions.Groups.StaffPermissions.ToHashSet();
+                var staffPermissions = permissions.Where(p =>
+                    staffPermissionNames.Contains(p.Name) ||
+                    p.Name.StartsWith("View") ||
+                    p.Name == "CreateProduct" ||
+                    p.Name == "EditProduct" ||
+                    p.Name == "CreateOrder" ||
+                    p.Name == "EditOrder");
 
-                    // Customer permissions
-                    var customerPermissions = permissions.Where(p =>
-                        p.Name == "ViewProducts" ||
-                        p.Name == "ViewCategories" ||
-                        p.Name == "CreateOrder");
+                foreach (var permission in staffPermissions)
+                {
+                    EnsureRolePermission(staffRole.Id, permission.Id);
+                }
 
-                    foreach (var permission in customerPermissions)
-                    {
-                        rolePermissions.Add(new RolePermission
-                        {
-                            RoleId = customerRole.Id,
-                            PermissionId = permission.Id
-                        });
-                    }
+                // Customer permissions
+                var customerPermissionNames = EPermissions.Groups.CustomerPermissions.ToHashSet();
+                var customerPermissions = permissions.Where(p =>
+                    customerPermissionNames.Contains(p.Name) ||
+                    p.Name == "ViewProducts" ||
+                    p.Name == "ViewCategories" ||
+                    p.Name == "CreateOrder");
 
-                    await _context.RolePermissions.AddRangeAsync(rolePermissions);
+                foreach (var permission in customerPermissions)
+                {
+                    EnsureRolePermission(customerRole.Id, permission.Id);
+                }
+
+                if (newRolePermissions.Count > 0)
+                {
+                    await _context.RolePermissions.AddRangeAsync(newRolePermissions);
                     await _context.SaveChangesAsync();
-
-                    _logger.LogInformation("Seeded {RolePermissionCount} role permissions", rolePermissions.Count);
+                    _logger.LogInformation("Seeded/Upserted {RolePermissionCount} new role permissions", newRolePermissions.Count);
                 }
                 else
                 {
-                    _logger.LogInformation("Role permissions already exist. Skipping seeding.");
+                    _logger.LogInformation("All role permissions already exist. No new role permissions added.");
                 }
             }
         }
