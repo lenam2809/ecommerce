@@ -70,7 +70,11 @@ namespace Ecommerce.Application.Features.Returns.Commands.UpdateReturnStatus
             var latestHistory = returnRequest.StatusHistory.OrderByDescending(h => h.ChangedAt).FirstOrDefault();
             if (latestHistory != null && latestHistory.Id == Guid.Empty)
             {
-                await _unitOfWork.BaseRepository<ReturnStatusHistory>().AddAsync(latestHistory, cancellationToken);
+                var histRepo = _unitOfWork.BaseRepository<ReturnStatusHistory>();
+                if (histRepo != null)
+                {
+                    await histRepo.AddAsync(latestHistory, cancellationToken);
+                }
             }
 
             await _unitOfWork.CompleteAsync(cancellationToken);

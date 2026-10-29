@@ -28,14 +28,14 @@ public class ProductTests
     }
 
     [Fact]
-    public void Create_SalePriceGreaterThanOrEqualPrice_ThrowsArgumentException()
+    public void Create_SalePriceGreaterThanPrice_ThrowsArgumentException()
     {
         // Arrange
-        Action act = () => CreateProduct(price: 1000m, salePrice: 1000m);
+        Action act = () => CreateProduct(price: 1000m, salePrice: 1200m);
 
         // Act & Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Sale price must be less than regular price.");
+            .WithMessage("Sale price cannot be greater than regular price.");
     }
 
     [Fact]

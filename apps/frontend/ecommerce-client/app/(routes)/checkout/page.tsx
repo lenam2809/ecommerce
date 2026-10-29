@@ -58,6 +58,36 @@ const checkoutSchema = z.object({
   companyName: z.string().optional(),
   companyAddress: z.string().optional(),
   invoiceEmail: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.requireInvoice) {
+    if (!data.taxCode || !data.taxCode.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Mã số thuế là bắt buộc khi yêu cầu hóa đơn VAT",
+        path: ["taxCode"],
+      })
+    } else if (!/^(\d{10}|\d{13}|\d{10}-\d{3})$/.test(data.taxCode.trim())) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Mã số thuế không đúng định dạng (phải gồm 10 hoặc 13 chữ số)",
+        path: ["taxCode"],
+      })
+    }
+    if (!data.companyName || !data.companyName.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Tên công ty là bắt buộc khi yêu cầu hóa đơn VAT",
+        path: ["companyName"],
+      })
+    }
+    if (!data.companyAddress || !data.companyAddress.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Địa chỉ công ty là bắt buộc khi yêu cầu hóa đơn VAT",
+        path: ["companyAddress"],
+      })
+    }
+  }
 })
 
 type CheckoutMode = "member" | "guest" | "login"

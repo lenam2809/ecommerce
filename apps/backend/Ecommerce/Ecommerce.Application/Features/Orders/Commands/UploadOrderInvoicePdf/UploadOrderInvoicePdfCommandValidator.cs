@@ -18,7 +18,9 @@ namespace Ecommerce.Application.Features.Orders.Commands.UploadOrderInvoicePdf
                 .WithMessage("Chỉ chấp nhận file định dạng PDF (.pdf)");
 
             RuleFor(x => x.TaxCode)
-                .MaximumLength(50).WithMessage("Mã số thuế không vượt quá 50 ký tự");
+                .MaximumLength(50).WithMessage("Mã số thuế không vượt quá 50 ký tự")
+                .Matches(@"^(\d{10}|\d{13}|\d{10}-\d{3})$").WithMessage("Mã số thuế không đúng định dạng (phải gồm 10 hoặc 13 chữ số)")
+                .When(x => !string.IsNullOrWhiteSpace(x.TaxCode));
 
             RuleFor(x => x.CompanyName)
                 .MaximumLength(255).WithMessage("Tên công ty không vượt quá 255 ký tự");

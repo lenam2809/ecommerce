@@ -137,7 +137,7 @@ public class UpdateProductCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorType.Should().Be(ResultError.BadRequest);
-        result.Error.Should().Be("Sale price must be less than regular price.");
+        result.Error.Should().Be("Sale price cannot be greater than regular price.");
 
         _productRepository.Verify(x => x.Update(It.IsAny<Product>()), Times.Never);
         _unitOfWork.Verify(x => x.CompleteAsync(It.IsAny<CancellationToken>()), Times.Never);

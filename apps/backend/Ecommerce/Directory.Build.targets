@@ -1,0 +1,4 @@
+<Project>
+  <!-- Override SixLabors license check target imported by NuGet to achieve 0 Warnings build -->
+  <Target Name="SixLabors_ValidateLicense" BeforeTargets="CoreCompile" />
+</Project>

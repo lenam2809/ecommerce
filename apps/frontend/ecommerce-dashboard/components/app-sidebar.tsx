@@ -204,6 +204,7 @@ const data = {
           title: "Khuyến mãi",
           url: "/configs/promo-codes",
           icon: IconBrandShopee,
+          permissions: [...PermissionGroups.PromotionManagement],
         },
         {
           title: "Gói bảo hành & Mua kèm",
@@ -228,6 +229,7 @@ const data = {
           title: "Import sản phẩm",
           url: "/bulk-management/products",
           icon: IconUsers,
+          permissions: [...PermissionGroups.ProductManagement],
         },
         {
           title: "Hoạt động hệ thống",

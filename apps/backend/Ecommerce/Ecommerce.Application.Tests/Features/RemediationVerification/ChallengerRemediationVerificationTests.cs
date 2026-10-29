@@ -249,7 +249,7 @@ public class ChallengerRemediationVerificationTests
     // =========================================================================
     [Theory]
     [InlineData(1000, 2000, true)]   // FlashSalePrice < OriginalPrice -> Valid
-    [InlineData(2000, 2000, true)]   // FlashSalePrice == OriginalPrice -> Valid
+    [InlineData(2000, 2000, false)]  // FlashSalePrice == OriginalPrice -> Invalid
     [InlineData(2001, 2000, false)]  // FlashSalePrice > OriginalPrice -> Invalid
     [InlineData(5000, 2000, false)]  // FlashSalePrice >> OriginalPrice -> Invalid
     public void CreateFlashSaleCommandValidator_Enforces_FlashSalePrice_LessThanOrEqualTo_OriginalPrice(
@@ -287,13 +287,13 @@ public class ChallengerRemediationVerificationTests
         else
         {
             result.ShouldHaveValidationErrorFor("Items[0].FlashSalePrice")
-                .WithErrorMessage("Giá Flash Sale phải nhỏ hơn hoặc bằng giá gốc.");
+                .WithErrorMessage("Giá Flash Sale phải nhỏ hơn giá gốc.");
         }
     }
 
     [Theory]
     [InlineData(1000, 2000, true)]
-    [InlineData(2000, 2000, true)]
+    [InlineData(2000, 2000, false)]
     [InlineData(2001, 2000, false)]
     [InlineData(5000, 2000, false)]
     public void UpdateFlashSaleCommandValidator_Enforces_FlashSalePrice_LessThanOrEqualTo_OriginalPrice(
@@ -332,7 +332,7 @@ public class ChallengerRemediationVerificationTests
         else
         {
             result.ShouldHaveValidationErrorFor("Items[0].FlashSalePrice")
-                .WithErrorMessage("Giá Flash Sale phải nhỏ hơn hoặc bằng giá gốc.");
+                .WithErrorMessage("Giá Flash Sale phải nhỏ hơn giá gốc.");
         }
     }
 

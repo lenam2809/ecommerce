@@ -124,7 +124,12 @@ namespace Ecommerce.Application.Features.Returns.Commands.AddReturnRequestLog
                 LoggedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.BaseRepository<ReturnRequestLog>().AddAsync(log, cancellationToken);
+            returnRequest.Logs.Add(log);
+            var logRepo = _unitOfWork.BaseRepository<ReturnRequestLog>();
+            if (logRepo != null)
+            {
+                await logRepo.AddAsync(log, cancellationToken);
+            }
             await _unitOfWork.CompleteAsync(cancellationToken);
 
             var dto = new ReturnRequestLogDto

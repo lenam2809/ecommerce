@@ -37,6 +37,11 @@ namespace Ecommerce.Application.Features.Promotions.Commands.CreateFlashSale
                 return Result<FlashSaleDto>.BadRequest($"Mã chiến dịch Flash Sale '{code}' đã tồn tại.");
             }
 
+            if (request.EndTime <= request.StartTime)
+            {
+                return Result<FlashSaleDto>.BadRequest("Thời gian kết thúc phải sau thời gian bắt đầu.");
+            }
+
             var flashSale = new FlashSale
             {
                 Code = code,
@@ -64,6 +69,11 @@ namespace Ecommerce.Application.Features.Promotions.Commands.CreateFlashSale
                     var originalPrice = itemDto.OriginalPrice > 0
                         ? itemDto.OriginalPrice
                         : (product?.Price ?? 0);
+
+                    if (originalPrice > 0 && itemDto.FlashSalePrice >= originalPrice)
+                    {
+                        return Result<FlashSaleDto>.BadRequest($"Giá Flash Sale ({itemDto.FlashSalePrice:N0}₫) của sản phẩm '{product?.Name ?? itemDto.ProductId.ToString()}' phải nhỏ hơn giá gốc ({originalPrice:N0}₫).");
+                    }
 
                     var item = new FlashSaleItem
                     {

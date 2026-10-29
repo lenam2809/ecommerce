@@ -109,7 +109,7 @@ public class CreateProductCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<ArgumentException>()
-            .WithMessage("Sale price must be less than regular price.");
+            .WithMessage("Sale price cannot be greater than regular price.");
 
         _productRepository.Verify(x => x.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
         _unitOfWork.Verify(x => x.CompleteAsync(It.IsAny<CancellationToken>()), Times.Never);

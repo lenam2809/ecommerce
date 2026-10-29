@@ -35,9 +35,9 @@ namespace Ecommerce.Application.Features.Promotions.Commands.UpdateFlashSale
                 item.RuleFor(i => i.FlashSalePrice)
                     .GreaterThan(0)
                     .WithMessage("Giá Flash Sale phải lớn hơn 0.")
-                    .LessThanOrEqualTo(i => i.OriginalPrice)
+                    .LessThan(i => i.OriginalPrice)
                     .When(i => i.OriginalPrice > 0)
-                    .WithMessage("Giá Flash Sale phải nhỏ hơn hoặc bằng giá gốc.");
+                    .WithMessage("Giá Flash Sale phải nhỏ hơn giá gốc.");
 
                 item.RuleFor(i => i.TotalQuota)
                     .GreaterThan(0)

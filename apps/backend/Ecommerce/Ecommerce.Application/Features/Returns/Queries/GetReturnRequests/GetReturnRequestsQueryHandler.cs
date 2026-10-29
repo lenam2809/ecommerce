@@ -30,7 +30,8 @@ namespace Ecommerce.Application.Features.Returns.Queries.GetReturnRequests
             }
 
             var canViewAll = _currentUserService.IsInRole(EUserRoles.Admin)
-                             || _currentUserService.IsInRole(EUserRoles.Manager);
+                             || _currentUserService.IsInRole(EUserRoles.Manager)
+                             || _currentUserService.IsInRole(EUserRoles.Staff);
             if (!canViewAll)
             {
                 if (request.OrderId.HasValue || request.Status.HasValue)

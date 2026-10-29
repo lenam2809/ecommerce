@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
 {
-    [Authorize(Policy = EPermissions.EditProduct)]
+    [Authorize(Policy = AuthorizationPolicyNames.Staff.EditProduct)]
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<Unit>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -180,9 +180,9 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                                 existingSpec.FilterKey = spec.FilterKey;
                                 existingSpec.IsHighlight = spec.IsHighlight || spec.IsKeySpec;
                             }
-                            else if (specRepo != null)
+                            else
                             {
-                                await specRepo.AddAsync(new ProductSpecification
+                                var newSpec = new ProductSpecification
                                 {
                                     ProductId = existingProduct.Id,
                                     Name = spec.Name,
@@ -192,13 +192,18 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                                     DisplayOrder = spec.DisplayOrder,
                                     FilterKey = spec.FilterKey,
                                     IsHighlight = spec.IsHighlight || spec.IsKeySpec
-                                }, cancellationToken);
+                                };
+                                existingProduct.Specifications.Add(newSpec);
+                                if (specRepo != null)
+                                {
+                                    await specRepo.AddAsync(newSpec, cancellationToken);
+                                }
                             }
                         }
-                        else if (specRepo != null)
+                        else
                         {
                             // Thêm thông số mới
-                            await specRepo.AddAsync(new ProductSpecification
+                            var newSpec = new ProductSpecification
                             {
                                 ProductId = existingProduct.Id,
                                 Name = spec.Name,
@@ -208,7 +213,12 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                                 DisplayOrder = spec.DisplayOrder,
                                 FilterKey = spec.FilterKey,
                                 IsHighlight = spec.IsHighlight || spec.IsKeySpec
-                            }, cancellationToken);
+                            };
+                            existingProduct.Specifications.Add(newSpec);
+                            if (specRepo != null)
+                            {
+                                await specRepo.AddAsync(newSpec, cancellationToken);
+                            }
                         }
                     }
                 }
@@ -271,6 +281,7 @@ namespace Ecommerce.Application.Features.Products.Commands.UpdateProduct
                 }
 
                 // Cập nhật sản phẩm vào database (existingProduct đã được tracking bởi GetByIdWithIncludeAsync)
+                _unitOfWork.Products.Update(existingProduct);
                 await _unitOfWork.CompleteAsync(cancellationToken);
 
                 await _logger.LogAsync(

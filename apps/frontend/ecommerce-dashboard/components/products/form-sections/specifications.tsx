@@ -108,16 +108,21 @@ export function SpecificationsSection({
       return
     }
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 12000)
+
     try {
       setIsGeneratingAi(true)
       const res = await fetch("/api/ai/generate-specs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productName: productName.trim() }),
+        signal: controller.signal,
       })
 
-      const json = await res.json()
-      if (json.success && json.data?.specifications) {
+      clearTimeout(timeoutId)
+      const json = await res.json().catch(() => null)
+      if (json?.success && json?.data?.specifications) {
         replace(json.data.specifications)
         toast({
           title: "AI sinh thông số thành công",
@@ -125,15 +130,19 @@ export function SpecificationsSection({
         })
       } else {
         toast({
-          title: "Không thể sinh thông số",
-          description: json.error || "Đã xảy ra lỗi khi gọi AI.",
+          title: "Không thể sinh thông số bằng AI",
+          description: json?.error || "Dịch vụ AI đang bận hoặc phản hồi chậm. Bạn có thể tiếp tục nhập tay thông số hoặc bấm 'Nạp 14 thông số chuẩn SSoT'.",
           variant: "destructive",
         })
       }
     } catch (err: any) {
+      clearTimeout(timeoutId)
+      const isTimeout = err?.name === "AbortError"
       toast({
-        title: "Lỗi kết nối AI",
-        description: err?.message || "Không thể kết nối đến máy chủ AI.",
+        title: isTimeout ? "Kết nối AI quá thời gian chờ (Timeout)" : "Lỗi kết nối AI",
+        description: isTimeout
+          ? "Phản hồi từ máy chủ AI quá thời gian chờ. Hệ thống đã hủy yêu cầu, bạn có thể nhập tay thông số hoặc bấm 'Nạp 14 thông số chuẩn SSoT'."
+          : (err?.message || "Không thể kết nối đến máy chủ AI. Bạn vẫn có thể nhập tay thông số bình thường."),
         variant: "destructive",
       })
     } finally {
