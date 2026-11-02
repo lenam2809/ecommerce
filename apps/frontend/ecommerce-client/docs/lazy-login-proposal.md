@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 19/03/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`apps/frontend/ecommerce-client/README.md`](../README.md) và [`apps/frontend/ecommerce-client/docs/business-analysis.md`](business-analysis.md).
+
 # Đề xuất Cải tiến: Lazy Login & Guest Cart
 
 Dựa trên phân tích mã nguồn và yêu cầu "Chỉ yêu cầu đăng nhập khi cần thông tin khách hàng", tài liệu này đề xuất giải pháp kỹ thuật để cải thiện trải nghiệm người dùng (UX) bằng cách cho phép khách vãng lai (Guest) thao tác nhiều hơn trước khi bắt buộc đăng nhập.

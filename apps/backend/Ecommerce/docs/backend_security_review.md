@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 09/01/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/architecture-backend.md`](../../../docs/architecture-backend.md).
+
 # Backend Security & Architecture Review Report
 
 **Date:** Friday, January 9, 2026

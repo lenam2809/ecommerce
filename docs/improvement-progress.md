@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 18/05/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/reports/KIEM_KE_HIEN_TRANG.md`](reports/KIEM_KE_HIEN_TRANG.md).
+
 # ShopViet Improvement Progress
 
 ## Summary

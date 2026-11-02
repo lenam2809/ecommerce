@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 20/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/ui-redesign/08-design-system-developer-guide.md`](08-design-system-developer-guide.md) và [`apps/frontend/ecommerce-client/README.md`](../../apps/frontend/ecommerce-client/README.md).
+
 # BÁO CÁO NGHIỆM THU TRIỂN KHAI GIAO DIỆN & KIỂM THỬ ĐỐI CHIẾU TOÀN DIỆN (PHASE 5 IMPLEMENTATION & E2E VERIFICATION REPORT)
 
 > **Dự án:** ShopViet E-Commerce — Hybrid Premium Tech Redesign (2026)  

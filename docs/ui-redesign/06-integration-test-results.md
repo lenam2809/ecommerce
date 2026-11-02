@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 20/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/frontend-manual-test-checklist.md`](../frontend-manual-test-checklist.md).
+
 # BÁO CÁO KẾT QUẢ KIỂM THỬ TÍCH HỢP HỆ THỐNG E2E, SESSION MERGE, COOKIES & SIGNALR REALTIME
 
 > **Thời điểm kiểm thử:** 2026-10-20T20:45:00+07:00  

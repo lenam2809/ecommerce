@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 19/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`apps/frontend/ecommerce-client/README.md`](../../apps/frontend/ecommerce-client/README.md) và [`docs/ui-redesign/03-design-system-spec.md`](03-design-system-spec.md).
+
 # BÁO CÁO KHẢO SÁT TOÀN DIỆN CODEBASE & KIỂM KÊ GIAO DIỆN (BƯỚC 2A)
 **Dự án:** ShopViet E-Commerce Platform (`apps/frontend/ecommerce-client`)  
 **Tác giả:** Principal Frontend Architect & Senior E-commerce UI/UX Auditor  

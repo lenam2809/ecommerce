@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 21/05/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`apps/frontend/ecommerce-client/README.md`](../apps/frontend/ecommerce-client/README.md) và [`apps/frontend/ecommerce-dashboard/README.md`](../apps/frontend/ecommerce-dashboard/README.md).
+
 # Frontend Improvement Progress
 
 ## Prompt 1 - Audit

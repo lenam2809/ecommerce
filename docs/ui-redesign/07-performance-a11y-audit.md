@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 20/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/ui-redesign/08-design-system-developer-guide.md`](08-design-system-developer-guide.md).
+
 # BÁO CÁO KIỂM TOÁN HIỆU NĂNG CORE WEB VITALS, TRUY CẬP TRỢ THÍNH (WCAG 2.1 AA) & RÒ RỈ BỘ NHỚ (PHASE 5C+ PERFORMANCE & ACCESSIBILITY AUDIT)
 
 > **Dự án:** ShopViet E-Commerce — Hybrid Premium Tech Redesign (2026)  

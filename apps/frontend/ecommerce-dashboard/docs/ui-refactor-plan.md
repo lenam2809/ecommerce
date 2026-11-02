@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 19/03/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`apps/frontend/ecommerce-dashboard/README.md`](../README.md) và [`apps/frontend/ecommerce-dashboard/docs/ui-style-guide.md`](ui-style-guide.md).
+
 ## Kế hoạch refactor UI/UX theo vertical slice
 
 Tài liệu này liệt kê các **vertical slice** chính của E‑Commerce Dashboard, mức độ ảnh hưởng business, đánh giá UI/UX hiện tại và mục tiêu refactor theo Style Guide (`docs/ui-style-guide.md`).

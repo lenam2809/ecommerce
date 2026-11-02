@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 19/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/ui-redesign/08-design-system-developer-guide.md`](08-design-system-developer-guide.md).
+
 # BÁO CÁO NGHIỆM THU THIẾT KẾ GOOGLE STITCH & BÀN GIAO THIẾT KẾ (PHASE 4 REVIEW & HANDOVER)
 
 > **Dự án:** ShopViet E-Commerce UI/UX Redesign  

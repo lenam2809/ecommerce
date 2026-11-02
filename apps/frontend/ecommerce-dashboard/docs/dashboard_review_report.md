@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 13/01/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`apps/frontend/ecommerce-dashboard/README.md`](../README.md).
+
 # Báo Cáo Review Frontend: E-Commerce Dashboard
 
 > **Senior Frontend Engineer & Product Reviewer**  

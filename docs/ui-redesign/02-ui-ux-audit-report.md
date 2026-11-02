@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 19/10/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`docs/ui-redesign/03-design-system-spec.md`](03-design-system-spec.md) và [`DESIGN.md`](../../DESIGN.md).
+
 # GIAI ĐOẠN 2 - BƯỚC 2B: BÁO CÁO PHÂN TÍCH LỖI UI/UX & NGUYÊN NHÂN GỐC RỄ (ROOT-CAUSE AUDIT REPORT)
 
 > **Dự án:** ShopViet E-Commerce — `apps/frontend/ecommerce-client` (Next.js 15 + Tailwind CSS v4)  

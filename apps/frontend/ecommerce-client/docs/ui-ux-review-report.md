@@ -1,3 +1,5 @@
+> **TÀI LIỆU LƯU TRỮ** — Nội dung phản ánh trạng thái dự án tại thời điểm 10/01/2026, không còn là hiện trạng. Xem tài liệu hiện hành: [`DESIGN.md`](../../../DESIGN.md) và [`docs/ui-redesign/03-design-system-spec.md`](../../../docs/ui-redesign/03-design-system-spec.md).
+
 # Báo Cáo Đánh Giá UI/UX ShopViet E-Commerce
 
 **Ngày đánh giá:** 10 tháng 1, 2026  
