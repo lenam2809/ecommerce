@@ -1,20 +1,23 @@
+Cập nhật lần cuối: 02/11/2026 — đối chiếu commit 3837493
+
 # ShopViet E-Commerce Platform
 
 ## 1. Tổng quan dự án
 
 ### Mục tiêu
-Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh bao gồm website mua sắm cho khách hàng và trang quản trị cho admin. Hệ thống hỗ trợ đầy đủ các chức năng từ duyệt sản phẩm, giỏ hàng, thanh toán đến quản lý đơn hàng và báo cáo doanh thu.
+Xây dựng nền tảng thương mại điện tử chuyên biệt cho ngành bán lẻ công nghệ tại thị trường Việt Nam (Vietnamese tech market) bao gồm website mua sắm cho khách hàng và trang quản trị toàn diện cho quản trị viên. Hệ thống hỗ trợ đầy đủ các chức năng từ duyệt sản phẩm, so sánh thông số kỹ thuật, giỏ hàng, đặt cọc COD, thanh toán VNPay, quản lý kho IMEI/Serial, mạng lưới 45 showroom đến quản trị đổi trả hàng (RMA) và báo cáo doanh thu.
 
-### Loại hình hệ thống
-- **E-commerce Storefront**: Website mua sắm cho người dùng cuối
-- **Admin Dashboard**: Trang quản trị hệ thống
+### Phân hệ ứng dụng
+- **Backend API**: ASP.NET Core 8 REST API theo kiến trúc Clean Architecture, Domain-Driven Design (DDD) và CQRS (36 Controllers).
+- **ecommerce-client**: Website mua sắm cho khách hàng xây dựng trên Next.js 15 (React 19), Tailwind CSS v4 (27 routes).
+- **ecommerce-dashboard**: Trang quản trị hệ thống cho admin và nhân viên xây dựng trên Next.js 15 (React 18.3.1), Tailwind CSS v4, TanStack Table v8 (71 routes).
 
 ### Đối tượng sử dụng
 | Đối tượng | Mô tả | Ứng dụng |
 |-----------|-------|----------|
-| **Guest (Khách vãng lai)** | Xem sản phẩm, thêm giỏ hàng, thanh toán không cần đăng nhập | ecommerce-client |
-| **Customer (Thành viên)** | Mua hàng, quản lý đơn hàng, wishlist, viết đánh giá | ecommerce-client |
-| **Admin (Quản trị viên)** | Quản lý sản phẩm, đơn hàng, người dùng, báo cáo | ecommerce-dashboard |
+| **Guest (Khách vãng lai)** | Xem sản phẩm, so sánh cấu hình, thêm giỏ hàng (Guest Cart lưu server-side cookie 7 ngày), đặt hàng không cần đăng ký | ecommerce-client |
+| **Customer (Thành viên)** | Mua hàng, tích điểm thành viên, quản lý sổ địa chỉ, tạo yêu cầu đổi trả (RMA 7 ngày), wishlist, đánh giá sản phẩm | ecommerce-client |
+| **Admin & Staff (Quản trị viên & Nhân viên)** | Quản lý sản phẩm, tồn kho IMEI/Serial, duyệt đơn, showroom, đổi trả RMA, khóa tài khoản, báo cáo | ecommerce-dashboard |
 
 ---
 
@@ -24,42 +27,49 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 | Thành phần | Công nghệ |
 |------------|-----------|
 | Framework | .NET 8.0 (ASP.NET Core Web API) |
-| Kiến trúc | Clean Architecture + DDD |
-| Pattern | CQRS với MediatR |
-| ORM | Entity Framework Core |
-| Authentication | JWT + Cookie-based Auth + CSRF Protection |
-| Real-time | SignalR (Hub: Notification, Review) |
-| Logging | Serilog |
-| Excel Export | EPPlus |
+| Kiến trúc | Clean Architecture + DDD + CQRS với MediatR |
+| Controllers | 36 REST Controllers |
+| Domain Entities | 67 Domain Entities + 1 BaseEntity (68 classes), 20 Enums |
+| ORM | Entity Framework Core 8 |
+| Database | PostgreSQL 16 (Docker/Render) / SQLite (Local dev nhanh) — *Không hỗ trợ SQL Server* |
+| Caching | Redis 7 (optional, fallback in-memory cache) |
+| Message Broker | RabbitMQ 3.13 (Domain Events, Outbox Pattern) |
+| Search | Elasticsearch 8.13/8.16 (optional, fallback SQL LIKE qua `NoOpProductSearchService`) |
+| Authentication | JWT + httpOnly Cookie (dual authentication), CSRF Token, Redis session |
+| Real-time | SignalR WebSocket (Hubs: `NotificationHub`, `ReviewHub`) |
+| Payments | VNPay Sandbox & COD (Backend xử lý thực tế); MoMo, ZaloPay, VietQR (Frontend UI) |
+| Background Jobs | Hosted Services: `EmailBackgroundService`, `OutboxBackgroundService` |
+| Logging & Metrics | Serilog, OpenTelemetry, Jaeger, Prometheus, Alertmanager, Grafana |
+| Testing | 3 test projects với 55 test files (`Application.Tests`, `Domain.Tests`, `IntegrationTests`) |
 
 ### Frontend
 | Thành phần | ecommerce-client | ecommerce-dashboard |
 |------------|------------------|---------------------|
 | Framework | Next.js `^15.5.14` | Next.js `^15.5.14` |
 | React | React `^19.0.0` | React `^18.3.1` |
-| React Types | `@types/react` `^19`, `@types/react-dom` `^19` | `@types/react` `^18.3.29`, `@types/react-dom` `^18.3.7` |
+| Routes / Màn hình | **27 routes** | **71 routes** |
 | Styling | Tailwind CSS v4 | Tailwind CSS v4 |
 | UI Components | Radix UI, Lucide Icons | Radix UI, Tabler Icons, Lucide Icons |
 | State Management | TanStack Query v5 | TanStack Query v5 |
-| Forms | React Hook Form + Zod | React Hook Form + Zod |
-| Animations | Framer Motion | - |
-| Data Table | - | TanStack Table |
+| Forms & Validation | React Hook Form + Zod | React Hook Form + Zod |
+| Data Table | - | TanStack Table v8 |
 | Charts | - | Recharts |
 | Drag & Drop | - | @dnd-kit |
 
-### Database
-- **Primary**: SQL Server (chạy local, không container)
-- **Cache**: Redis (required, distributed cache + guest carts)
-
-### DevOps
-- **Containerization**: Docker, Docker Compose
-- **Services**: Backend API, Frontend Client, Frontend Dashboard, Redis
-
-### Dịch vụ bên thứ ba
-| Dịch vụ | Mô tả |
-|---------|-------|
-| **VNPay** | Cổng thanh toán trực tuyến (Sandbox) |
-| **SignalR** | Real-time notifications |
+### DevOps & Hạ tầng (11 Dịch vụ Docker Compose)
+| Dịch vụ | Image / Công nghệ | Cổng mặc định | Vai trò |
+|---------|-------------------|---------------|---------|
+| `postgres` | postgres:15-alpine / 16-alpine | 5432:5432 | Cơ sở dữ liệu chính |
+| `redis` | redis:7-alpine | 6379:6379 | Bộ nhớ đệm phân tán |
+| `rabbitmq` | rabbitmq:3.13-management-alpine | 5672:5672, 15672:15672 | Message broker cho Outbox events |
+| `elasticsearch` | ecommerce-elasticsearch-icu:8.16.3 | 9200:9200 | Tìm kiếm full-text sản phẩm tiếng Việt |
+| `backend` | ASP.NET Core 8 Web API | 5000:5000 | Backend REST API |
+| `frontend-client` | Next.js 15 (React 19) | 3000:3000 | Giao diện khách hàng |
+| `frontend-dashboard` | Next.js 15 (React 18.3.1) | 3001:3000 | Giao diện quản trị |
+| `jaeger` | jaegertracing/all-in-one:1.57 | 16686:16686, 4317:4317 | Distributed tracing APM |
+| `prometheus` | prom/prometheus:v2.52.0 | 9090:9090 | Thu thập số liệu hiệu năng |
+| `alertmanager` | prom/alertmanager:v0.27.0 | 9093:9093 | Quản lý thông báo cảnh báo |
+| `grafana` | grafana/grafana:10.4.3 | 3002:3000 | Dashboard trực quan hóa giám sát |
 
 ---
 
@@ -70,12 +80,12 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 │                              FRONTEND LAYER                                  │
 │  ┌─────────────────────────────┐    ┌─────────────────────────────────────┐ │
 │  │     ecommerce-client        │    │       ecommerce-dashboard           │ │
-│  │     (Next.js 15.5)          │    │         (Next.js 15.5)              │ │
-│  │     Port: 3000              │    │         Port: 3001                  │ │
-│  │     Customer Website        │    │         Admin Panel                 │ │
+│  │     Next.js 15 (React 19)   │    │     Next.js 15 (React 18.3.1)       │ │
+│  │     Port: 3000 (27 routes)  │    │     Port: 3001 (71 routes)          │ │
+│  │     Customer Website        │    │     Admin Panel                     │ │
 │  └──────────────┬──────────────┘    └─────────────────┬───────────────────┘ │
 │                 │                                      │                     │
-│                 │         HTTP/REST + SignalR          │                     │
+│                 │      HTTP/REST (Cookie/CSRF) + SignalR                     │
 │                 └──────────────────┬───────────────────┘                     │
 └────────────────────────────────────┼─────────────────────────────────────────┘
                                      │
@@ -83,50 +93,46 @@ Xây dựng hệ thống thương mại điện tử (E-commerce) hoàn chỉnh 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              BACKEND LAYER                                   │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                        Ecommerce.WebAPI                                 ││
-│  │                        Port: 5000                                       ││
-│  │  ┌─────────────┐  ┌─────────────┐  ┌───────────────┐  ┌──────────────┐ ││
-│  │  │ Controllers │  │ Middleware  │  │  SignalR Hubs │  │    CORS      │ ││
-│  │  └──────┬──────┘  └─────────────┘  └───────────────┘  └──────────────┘ ││
+│  │               Ecommerce.WebAPI (ASP.NET Core 8 - 36 Controllers)        ││
+│  │               Port: 5000                                                ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌───────────────┐  ┌──────────────┐  ││
+│  │  │ Controllers │  │ Middleware  │  │  SignalR Hubs │  │ Outbox Worker│  ││
+│  │  └──────┬──────┘  └─────────────┘  └───────────────┘  └──────────────┘  ││
 │  └─────────┼───────────────────────────────────────────────────────────────┘│
 │            │                                                                 │
 │  ┌─────────▼───────────────────────────────────────────────────────────────┐│
-│  │                     Ecommerce.Application                               ││
-│  │  ┌────────────────────────────────────────────────────────────────────┐ ││
-│  │  │     Features (CQRS: Commands + Queries + Handlers)                 │ ││
-│  │  │  Auth, Products, Cart, Orders, Payments, Reviews, Notifications... │ ││
-│  │  └────────────────────────────────────────────────────────────────────┘ ││
+│  │               Ecommerce.Application (CQRS Commands & Queries)           ││
+│  │  Features: Auth, Products, Cart, Orders, Payments, Returns, Inventory... ││
 │  └─────────┬───────────────────────────────────────────────────────────────┘│
 │            │                                                                 │
 │  ┌─────────▼───────────────────────────────────────────────────────────────┐│
-│  │                       Ecommerce.Domain                                  ││
-│  │      Entities, Enums, Events, Interfaces (Repository Abstractions)     ││
+│  │               Ecommerce.Domain (DDD Core)                               ││
+│  │  67 Entities, 20 Enums, Domain Events, Aggregate Roots, Interfaces      ││
 │  └─────────┬───────────────────────────────────────────────────────────────┘│
 │            │                                                                 │
 │  ┌─────────▼───────────────────────────────────────────────────────────────┐│
-│  │                    Ecommerce.Infrastructure                             ││
-│  │  ┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌───────────┐            ││
-│  │  │ Persistence  │ │ Migrations │ │ SignalR  │ │   Cache   │            ││
-│  │  │ (DbContext)  │ │            │ │  Hubs    │ │  (Redis)  │            ││
-│  │  └──────────────┘ └────────────┘ └──────────┘ └───────────┘            ││
+│  │               Ecommerce.Infrastructure (Persistence & External)         ││
+│  │  ┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌───────────┐ ┌─────────┐ ││
+│  │  │  DbContext   │ │6Migrations │ │ SignalR  │ │   Cache   │ │  VNPay  │ ││
+│  │  │(Postgres/Sql)│ │  (EF Core) │ │  Hubs    │ │ (InMem/Rd)│ │ Gateway │ ││
+│  │  └──────────────┘ └────────────┘ └──────────┘ └───────────┘ └─────────┘ ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 └────────────────────────────────────┬─────────────────────────────────────────┘
                                      │
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              DATA LAYER                                      │
+│                              DATA & INFRA LAYER                             │
 │  ┌─────────────────────────────┐    ┌─────────────────────────────────────┐ │
-│  │      SQL Server (Local)     │    │       Redis (Docker - Required)    │ │
-│  │      Database: ecommerce_db │    │       Port: 6379                   │ │
+│  │ PostgreSQL 16 (or SQLite)   │    │ Redis 7 (Optional Cache)            │ │
+│  │ Database: ecommerce_db      │    │ Port: 6379                          │ │
+│  ├─────────────────────────────┤    ├─────────────────────────────────────┤ │
+│  │ RabbitMQ 3.13 (Broker)      │    │ Elasticsearch 8.16 (Search)         │ │
+│  │ Port: 5672 / 15672          │    │ Port: 9200                          │ │
+│  ├─────────────────────────────┤    ├─────────────────────────────────────┤ │
+│  │ Jaeger Tracing (4317/16686) │    │ Prometheus & Grafana (9090/3002)    │ │
 │  └─────────────────────────────┘    └─────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Cách các thành phần giao tiếp
-1. **Frontend → Backend**: RESTful API qua HTTP (JSON), hỗ trợ Cookie-based authentication
-2. **Real-time**: SignalR WebSocket cho notifications và live reviews
-3. **Backend → Database**: Entity Framework Core với SQL Server
-4. **Caching**: Redis distributed cache for read models and guest carts
 
 ---
 
@@ -139,60 +145,56 @@ ecommerce/
 │   │   └── Ecommerce/                    # .NET Solution
 │   │       ├── Ecommerce.sln
 │   │       ├── Dockerfile
-│   │       ├── Ecommerce.Domain/         # Domain Layer
-│   │       │   ├── Entities/             # 45 entity classes (Product, Order, Cart...)
-│   │       │   ├── Enums/                # OrderStatus, PaymentMethod...
+│   │       ├── Ecommerce.Domain/         # Domain Layer (67 Entities, 20 Enums)
+│   │       │   ├── Entities/             # Product, Order, ReturnRequest, InventoryItem...
+│   │       │   ├── Enums/                # EOrderStatus, EReturnStatus, EInventoryStatus...
 │   │       │   ├── Events/               # Domain Events
-│   │       │   └── Interfaces/           # Repository interfaces
-│   │       ├── Ecommerce.Application/    # Application Layer
-│   │       │   ├── Features/             # 26 feature modules (CQRS)
-│   │       │   │   ├── Auth/             # Login, Register, RefreshToken
-│   │       │   │   ├── Products/         # CRUD, Search, Filter
-│   │       │   │   ├── Cart/             # Guest Cart, User Cart
-│   │       │   │   ├── Orders/           # Create, Update Status
-│   │       │   │   ├── Payments/         # VNPay integration
-│   │       │   │   └── ...
-│   │       │   ├── Common/               # DTOs, Mappings, Validators
-│   │       │   └── Policies/             # Authorization policies
+│   │       │   └── Interfaces/           # Repository Abstractions
+│   │       ├── Ecommerce.Application/    # Application Layer (CQRS)
+│   │       │   ├── Features/             # CQRS Feature slices (36 business modules)
+│   │       │   ├── Common/               # DTOs, Mappings, FluentValidation, Configs
+│   │       │   └── Services/             # ShippingCalculator, CustomerLevel...
 │   │       ├── Ecommerce.Infrastructure/ # Infrastructure Layer
-│   │       │   ├── Persistence/          # DbContext, Repositories, Seed
-│   │       │   ├── Migrations/           # EF Core Migrations
+│   │       │   ├── Persistence/          # DbContext (PostgreSQL/SQLite), Seed Data
+│   │       │   ├── Migrations/           # 6 EF Core Migrations
 │   │       │   ├── SignalR/              # NotificationHub, ReviewHub
-│   │       │   ├── Cache/                # Redis Cache implementation
-│   │       │   └── Services/             # External services
-│   │       └── Ecommerce.WebAPI/         # Presentation Layer
-│   │           ├── Controllers/          # 26 API controllers
-│   │           ├── Middleware/           # CSRF, Logging, Exception
-│   │           ├── Extensions/           # Service extensions
-│   │           ├── appsettings.json      # Configuration
-│   │           └── Program.cs            # Entry point
+│   │       │   ├── Cache/                # Redis / In-memory Cache
+│   │       │   ├── Payments/             # VNPay Sandbox Payment Gateway
+│   │       │   ├── EmailTemplates/       # HTML Email Templates (order, status, reset)
+│   │       │   └── Services/             # EmailBackgroundService, OutboxBackgroundService
+│   │       ├── Ecommerce.WebAPI/         # Presentation Layer (36 Controllers)
+│   │       │   ├── Controllers/          # 36 REST API Controllers
+│   │       │   ├── Middleware/           # CSRF, Logging, Exception, GuestCart, AccountLock
+│   │       │   ├── Extensions/           # Service & Database Registration Extensions
+│   │       │   ├── appsettings.json      # Configuration
+│   │       │   └── Program.cs            # Application Entry Point
+│   │       └── TemplateEngineHost/       # Cache nội bộ của Visual Studio template engine (vs/)
 │   └── frontend/
-│       ├── ecommerce-client/             # Customer Website (Next.js)
-│       │   ├── app/                      # App Router pages
-│       │   │   ├── (auth)/               # Login, Register
-│       │   │   └── (routes)/             # Products, Cart, Checkout...
-│       │   ├── components/               # UI Components
-│       │   ├── hooks/                    # Custom React Hooks
-│       │   ├── services/                 # API services
-│       │   ├── types/                    # TypeScript types
+│       ├── ecommerce-client/             # Customer Storefront (Next.js 15, React 19, 27 routes)
+│       │   ├── app/                      # App Router: (auth)/, (routes)/
+│       │   ├── components/               # Bento Grid, ProductCard, Cart, Checkout, RMA
+│       │   ├── hooks/                    # TanStack Query custom hooks
+│       │   ├── services/                 # Axios API services
+│       │   ├── types/                    # TypeScript interfaces
 │       │   └── hubs/                     # SignalR connection
-│       └── ecommerce-dashboard/          # Admin Dashboard (Next.js)
-│           ├── app/
-│           │   ├── (auth)/               # Admin login
-│           │   └── (dashboard)/          # Dashboard, Products, Orders...
-│           ├── components/               # Admin UI Components
-│           ├── hooks/                    # Admin hooks
-│           ├── services/                 # Admin API services
-│           └── config/                   # Dashboard configurations
+│       └── ecommerce-dashboard/          # Admin Dashboard (Next.js 15, React 18.3.1, 71 routes)
+│           ├── app/                      # App Router: (auth)/, (dashboard)/
+│           ├── components/               # TanStack Table, Recharts, Form Dialogs
+│           ├── hooks/                    # Admin query hooks
+│           ├── services/                 # Admin API client services
+│           └── config/                   # Navigation & Menu configurations
+├── tests/
+│   ├── Ecommerce.Application.Tests/      # 30 test files (CQRS, validation, services)
+│   ├── Ecommerce.Domain.Tests/           # 12 test files (Domain entities, order flow, inventory)
+│   └── Ecommerce.WebAPI.IntegrationTests/# 13 test files (API integration, auth, outbox, payments)
 ├── docker-compose/
-│   ├── docker-compose.yml                # Multi-service compose file
-│   ├── .env.example                      # Environment template
-│   └── .env                              # Local environment (gitignored)
-└── docs/
-    ├── business_requirements.md          # Business requirements
-    ├── authentication_proposal.md        # Auth improvement proposal
-    ├── DOCKER_GUIDE.md                   # Docker deployment guide
-    └── security/                         # Security documentation
+│   ├── docker-compose.yml                # 11 dịch vụ hoàn chỉnh
+│   ├── .env.example                      # Template biến môi trường
+│   └── observability/                    # Cấu hình Prometheus, Alertmanager, Grafana
+├── .github/
+│   └── workflows/
+│       └── frontend-quality.yml          # CI/CD: Typecheck, Lint, Build Client & Dashboard
+└── docs/                                 # Tài liệu kiến trúc và hướng dẫn nghiệp vụ
 ```
 
 ---
@@ -200,398 +202,236 @@ ecommerce/
 ## 5. Hướng dẫn cài đặt & chạy dự án (Local)
 
 ### Yêu cầu môi trường
-- **Node.js**: v18.x hoặc cao hơn
 - **.NET SDK**: 8.0
-- **SQL Server**: 2019 hoặc cao hơn (có thể dùng SQL Server Express)
-- **Docker Desktop**: (khuyến nghị, Redis là service bắt buộc khi chạy Docker Compose)
+- **Node.js**: v18.x hoặc cao hơn (khuyến nghị v20.x LTS)
+- **Cơ sở dữ liệu**: Docker (chạy PostgreSQL) HOẶC không cần cài gì (dùng SQLite cục bộ)
 - **Git**
 
-### Bước 1: Clone repository
+> [!NOTE]
+> Hệ thống **hoàn toàn không hỗ trợ Microsoft SQL Server**. Bạn có thể lựa chọn 1 trong 2 phương án bên dưới để chạy local nhanh chóng.
+
+### Phương án 1: Dùng Docker Compose cho Hạ tầng (Khuyến nghị)
+Khởi động cụm dịch vụ cơ bản (PostgreSQL, Redis, RabbitMQ):
 ```bash
-git clone <repository-url>
-cd ecommerce
+cd docker-compose
+docker compose up -d postgres redis rabbitmq
 ```
+Connection string PostgreSQL mặc định:
+`Host=localhost;Port=5432;Database=ecommerce_db;Username=postgres;Password=yourpassword;`
 
-### Bước 2: Cấu hình Database
-1. Tạo database `ecommerce_db` trong SQL Server
-2. Đảm bảo SQL Server cho phép Windows Authentication hoặc SQL Authentication
-
-### Bước 3: Cấu hình Backend
-```bash
-cd apps/backend/Ecommerce/Ecommerce.WebAPI
-```
-
-Cập nhật `appsettings.Development.json`:
+### Phương án 2: Chạy SQLite Độc lập (Không cần Docker)
+Chỉ cần cấu hình connection string trong `apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings.Development.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=ecommerce_db;Trusted_Connection=True;TrustServerCertificate=True;"
+    "DefaultConnection": "Data Source=ecommerce.db"
   }
 }
 ```
+Lớp `AddDatabaseExtensions.cs` sẽ tự động kích hoạt SQLite provider và tự động tạo database file `ecommerce.db` tại chỗ khi khởi động.
 
-### Bước 4: Chạy Backend
+---
+
+### Khởi chạy Backend (.NET 8 WebAPI)
 ```bash
 cd apps/backend/Ecommerce
 dotnet restore
+
+# Chạy toàn bộ 55 test files trên 3 dự án kiểm thử
+dotnet test
+
+# Khởi chạy WebAPI
 dotnet run --project Ecommerce.WebAPI
 ```
-Backend sẽ chạy tại: `http://localhost:5000`
+- API & Swagger UI: `http://localhost:5000/swagger`
+- CSDL tự động migrate và seed dữ liệu mẫu (admin, 4 roles, 45 showroom, danh mục, sản phẩm công nghệ) trong môi trường Development.
 
-> **Lưu ý**: Database sẽ được tự động migrate và seed data khi khởi động lần đầu.
+---
 
-### Bước 5: Chạy Frontend Client
+### Khởi chạy Frontend Client (Website Khách hàng)
 ```bash
 cd apps/frontend/ecommerce-client
 npm install
 npm run dev
 ```
-Client sẽ chạy tại: `http://localhost:3000`
+Client chạy tại cổng **3000**: `http://localhost:3000`
 
-Scripts hiện có:
+Scripts kiểm tra chất lượng:
 ```bash
-npm run dev        # Next dev server
-npm run build      # next build
-npm run start      # next start
-npm run lint       # eslint .
 npm run typecheck  # tsc --noEmit
+npm run lint       # eslint .
+npm run build      # next build
 ```
 
-### Bước 6: Chạy Frontend Dashboard
+---
+
+### Khởi chạy Frontend Dashboard (Trang Quản trị)
 ```bash
 cd apps/frontend/ecommerce-dashboard
 npm install
 npm run dev -- -p 3001
 ```
-Dashboard mặc định của `next dev` là `http://localhost:3000`; dùng `-p 3001` khi chạy song song với client để dashboard chạy tại `http://localhost:3001`.
+Dashboard chạy tại cổng **3001**: `http://localhost:3001`
 
-Scripts hiện có:
+Scripts kiểm tra chất lượng:
 ```bash
-npm run dev        # Next dev server
-npm run build      # next build
-npm run start      # next start
-npm run lint       # eslint .
 npm run typecheck  # tsc --noEmit
+npm run lint       # eslint .
+npm run build      # next build
 ```
 
-### Ports sử dụng
-| Service | Port | URL |
-|---------|------|-----|
-| Backend API | 5000 | http://localhost:5000 |
-| Swagger | 5000 | http://localhost:5000/swagger |
-| Client Website | 3000 | http://localhost:3000 |
-| Admin Dashboard | 3001 | http://localhost:3001 |
+---
+
+### Bảng Ports Hệ thống
+| Dịch vụ | Cổng | URL truy cập |
+|---------|------|--------------|
+| Backend REST API | 5000 | http://localhost:5000 |
+| Backend Swagger UI | 5000 | http://localhost:5000/swagger |
+| Frontend Client | 3000 | http://localhost:3000 |
+| Frontend Dashboard | 3001 | http://localhost:3001 |
+| PostgreSQL | 5432 | localhost:5432 |
 | Redis | 6379 | localhost:6379 |
+| RabbitMQ Management UI | 15672 | http://localhost:15672 (guest/guest) |
+| Elasticsearch | 9200 | http://localhost:9200 |
+| Jaeger UI | 16686 | http://localhost:16686 |
+| Prometheus | 9090 | http://localhost:9090 |
+| Alertmanager | 9093 | http://localhost:9093 |
+| Grafana | 3002 | http://localhost:3002 (admin/admin) |
 
 ---
 
 ## 6. Cấu hình môi trường
 
 ### Backend (appsettings.Development.json)
+Tham khảo file mẫu `apps/backend/Ecommerce/Ecommerce.WebAPI/appsettings.Development.example.json`.
 
-| Biến | Mô tả | Bắt buộc |
-|------|-------|----------|
-| `ConnectionStrings:DefaultConnection` | Connection string SQL Server | ✅ |
-| `Redis:ConnectionString` | Redis connection | ✅ |
-| `Jwt:SecretKey` | Secret key cho JWT (min 32 chars) | ✅ |
-| `Jwt:Issuer` | JWT Issuer | ✅ |
-| `Jwt:Audience` | JWT Audience | ✅ |
-| `Jwt:AccessTokenExpirationMinutes` | Thời hạn access token | ✅ |
-| `FileStorage:AppUrl` | URL base của backend | ✅ |
-| `FileStorage:UploadFolder` | Thư mục lưu file upload | ✅ |
-| `CacheSettings:UseRedis` | Redis cache is expected to be enabled | ✅ |
-| `VnPay:TmnCode` | VNPay Terminal Code | ❌ |
-| `VnPay:HashSecret` | VNPay Secret Key | ❌ |
-| `AuthConfig:UseCookieAuth` | Bật cookie-based auth | ✅ |
-| `AuthConfig:EnableCsrfProtection` | Bật CSRF protection | ✅ |
-| `CookieSettings:AccessTokenMinutes` | Cookie access token TTL | ✅ |
-| `CookieSettings:RefreshTokenDays` | Cookie refresh token TTL | ✅ |
-| `Authentication:Google:ClientId` | Google OAuth client id for customer sign-in | ❌ |
-| `Authentication:Google:ClientSecret` | Google OAuth client secret; use user-secrets/env vars | ❌ |
-| `Authentication:Google:CallbackUrl` | Public Google OAuth callback URL; defaults to `AppUrl:Frontend/api/auth/google-oauth-callback` | ❌ |
-| `AppUrl:Frontend` | Customer frontend base URL for OAuth/email links | ✅ |
-| `Email:FromAddress` | Transactional email sender address | ❌ |
-| `Email:FromName` | Transactional email sender name | ❌ |
-| `Email:Smtp:Host` | SMTP host; blank disables actual delivery but keeps queue safe | ❌ |
-| `Email:Smtp:Port` | SMTP port, usually 587 | ❌ |
-| `Email:Smtp:Username` | SMTP username | ❌ |
-| `Email:Smtp:Password` | SMTP password; use user-secrets/env vars | ❌ |
-| `Email:Smtp:EnableSsl` | Enable SMTP TLS | ❌ |
+| Biến cấu hình | Ý nghĩa & Giá trị mẫu | Bắt buộc |
+|---|---|:---:|
+| `ConnectionStrings:DefaultConnection` | `Data Source=ecommerce.db` (SQLite) hoặc PostgreSQL string | ✅ |
+| `ConnectionStrings:Redis` | `localhost:6379` | ❌ (Fallback Memory) |
+| `Jwt:SecretKey` | Chuỗi khóa bí mật JWT $\ge 32$ ký tự (`CHANGE_ME_MINIMUM_32_CHARACTERS`) | ✅ |
+| `Jwt:Issuer` | `Ecommerce` | ✅ |
+| `Jwt:Audience` | `EcommerceUsers` | ✅ |
+| `Jwt:AccessTokenExpirationMinutes` | Thời hạn claim JWT (mặc định 60 phút) | ✅ |
+| `AuthConfig:UseCookieAuth` | `true` (Xác thực qua httpOnly cookie) | ✅ |
+| `AuthConfig:EnableCsrfProtection` | `true` (Bảo vệ CSRF với header `X-CSRF-Token`) | ✅ |
+| `CookieSettings:AccessTokenMinutes` | `15` (Thời hạn cookie access_token phía trình duyệt) | ✅ |
+| `CookieSettings:RefreshTokenDays` | `7` (Thời hạn cookie refresh_token) | ✅ |
+| `Auth:TokenHashSecret` | Secret hashing token (`CHANGE_ME_SEPARATE_TOKEN_HASH_SECRET_MIN_32_CHARS`) | ✅ |
+| `VnPay:TmnCode` | Terminal Code VNPay Sandbox | ❌ |
+| `VnPay:HashSecret` | Khóa bí mật băm dữ liệu VNPay Sandbox | ❌ |
+| `VnPay:BaseUrl` | `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html` | ❌ |
+| `VnPay:ReturnUrl` | `http://localhost:5000/api/payments/vnpay/return` | ❌ |
+| `Elasticsearch:UseElasticsearch` | `false` (local fallback sang SQL LIKE) | ❌ |
+| `FileStorage:UploadFolder` | `uploads` | ✅ |
 
-### Google Sign-In
-
-Create a Google OAuth web client and add the callback URL used by the customer frontend proxy:
-
-```text
-http://localhost:3000/api/auth/google-oauth-callback
-```
-
-Store secrets outside committed settings:
-
-```bash
-dotnet user-secrets set "Authentication:Google:ClientId" "<client-id>" --project apps/backend/Ecommerce/Ecommerce.WebAPI
-dotnet user-secrets set "Authentication:Google:ClientSecret" "<client-secret>" --project apps/backend/Ecommerce/Ecommerce.WebAPI
-```
-
-### Email Notifications
-
-Order confirmation, order status update, password reset, and admin resend emails are queued through the API and sent by `EmailBackgroundService`. SMTP delivery is disabled when `Email:Smtp:Host` is empty.
-
-### Frontend (.env.local)
-
-| Biến | Mô tả | Mặc định |
-|------|-------|----------|
-| `NEXT_PUBLIC_API_URL` | Backend API URL | http://localhost:5000/api |
-| `NEXT_PUBLIC_IMAGE_REMOTE_URLS` | Danh sách URL prefix cho image host production/CDN, phân tách bằng dấu phẩy; dùng cho `next/image` remotePatterns ngoài Supabase/Unsplash và localhost development | rỗng |
-
-Frontend dùng relative API path để cookie auth same-origin hoạt động ổn định:
-
-- Request frontend đến `/api/:path*` được Next rewrites proxy sang `${NEXT_PUBLIC_API_URL}/:path*`.
-- Request frontend đến `/uploads/:path*` được Next rewrites proxy sang backend upload base tương ứng.
-- Nếu không set `NEXT_PUBLIC_API_URL`, cả client và dashboard dùng mặc định `http://localhost:5000/api`.
-- Các remote image host localhost chỉ được allow trong development. Production cần cấu hình domain upload/CDN thật bằng `NEXT_PUBLIC_IMAGE_REMOTE_URLS` nếu backend trả absolute image URLs.
-
-### Docker (.env)
-
-Tham khảo file `docker-compose/.env.example` để xem danh sách đầy đủ các biến môi trường cho Docker deployment.
+### Frontend Client & Dashboard (.env.local)
+- Client: Tham khảo `apps/frontend/ecommerce-client/.env.example`
+  ```env
+  NEXT_PUBLIC_API_URL=http://localhost:5000/api
+  NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+  NEXT_PUBLIC_SIGNALR_URL=http://localhost:5000
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id-here.apps.googleusercontent.com
+  ```
+- Dashboard: Tham khảo `apps/frontend/ecommerce-dashboard/.env.example`
+  ```env
+  NEXT_PUBLIC_API_URL=http://localhost:5000/api
+  NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+  NEXT_PUBLIC_SIGNALR_URL=http://localhost:5000
+  GEMINI_API_KEY=your-gemini-api-key
+  ```
 
 ---
 
-## 7. Chức năng chính của hệ thống
+## 7. Chức năng chính & Quy chuẩn SSoT 2026
 
-### Chức năng phía khách hàng (ecommerce-client)
+### Quy tắc Nghiệp vụ Chuẩn SSoT 2026
+1. **Mạng lưới 45 Showroom**: Hệ thống tích hợp danh mục 45 showroom công nghệ hiện đại toàn quốc kèm kiểm tra tồn kho tại chỗ và dịch vụ nhận tại cửa hàng (`ShowroomPickup`).
+2. **Hotlines Miễn phí Cước**: Hotline bán hàng `1800 6868` và Hotline kỹ thuật `1800 6869`.
+3. **Chính sách Freeship**: Áp dụng miễn phí vận chuyển cho đơn hàng từ **500.000₫** trở lên. Đơn dưới 500k tính phí cố định 30.000₫. Mã voucher `FREESHIP` giảm 100% phí ship.
+4. **Cọc COD 10% cho Đơn hàng Giá trị cao**: Đơn hàng chọn phương thức COD có tổng giá trị `TotalAmount > 20.000.000₫` (lớn hơn 20 triệu đồng) bắt buộc phải đặt cọc trước **10%** (`DepositRequired = Math.Round(TotalAmount * 0.10m)`), 90% còn lại thu khi giao hàng. Trạng thái cọc ban đầu là `Pending`.
+5. **Quy trình Đổi trả hàng (RMA)**: Thời hạn gửi yêu cầu đổi trả là **7 ngày** kể từ ngày giao hàng thành công (`Delivered`).
 
-| Module | Chức năng |
-|--------|-----------|
-| **Catalog** | Duyệt sản phẩm, lọc theo danh mục/thương hiệu, tìm kiếm, xem chi tiết |
-| **Cart** | Thêm/sửa/xóa sản phẩm, Guest Cart (không cần đăng nhập), áp dụng mã giảm giá |
-| **Checkout** | Nhập địa chỉ, chọn phương thức thanh toán (COD, VNPay), đặt hàng |
-| **Orders** | Xem lịch sử đơn hàng, theo dõi trạng thái, hủy đơn |
-| **Account** | Quản lý thông tin cá nhân, sổ địa chỉ, đổi mật khẩu |
-| **Wishlist** | Lưu sản phẩm yêu thích |
-| **Reviews** | Đánh giá sản phẩm, xem reviews của người khác |
-| **Compare** | So sánh sản phẩm |
-| **Notifications** | Nhận thông báo real-time qua SignalR |
-
-### Chức năng phía quản trị (ecommerce-dashboard)
-
-| Module | Chức năng |
-|--------|-----------|
-| **Dashboard** | Tổng quan doanh thu, đơn hàng, thống kê |
-| **Products** | CRUD sản phẩm, quản lý variants, ảnh, thông số |
-| **Categories** | Quản lý danh mục sản phẩm (cây phân cấp) |
-| **Brands** | Quản lý thương hiệu |
-| **Orders** | Xem/cập nhật trạng thái đơn hàng, export Excel |
-| **Users** | Quản lý khách hàng, khóa tài khoản |
-| **Roles & Permissions** | Phân quyền RBAC |
-| **Reports** | Báo cáo doanh thu, sản phẩm bán chạy, đơn hàng |
-| **Notifications** | Gửi thông báo đến khách hàng |
-| **Logs** | Xem audit logs, performance logs |
-| **Settings** | Cấu hình hệ thống (About, Contact, Banners) |
-
-### Luồng nghiệp vụ chính
-
-#### Checkout Flow
+### Vòng đời & Chuyển trạng thái Đơn hàng (Order State Transitions)
+Chuỗi trạng thái chuẩn trong Domain (`Order.cs`):
 ```
-Thêm sản phẩm → Xem giỏ hàng → Checkout → Nhập địa chỉ → Chọn thanh toán → Đặt hàng → Order (Pending)
+[Pending = 0] ───> [Processing = 1] ───> [Shipped = 2] ───> [Delivered = 6] ───> [Completed = 3]
+       │                    │                                      │
+       └───> [Cancelled = 4] <──┘                                  └──> [ReturnRequested = 7]
+                                                                                │
+                                                                                ▼
+                                                                        [Returned = 8]
+                                                                                │
+                                                                                ▼
+                                                                        [Refunded = 5]
 ```
-
-#### Order Lifecycle
-```
-Pending (0) → Processing (1) → Shipped (2) → Delivered (3)
-                    ↓                            ↓
-               Cancelled (4)              Returned (5)
-```
-
-#### Business Rules
-- **Miễn phí vận chuyển**: Đơn hàng > 500,000 VND
-- **Phí vận chuyển cố định**: 30,000 VND cho đơn ≤ 500,000 VND
-- **Guest Cart**: Hỗ trợ giỏ hàng không cần đăng nhập, merge khi login
+> [!WARNING]
+> Tuyệt đối không nhảy cóc từ `Shipped` trực tiếp sang `Completed` (bắt buộc phải qua trạng thái `Delivered`). Mọi bước chuyển sai quy trình sẽ ném ngoại lệ `InvalidStatusTransitionException`.
 
 ---
 
-## 8. Xác thực & bảo mật
+## 8. Xác thực & Bảo mật
 
-### Cơ chế xác thực
-Hệ thống sử dụng **Dual Authentication Strategy**:
-
-1. **JWT Access Token** (expire: 15 phút)
-   - Lưu trong httpOnly Cookie
-   - Gửi kèm Header `Authorization: Bearer <token>` (fallback)
-
-2. **Refresh Token** (expire: 7 ngày)
-   - Lưu trong httpOnly Cookie
-   - Dùng để làm mới Access Token
-
-3. **CSRF Protection**
-   - Token CSRF được trả về trong response header
-   - Client gửi kèm trong header `X-CSRF-Token`
-
-### Luồng Authentication
-```
-1. Login → Server set cookies (access_token, refresh_token, csrf_token)
-2. Request → Browser tự gửi cookies + Client gửi X-CSRF-Token header
-3. Token hết hạn → Client gọi /auth/refresh → Server cấp token mới
-4. Logout → Server xóa cookies
-```
-
-### Authorization
-- **RBAC (Role-Based Access Control)**: Admin, Manager, Customer
-- **Permission-Based**: Granular permissions per feature
-- Middleware kiểm tra quyền trước khi xử lý request
-
-### Điểm lưu ý bảo mật
-- Cookies với `httpOnly`, `Secure`, `SameSite=Lax`
-- Password hashing với ASP.NET Identity
-- Rate limiting cho API nhạy cảm
-- Input validation với FluentValidation
-- CORS configured cho specific origins
+Hệ thống triển khai cơ chế xác thực kép an toàn:
+1. **Access Token**: JWT claim tồn tại 60 phút, tuy nhiên Cookie trình duyệt `access_token` được cấu hình thu hồi sau **15 phút** (`httpOnly`, `Secure`, `SameSite=Lax`).
+2. **Refresh Token**: Cookie `refresh_token` tồn tại **7 ngày** dùng để xoay vòng access token mới mà không bắt người dùng đăng nhập lại.
+3. **Bảo vệ CSRF**: Header `X-CSRF-Token` bắt buộc trên các request `POST`, `PUT`, `DELETE`.
+4. **Guest Cart**: Khách vãng lai sử dụng server-side httpOnly cookie `guest_id` thời hạn 7 ngày sinh từ `GuestCartMiddleware`. Dữ liệu giỏ hàng lưu trực tiếp trong CSDL (bảng `Carts` qua cột `AnonymousId`), tự động merge vào tài khoản khi người dùng đăng nhập.
 
 ---
 
-## 9. Database & Migration
+## 9. Lịch sử EF Core Migrations
 
-### Khởi tạo Database
-Database được tự động khởi tạo và migrate khi backend khởi động lần đầu:
+Hệ thống sở hữu **6 migrations** chính thức:
+1. `20260507115052_InitialCreate.cs` — Khởi tạo toàn bộ cấu trúc CSDL ban đầu.
+2. `20260516123045_AddReviewProductUserUniqueIndex.cs` — Unique index đánh giá sản phẩm.
+3. `20260517012236_AddOutboxMessages.cs` — Bảng lưu trữ Outbox Pattern cho Domain Events.
+4. `20261015140903_RefactorCartItemSurrogateKey.cs` — Tái cấu trúc surrogate key bảng giỏ hàng.
+5. `20261020155436_AddTechEcommerceSchema2026.cs` — Bổ sung IMEI inventory, RMA returns, marquee, account locks.
+6. `20261021121358_AddTechEcommerceSpecsAndShowrooms2026.cs` — Bổ sung bảng 45 Showrooms, tồn kho chi nhánh, thông số kỹ thuật chi tiết, phụ kiện add-ons.
 
-```csharp
-// Program.cs
-using (var scope = app.Services.CreateScope())
-{
-    await ApplicationDbContextSeed.SeedAsync(services);
-}
-```
-
-### Migration
-Entity Framework Core Migrations nằm trong:
-```
-Ecommerce.Infrastructure/Migrations/
-├── 20260108141747_InitialCreate.cs
-├── 20260111141433_AddGuestCartSupport.cs
-└── ApplicationDbContextModelSnapshot.cs
-```
-
-#### Thêm migration mới:
+Lệnh thêm migration và update CSDL:
 ```bash
 cd apps/backend/Ecommerce
 dotnet ef migrations add <MigrationName> --project Ecommerce.Infrastructure --startup-project Ecommerce.WebAPI
-```
-
-#### Apply migration:
-```bash
 dotnet ef database update --project Ecommerce.Infrastructure --startup-project Ecommerce.WebAPI
 ```
 
-### Seed Data
-Seed data tự động tạo:
-- Admin user mặc định
-- Roles (Admin, Customer)
-- Sample categories, brands
-- Permissions
-
 ---
 
-## 10. Quy ước & tiêu chuẩn code
+## 10. Kiểm thử tự động & Chất lượng mã nguồn
 
-### Naming Convention
+Hệ thống có bộ kiểm thử tự động toàn diện với **3 test projects** và **55 test files**:
+- `Ecommerce.Application.Tests` (30 test files): Kiểm thử nghiệp vụ CQRS, MediatR handlers, validation rules, caching policy, outbox processor.
+- `Ecommerce.Domain.Tests` (12 test files): Kiểm thử logic thực thể, chuyển trạng thái đơn hàng, cọc COD, serial kho IMEI.
+- `Ecommerce.WebAPI.IntegrationTests` (13 test files): Kiểm thử tích hợp WebApplicationFactory, luồng thanh toán VNPay, khôi phục tồn kho nguyên tử, phân quyền RBAC.
 
-#### Backend (.NET)
-| Loại | Quy ước | Ví dụ |
-|------|---------|-------|
-| Class, Interface | PascalCase | `ProductService`, `IProductRepository` |
-| Method | PascalCase | `GetProductByIdAsync()` |
-| Property | PascalCase | `ProductName`, `CreatedAt` |
-| Private field | _camelCase | `_productRepository` |
-| Parameter | camelCase | `productId`, `request` |
-| Constant | UPPER_SNAKE_CASE | `MAX_PAGE_SIZE` |
-
-#### Frontend (TypeScript/React)
-| Loại | Quy ước | Ví dụ |
-|------|---------|-------|
-| Component | PascalCase | `ProductCard.tsx` |
-| Hook | camelCase, prefix `use` | `useAuth`, `useCart` |
-| Function | camelCase | `handleSubmit`, `fetchProducts` |
-| Type/Interface | PascalCase | `Product`, `OrderResponse` |
-| Constant | UPPER_SNAKE_CASE | `API_BASE_URL` |
-
-### Quy ước API
-
-#### Endpoint Pattern
-```
-GET    /api/products          # List (with pagination)
-GET    /api/products/{id}     # Get by ID
-POST   /api/products          # Create
-PUT    /api/products/{id}     # Update
-DELETE /api/products/{id}     # Delete
-```
-
-#### Response Format
-```json
-{
-  "data": { ... },
-  "message": "Success",
-  "isSuccess": true,
-  "errors": []
-}
-```
-
-#### Pagination
-```json
-{
-  "items": [...],
-  "pageNumber": 1,
-  "pageSize": 10,
-  "totalCount": 100,
-  "totalPages": 10
-}
-```
-
-### Project Structure Convention
-- **Features-based organization**: Mỗi feature có thư mục riêng chứa Commands, Queries, Handlers, DTOs
-- **Vertical Slice**: Code liên quan đến feature đặt cùng nhau
-- **Clean Architecture dependencies**: Domain ← Application ← Infrastructure ← WebAPI
-
----
-
-## 11. Hướng phát triển & cải tiến
-
-### Hạn chế hiện tại
-
-1. **Testing**: Chưa có unit tests và integration tests
-2. **Caching Strategy**: Redis is mandatory for distributed query caching and guest carts. See `docs/caching-strategy.md`.
-3. **Search**: Tìm kiếm đơn giản bằng SQL LIKE, chưa có full-text search
-4. **File Storage**: Lưu trữ local, chưa tích hợp cloud storage (S3, Azure Blob)
-5. **Email Service**: Chưa có service gửi email thông báo đơn hàng
-6. **Monitoring**: Chưa có APM (Application Performance Monitoring)
-
-### Gợi ý cải tiến
-
-| Ưu tiên | Cải tiến | Mô tả |
-|---------|----------|-------|
-| Cao | Unit Tests | Thêm xUnit tests cho Application layer |
-| Cao | Email Notifications | Tích hợp SendGrid/Mailgun cho order confirmations |
-| Trung bình | Elasticsearch | Full-text search cho products |
-| Trung bình | Cloud Storage | Azure Blob/AWS S3 cho file uploads |
-| Trung bình | CI/CD Pipeline | GitHub Actions cho automated deployment |
-| Thấp | Multi-language | Hỗ trợ đa ngôn ngữ (i18n) |
-| Thấp | PWA | Offline support cho mobile users |
-
----
-
-## Tài liệu tham khảo
-
-- [Docker Deployment Guide](./docs/DOCKER_GUIDE.md)
-- [Business Requirements](./docs/business_requirements.md)
-- [Authentication Proposal](./docs/authentication_proposal.md)
-## Elasticsearch Product Search
-
-The catalog now has a dedicated Elasticsearch search path at `GET /api/search/products`. Existing product endpoints remain unchanged, while the customer frontend switches to the new endpoint when the `/products` URL contains `q`.
-
-For local development, start Elasticsearch with:
-
+Lệnh chạy toàn bộ kiểm thử:
 ```bash
-cd docker-compose
-docker compose up -d elasticsearch
+cd apps/backend/Ecommerce
+dotnet test
 ```
 
-The development image installs the ICU analyzer plugin for Vietnamese-compatible tokenization. API configuration lives under `Elasticsearch` in `appsettings*.json`; see [docs/elasticsearch-setup.md](docs/elasticsearch-setup.md) for mapping, sync, and endpoint details.
+Quy trình CI/CD GitHub Actions:
+- Workflow `.github/workflows/frontend-quality.yml` tự động kiểm tra typecheck, linting và build dự án trên mỗi pull request vào nhánh chính.
+
+---
+
+## 11. Sai lệch đã biết (Known Discrepancies)
+
+Các điểm sai lệch giữa mã nguồn hiện tại và tài liệu thiết kế được ghi nhận để các kỹ sư và AI Assistant nắm rõ:
+1. **Ngưỡng Freeship:**
+   - Chuẩn nghiệp vụ (SSoT) và Frontend (`CartHeader.tsx`, `OrderSummary.tsx`): Miễn phí vận chuyển khi `subtotal >= 500.000₫`.
+   - Backend (`ShippingCalculator.cs:34`): Đang dùng toán tử `>` (`subtotal > FREE_SHIPPING_THRESHOLD`). Do đó, đơn hàng có giá trị đúng 500.000₫ tại backend vẫn bị tính phí 30.000₫.
+2. **Thời hạn Token vs Cookie Auth:**
+   - Payload JWT claim (`TokenService.cs:54`): Sinh ra thời hạn hết hạn là 60 phút (`AccessTokenExpirationMinutes`).
+   - Cookie trình duyệt (`CookieAuthExtensions.cs:36`): Thiết lập `Expires` theo cấu hình `CookieSettings:AccessTokenMinutes` (15 phút). Trình duyệt sẽ tự thu hồi cookie sau 15 phút dù JWT bên trong còn hiệu lực.
+3. **Cổng thanh toán MoMo, ZaloPay, VietQR:**
+   - Frontend Client (`payment-method.tsx`): Cung cấp các nút tùy chọn ví MoMo, ZaloPay, VietQR Pro.
+   - Backend (`PaymentsController.cs`): Chưa có webhook/IPN tích hợp cho các cổng này, chỉ lưu tên phương thức vào database. Chỉ có COD và VNPay là được xử lý nghiệp vụ trọn vẹn.
+4. **Secret cấu hình cũ lộ trong Git History:**
+   - Commit `695e86f84c15` (01/04/2026) từng đưa trực tiếp cấu hình chứa secret VNPay sandbox và connection string vào git.
+   - Commit `0b346f35aaf0` (08/04/2026) đã xóa các file này khỏi git và đưa vào `.gitignore`, tuy nhiên secret vẫn còn lưu trong lịch sử commit (khuyến nghị thu hồi và cấp lại cặp khóa mới).
+5. **Lệch Enum trạng thái đơn hàng tại Frontend Client:**
+   - Backend `EOrderStatus`: Gồm 9 trạng thái (`Pending=0`, `Processing=1`, `Shipped=2`, `Completed=3`, `Cancelled=4`, `Refunded=5`, `Delivered=6`, `ReturnRequested=7`, `Returned=8`).
+   - Client (`types/order.ts`): Chỉ định nghĩa 6 trạng thái và gán `Delivered=3` (thay vì `6`), thiếu `Completed` và `Refunded`.

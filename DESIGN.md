@@ -1,114 +1,131 @@
-# DESIGN SYSTEM: OBSIDIAN CRIMSON ATELIER (OPTIMIZED 2026)
-> Generated via Google Stitch MCP for **ShopViet E-Commerce Platform**
-> Project: `projects/4961361543848639322` | Asset Design System: `assets/205c2b1fed9546ff8e4610c062c775b8`
+Cập nhật lần cuối: 02/11/2026 — đối chiếu commit 3837493
+
+# DESIGN SYSTEM: OBSIDIAN CRIMSON ATELIER (SSoT 2026)
+> Đặc tả hệ thống thiết kế giao diện ShopViet E-Commerce Platform — Chuẩn SSoT 2026  
+> Kế thừa kiến trúc: Dual-Accent Tech Hierarchy, Deep Obsidian Surfaces & Performance-First Rendering
 
 ---
 
 ## 1. Brand Philosophy & Aesthetic Vision
 
-The **Obsidian Crimson Atelier** design system embodies modern Vietnamese luxury retail—fusing architectural precision, editorial discipline, and ultra-contemporary digital craftsmanship. Crafted for high-discretion tastemakers and aspirational digital consumers, the aesthetic discards cluttered commercial tropes in favor of restrained minimalism, deep obsidian spatial depth, and high-impact crimson focal points.
+Hệ thống thiết kế **Obsidian Crimson Atelier** thể hiện phong cách bán lẻ công nghệ cao cấp tại Việt Nam—kết hợp giữa độ chính xác kiến trúc, kỷ luật biên tập và kỹ thuật số hiện đại. Ngôn ngữ thiết kế loại bỏ hoàn toàn các chi tiết thương mại rườm rà, tập trung vào phong cách tối giản có chiều sâu, tương phản sắc nét và các điểm nhấn màu kép định hướng hành vi người dùng.
 
-- **Clean Editorial Tech Minimalism**: Crisp asymmetric modular layouts, bespoke typography rhythms, and structural bento-box framing inspired by high-end horology and architectural publications.
-- **Controlled Velocity & Micro-Interactions**: High-contrast transitions, subtle optical rim lights on primary actions, and expansive negative space balancing dense product telemetry (specs, curated collections, pricing in ₫).
-- **Performance-First Architecture**: Strategic, hardware-accelerated rendering that delivers silky smooth 60–120 FPS scrolling on all consumer devices.
+- **Clean Editorial Tech Minimalism**: Bố cục module bất đối xứng, lưới Bento-Grid sắc nét, nhịp điệu typography chuẩn mực lấy cảm hứng từ các tạp chí công nghệ và kiến trúc cao cấp.
+- **Phân vai Màu sắc Kép (Dual-Accent Tech Hierarchy)**: Tách biệt rõ ràng giữa hành vi mua sắm thương mại (Tech Crimson) và hành vi tương tác công nghệ kỹ thuật (Electric Blue).
+- **Phân tầng Chiều sâu Deep Obsidian (4 lớp)**: Hệ thống bề mặt phân lớp khoa học, đảm bảo độ tương phản WCAG 2.1 AA ($\ge 4.5:1$) trên mọi điều kiện ánh sáng.
+- **Performance-First Architecture**: Tối ưu hóa GPU, không lạm dụng `backdrop-filter: blur(...)` trên các danh sách sản phẩm dài, duy trì mượt mà 60–120 FPS khi cuộn trang.
 
 ---
 
 ## 2. Color Palette & Semantic Tokens
 
-### 2.1 Core Architectural Tokens
-| Role | Token Name | Hex Value | Semantic Usage |
+Hệ màu SSoT 2026 tuyệt đối không sử dụng các mã màu Material Design 3 ám hồng nâu cũ (như `#906f70`, `#5c3f40`). Các kỹ sư bắt buộc sử dụng semantic tokens qua Tailwind CSS thay vì hardcode mã hex vào JSX/TSX.
+
+### 2.1 Phân vai Màu sắc Kép (Dual-Accent Tech Hierarchy)
+| Vai trò | Token / Semantic Class | Giá trị Hex (Light / Dark) | Mục đích sử dụng quy chuẩn |
 |---|---|---|---|
-| **Primary Accent** | `--color-brand` / `--primary` | `#e11d48` | Primary conversion CTAs ("Thêm vào giỏ", "Mua ngay"), active selection states, exclusive drops |
-| **Primary Hover** | `--color-brand-hover` | `#be123c` | Hover state with atmospheric ruby glow (`0 0 24px rgba(225, 29, 72, 0.4)`) |
-| **Canvas Base** | `--background` / `--surface-base` | `#0b0f17` | Deep obsidian canvas background, zero elevation |
-| **Card Substrate** | `--card` / `--surface-elevated` | `#131926` | Solid background for Product Cards, Bento modules, order containers |
-| **Card Hover** | `--surface-card-hover` | `#1c2028` | Hover transition for solid cards |
-| **Surface Container** | `--surface-container` | `#181c24` | Search inputs, form control wells, modal content bodies |
-| **Surface High** | `--surface-container-high` | `#262a33` | Elevated popovers, active chip fills, secondary tabs |
-| **Hairline Borders** | `--border` / `--line` | `rgba(248, 250, 252, 0.08)` | Ultra-thin 1px border lines separating components |
-| **Border Active** | `--border-active` | `rgba(225, 29, 72, 0.4)` | Focus & active selection border highlight |
-| **Text Primary** | `--foreground` / `--ink-high` | `#f8fafc` | Main titles, headlines, primary product names |
-| **Text Secondary** | `--muted-foreground` | `#94a3b8` | Supporting descriptions, category tags, specs |
-| **Text Muted** | `--ink-faint` | `#64748b` | Timestamps, micro-labels, placeholders |
+| **Tech Crimson** | `--brand` / `bg-brand`, `text-brand` | `#E11D48` / `#E11D48` | **Chuyển đổi bán hàng:** Nút "Mua ngay", nút "Tiến hành thanh toán", giá khuyến mãi, badge % giảm giá, Hot deals |
+| **Tech Crimson Hover** | `--brand-hover` / `hover:bg-brand-hover` | `#BE123C` / `#BE123C` | Trạng thái hover với vầng sáng ruby nhẹ (`0 0 24px rgba(225, 29, 72, 0.4)`) |
+| **Electric Blue** | `--tech-blue` / `bg-tech-blue`, `text-tech-blue` | `#2563EB` (Light) / `#3B82F6` (Dark) | **Tương tác công nghệ:** Nút "Thêm vào giỏ", bộ lọc đang chọn, badge bảo hành 24T chính hãng, icon cam kết kỹ thuật, focus ring |
+| **Electric Blue Hover** | `--tech-blue-hover` | `#1D4ED8` (Light) / `#2563EB` (Dark) | Hover của các nút và chip tương tác kỹ thuật |
 
-### 2.2 Semantic Feedback Tokens (Non-conflicting with Primary Red)
-Để đảm bảo người dùng không nhầm lẫn giữa màu thương hiệu/CTA chính (`#e11d48`) và các thông báo trạng thái, hệ thống sử dụng bộ màu phản hồi độc lập:
-| State | CSS Variable | Hex Value | Usage |
+### 2.2 Hệ thống Bề mặt (Surfaces Hierarchy)
+
+#### Chế độ Tối (Dark Mode) — Deep Obsidian 4 lớp:
+| Tầng | Token | Giá trị Hex | Ứng dụng thực tế |
 |---|---|---|---|
-| **Success** | `--status-success` | `#10b981` | Còn hàng trong kho, áp dụng mã voucher thành công, thanh toán hoàn tất |
-| **Success Soft** | `--status-success-soft`| `rgba(16, 185, 129, 0.12)` | Nền badge thành công, trạng thái giao hàng |
-| **Warning** | `--status-warning` | `#f59e0b` | Sắp hết hàng (dưới 5 sản phẩm), cảnh báo phiên đăng nhập, VIP tier |
-| **Warning Soft** | `--status-warning-soft`| `rgba(245, 158, 11, 0.12)` | Nền badge cảnh báo nhẹ |
-| **Danger / Error** | `--status-danger` | `#f87171` | Lỗi xác thực biểu mẫu, thông báo lỗi. Nút xóa giỏ hàng sử dụng style Ghost/Subtle với hover màu `#f87171` thay vì nền đỏ đặc |
-| **Danger Soft** | `--status-danger-soft` | `rgba(248, 113, 113, 0.12)` | Nền thông báo lỗi nhẹ |
+| **Lớp 0 (Canvas Base)** | `--background` / `bg-background` | `#090D16` | Nền canvas chính của toàn trang, zero elevation |
+| **Lớp 1 (Card & Container)** | `--card` / `bg-card` | `#111827` | Nền thẻ sản phẩm, panel Bento Grid, bảng dữ liệu, form container |
+| **Lớp 2 (Chips & Substrates)** | `--secondary` / `bg-secondary` | `#182234` | Chip thông số kỹ thuật (Specs), ô nhập liệu tìm kiếm, header bảng |
+| **Lớp 3 (Elevated & Hover)** | `--surface-hover` / `bg-surface-hover` | `#1E293B` | Trạng thái hover thẻ, floating action tray, popovers |
+
+#### Chế độ Sáng (Light Mode):
+| Thành phần | Token / Semantic Class | Giá trị Hex | Ứng dụng thực tế |
+|---|---|---|---|
+| **Nền Canvas** | `--background` / `bg-background` | `#F8FAFC` | Nền trắng xám hiện đại (Slate 50) |
+| **Thẻ & Panel** | `--card` / `bg-card` | `#FFFFFF` | Nền card sản phẩm, container chính |
+| **Bề mặt phụ** | `--surface` / `bg-surface` | `#F1F5F9` | Nền ô input, thanh lọc, tag thông số phụ |
+| **Đường viền** | `--line` / `border-line` | `#E2E8F0` | Viền ngăn cách cấu trúc 1px |
+
+### 2.3 Phản hồi Hệ thống (Semantic Feedback Tokens)
+Hệ thống màu thông báo trạng thái hoạt động độc lập, không xung đột với Tech Crimson:
+| Trạng thái | Biến CSS | Giá trị Hex | Ứng dụng |
+|---|---|---|---|
+| **Success** | `--status-success` | `#10B981` | Còn hàng trong kho, áp voucher thành công, thanh toán thành công |
+| **Success Soft** | `--status-success-soft`| `rgba(16, 185, 129, 0.12)` | Nền badge thành công, trạng thái đã giao hàng |
+| **Warning** | `--status-warning` | `#F59E0B` | Sắp hết hàng (< 5 món), cảnh báo hết hạn phiên, badge bảo trì |
+| **Warning Soft** | `--status-warning-soft`| `rgba(245, 158, 11, 0.12)` | Nền badge cảnh báo |
+| **Danger / Error** | `--status-danger` | `#F87171` | Báo lỗi xác thực, giao dịch thất bại. Nút xóa giỏ hàng dùng style Ghost subtle hover đỏ thay vì nền đặc |
+| **Danger Soft** | `--status-danger-soft` | `rgba(248, 113, 113, 0.12)` | Nền thông báo lỗi |
 
 ---
 
-## 3. Performance Guardrail (Tier 1 Cards)
+## 3. Performance Guardrail (Hiệu năng Thẻ & Danh sách)
 
-- **Không sử dụng `backdrop-filter: blur(...)` cho toàn bộ thẻ trong Product Grid**: Việc áp dụng kính mờ trên hàng chục thẻ sản phẩm đồng thời sẽ làm trình duyệt phải tính toán lại pixel trên GPU, gây giật lag hoặc tụt FPS khi cuộn trang (scroll drop).
-- **Quy chuẩn Product Card**:
-  - Nền thẻ là màu đặc: `#131926` (Solid Card Substrate).
-  - Khi hover chuyển sắc mượt mà sang: `#1c2028` (`transition: background-color 0.25s ease, border-color 0.25s ease`).
-  - Viền mạ kính: `1px solid rgba(248, 250, 252, 0.08)`, hover chuyển sang `rgba(248, 250, 252, 0.2)`.
-- **Phạm vi được phép dùng `backdrop-filter: blur(...)`**:
-  - Sticky Header / Navigation Bar (`backdrop-blur-md` với `rgba(11, 15, 23, 0.8)`).
-  - Modal / Dialog Overlays.
-  - Floating Quick Cart Tray & Sticky Mobile Conversion Dock.
-  - Các badge giảm giá nhỏ hoặc nút Wishlist hình tròn nằm đè trực tiếp lên ảnh sản phẩm (`backdrop-blur-sm bg-black/40 text-white`).
-
----
-
-## 4. Mobile-First Product Card CTA
-
-- **Desktop (`md:` ≥ 768px)**:
-  - Giữ trải nghiệm Clean Editorial: Thẻ sản phẩm hiển thị gọn gàng, nút "Thêm vào giỏ" dạng pill đen/crimson trượt lên từ mép dưới của ảnh (`group-hover:translate-y-0 translate-y-3 opacity-0 group-hover:opacity-100 transition-all duration-300`).
-- **Mobile (`< 768px`)**:
-  - Không dựa vào tương tác hover (vì màn hình cảm ứng không có hover).
-  - Hiển thị trực tiếp **Nút icon "+ Giỏ hàng" cố định** (`h-9 w-9 rounded-full bg-[#e11d48] text-white flex items-center justify-center shadow-sm active:scale-95`) ngay cạnh khu vực hiển thị giá bán ở chân thẻ. Khách hàng có thể một chạm thêm ngay vào giỏ mà không cần mở chi tiết.
+- **Tuyệt đối không áp dụng `backdrop-filter: blur(...)` trên toàn bộ Grid thẻ sản phẩm**: Việc lạm dụng kính mờ trên danh mục chứa hàng chục sản phẩm làm GPU phải tính toán lại pixel liên tục, gây giật lag khi cuộn trang.
+- **Quy chuẩn Thẻ sản phẩm (Product Card)**:
+  - Nền thẻ là màu đặc: Lớp 1 `#111827` (`bg-card`).
+  - Khi hover chuyển sắc êm dịu sang Lớp 3 `#1E293B` (`hover:bg-surface-hover transition-colors duration-200`).
+  - Đường viền mỏng: `1px solid border-line`.
+- **Phạm vi cho phép dùng `backdrop-filter: blur(...)`**:
+  - Sticky Navigation Bar (`backdrop-blur-md`).
+  - Hộp thoại Modal / Dialog Overlay.
+  - Quick Cart Drawer / Floating Conversion Bar trên mobile.
+  - Badge nhỏ đè trên ảnh banner (`backdrop-blur-sm bg-black/40 text-white`).
 
 ---
 
-## 5. Vietnamese Typography & Accessibility
+## 4. Mobile-First Product Card & Tương tác Chuyển đổi
 
-Primary Font Family: **Plus Jakarta Sans** (dự phòng: **Inter**, **Be Vietnam Pro**).
-
-### 5.1 Xử lý dấu Tiếng Việt (Diacritical Balance)
-- **Display Hero & Headline Lg**:
-  - Nới lỏng `letter-spacing` về tối đa `-0.015em` (thay vì `-0.03em`) để các ký tự nguyên âm có dấu mũ và thanh điệu (như *ệ, ỗ, ứ, ẩ*) không bị dính vào nhau.
-  - Đảm bảo `line-height` tối thiểu `1.2x` – `1.3x` đối với tiêu đề để tuyệt đối không bị clipping (cắt mất dấu hỏi, ngã, sắc phía trên).
-- **Micro-Labels & Caps**:
-  - Nâng kích thước `Label Sm / Caps` từ `10px` lên **`11px` hoặc `12px`** (`font-weight: 600`, `letter-spacing: 0.06em`, uppercase). Đảm bảo người dùng mắt kém hoặc màn hình nhỏ đọc được rõ ràng theo chuẩn WCAG 2.1 AA.
-- **Hiển thị tiền tệ (VND)**:
-  - Luôn định dạng có dấu chấm phân cách hàng nghìn kèm ký hiệu ₫: `₫ 48.990.000` hoặc `48.990.000 ₫`. Chữ số sử dụng `tabular-nums` để thẳng hàng khi liệt kê.
+- **Màn hình Desktop (`md:` $\ge$ 768px)**:
+  - Thẻ sản phẩm hiển thị thông thoáng. Nút "Thêm vào giỏ" trượt lên êm dịu từ mép dưới ảnh khi rê chuột (`group-hover:translate-y-0 translate-y-3 opacity-0 group-hover:opacity-100 transition-all duration-300`).
+- **Màn hình Mobile (`< 768px`)**:
+  - Không dựa vào hiệu ứng hover.
+  - Hiển thị trực tiếp **Nút icon "+ Giỏ hàng" cố định** sử dụng màu xanh Electric Blue (`h-9 w-9 rounded-full bg-tech-blue text-white flex items-center justify-center shadow-sm active:scale-95`) đặt cạnh giá bán ở chân thẻ. Khách hàng một chạm thêm ngay vào giỏ.
 
 ---
 
-## 6. Elevation, Depth & Photonic Layering
+## 5. Typography Tiếng Việt & Định dạng Tiền tệ
 
-- **Tier 0 (Canvas Base)**: Solid `#0b0f17`. Zero elevation.
-- **Tier 1 (Bento Panels & Product Cards)**: Solid `#131926` với viền `1px solid rgba(248, 250, 252, 0.08)`. Hover sang `#1c2028`.
-- **Tier 2 (Floating Action Trays / Popovers)**: `rgba(24, 32, 47, 0.85)` với `backdrop-filter: blur(24px)`, viền `1px solid rgba(255, 255, 255, 0.12)`, shadow `0 20px 40px -15px rgba(0, 0, 0, 0.7)`.
-- **Tier 3 (Active Selection & CTA Glow)**: Crimson proximity rim light: `0 0 24px rgba(225, 29, 72, 0.4)` và hairline viền `rgba(225, 29, 72, 0.35)`.
+- **Phông chữ chính**: **Plus Jakarta Sans** (dự phòng: **Inter**, **Be Vietnam Pro**).
+- **Phông chữ hiển thị thông số và giá**: **JetBrains Mono** hoặc `font-mono`.
+
+### 5.1 Cân bằng Dấu Tiếng Việt (Diacritical Balance)
+- **Tiêu đề Display / Hero**: `letter-spacing` tối đa `-0.015em`, `line-height` tối thiểu `1.25x` – `1.3x` để không cắt cụt các dấu thanh mũ phía trên (*ệ, ỗ, ứ, ẩ*).
+- **Micro-labels & Badges**: Tối thiểu `11px` hoặc `12px` (`font-semibold uppercase tracking-wider`).
+
+### 5.2 Quy chuẩn Định dạng Tiền tệ (VND Currency Formatting)
+- Mọi nơi hiển thị giá tiền (ProductCard, Cart, Checkout, OrderDetails, Wishlist) **bắt buộc** phải sử dụng tổ hợp class:
+  ```html
+  <span class="font-mono tabular-nums whitespace-nowrap">48.990.000 ₫</span>
+  ```
+  hoặc áp dụng class `.price-tag`.
+- **Tuyệt đối không để ký hiệu đơn vị tiền tệ (`₫` hoặc `VND`) rớt dòng một mình.**
 
 ---
 
-## 7. Component Design Specifications
+## 6. Component Design Specifications
 
-### 7.1 Thẻ sản phẩm (Product Card)
-- **Tỷ lệ khung ảnh**: Chuẩn 3:4 hoặc 4:5 với `object-cover`, bo góc trên thẻ `rounded-t-2xl`.
-- **Badge**:
-  - Giảm giá: Pill đỏ Crimson (`bg-[#e11d48] text-white text-[11px] font-bold px-2 py-0.5 rounded-full`).
-  - Nổi bật: Pill kính mờ tối (`backdrop-blur-sm bg-black/40 text-white border border-white/10 text-[11px]`).
-- **Wishlist Button**: Tròn kính mờ ở góc trên bên phải (`backdrop-blur-sm bg-black/35 hover:bg-black/60 text-white border border-white/10`).
-- **CTA**: Desktop slide-up hover; Mobile nút icon tròn cạnh giá bán.
+### 6.1 Thẻ sản phẩm (Product Card)
+- **Tỷ lệ khung ảnh**: Chuẩn 3:4 hoặc 4:5 với `object-cover`, bo góc `rounded-2xl`.
+- **Hệ thống Badge**:
+  - Giảm giá: Pill Tech Crimson (`bg-brand text-white text-[11px] font-bold px-2 py-0.5 rounded-full`).
+  - Bảo hành chính hãng: Pill Electric Blue (`bg-tech-blue/15 text-tech-blue border border-tech-blue/30 text-[11px] font-medium px-2 py-0.5 rounded-full`).
+- **Wishlist Button**: Nút tròn kính mờ góc trên bên phải ảnh (`backdrop-blur-sm bg-black/40 hover:bg-black/70 text-white`).
+- **Cụm giá & CTA**: Giá khuyến mãi mang màu sắc `text-brand font-mono tabular-nums whitespace-nowrap`, nút giỏ hàng mang màu `bg-tech-blue`.
 
-### 7.2 Chi tiết sản phẩm (Product Detail)
-- **Bố cục**: 2 cột Desktop (Trái: Gallery ảnh lớn kèm thumbnail thanh trượt; Phải: Thông tin sản phẩm, chọn màu/size, số lượng, cụm nút Mua ngay / Thêm vào giỏ).
-- **Sticky Conversion Dock (Mobile)**: Thanh bar cố định dưới chân màn hình trên điện thoại hiển thị ảnh thumbnail nhỏ, giá bán và nút "Thêm vào giỏ" / "Mua ngay" màu Crimson.
+### 6.2 Chi tiết sản phẩm (Product Detail)
+- **Bố cục 2 cột**:
+  - Cột trái: Gallery hình ảnh sản phẩm độ phân giải cao kèm danh sách thumbnail.
+  - Cột phải: Tên sản phẩm, đánh giá sao, bảng thông số kỹ thuật (Spec chips `bg-secondary text-ink`), cụm nút kép:
+    - Nút **"Thêm vào giỏ"**: Sử dụng viền hoặc nền `bg-tech-blue hover:bg-tech-blue-hover text-white`.
+    - Nút **"Mua ngay"**: Sử dụng nền nổi bật `bg-brand hover:bg-brand-hover text-white font-semibold`.
+- **Sticky Conversion Dock (Mobile)**: Thanh điều hướng cố định dưới chân màn hình hiển thị tóm tắt giá và 2 nút Mua ngay / Thêm giỏ.
 
-### 7.3 Giỏ hàng (Cart) & Thanh toán (Checkout)
-- **Bố cục**: 2 cột:
-  - Cột chính: Danh sách sản phẩm với hình đại diện tỷ lệ 1:1 sắc nét, tên sản phẩm, biến thể tag pill, bộ đếm số lượng tinh xảo. Nút xóa dùng icon thùng rác ghost subtle (hover chuyển sang `--status-danger`: `#f87171`), không dùng nút đỏ đặc gây nhầm lẫn với nút thanh toán.
-  - Cột phụ: Thẻ Bento tổng quan đơn hàng cố định (`bg-[#131926] border border-white/8 rounded-2xl p-6`), ô nhập voucher với nút áp dụng, và nút "Tiến hành thanh toán" màu Crimson nổi bật toàn chiều rộng (`w-full h-12 rounded-xl bg-[#e11d48] hover:bg-[#be123c]`).
+### 6.3 Giỏ hàng (Cart) & Thanh toán (Checkout)
+- **Giỏ hàng**:
+  - Hỗ trợ thanh tiến độ Freeship chuẩn: Áp dụng miễn phí vận chuyển cho đơn hàng $\ge$ **500.000₫**.
+  - Nút xóa sản phẩm dùng icon thùng rác ghost subtle (hover chuyển sang màu nguy hiểm `--status-danger`), không dùng nút đỏ đặc gây nhầm lẫn với nút tiến hành thanh toán.
+- **Thanh toán (Checkout)**:
+  - Cọc COD 10%: Tự động kích hoạt badge cảnh báo và ghi nhận số tiền cọc 10% khi phương thức thanh toán là COD và tổng tiền đơn hàng $> 20.000.000₫$.
+  - Nút "Tiến hành đặt hàng / Thanh toán" toàn chiều rộng (`w-full h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold shadow-lg shadow-brand/25`).
