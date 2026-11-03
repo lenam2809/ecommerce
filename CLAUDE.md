@@ -107,6 +107,23 @@ docs/                          # Business requirements, architecture, SSoT docs
 - `hubs/` — SignalR connection logic (client only)
 - Zod schema validation kép: client-side + FluentValidation server-side
 
+## Quy tắc Đồng bộ Tài liệu & Nguồn Sự Thật (SSoT Governance)
+
+1. **Mã nguồn là Nguồn Sự Thật duy nhất (Codebase is SSoT):**
+   - Tuyệt đối không dùng `AGENTS.md`, `CLAUDE.md`, `README.md` hay bất kỳ tài liệu nào để suy ra số liệu hoặc hành vi hệ thống.
+   - Mọi số liệu (số lượng controller, endpoint, entity, enum, migration, test file, route, màn hình) phải được lấy từ lệnh CLI thực tế ngay tại thời điểm viết (`git`, `dotnet`, `npm`, script kiểm kê), tuyệt đối không viết theo trí nhớ hay giả định.
+
+2. **Cập nhật Tài liệu Sống Đồng thời (Atomic Living Docs Sync):**
+   - Khi có bất kỳ thay đổi nào thuộc các hạng mục sau:
+     - **API & Backend:** Controller, endpoint, route attribute, HTTP method, DTO.
+     - **Dữ liệu & CSDL:** Entity, Value Object, Enum (tên và giá trị số), EF Core Migration, Snapshot.
+     - **Cấu hình & Hạ tầng:** Biến môi trường, key cấu hình (`appsettings*.json`, `docker-compose.yml`, `render.yaml`, `.env.example`).
+     - **Giao diện & Tuyến đường:** Route / Màn hình (`page.tsx`) của `ecommerce-client` hoặc `ecommerce-dashboard`.
+     - **Quy tắc Nghiệp vụ cốt lõi:** Phí ship, ngưỡng Freeship, cọc COD 10% (>20M), thời hạn đổi trả RMA, ma trận chuyển trạng thái đơn hàng (`EOrderStatus`), thời hạn sống của Token/Cookie, tích hợp cổng thanh toán.
+   - **Bắt buộc:** Phải cập nhật toàn bộ tài liệu sống tương ứng (`AGENTS.md`, `CLAUDE.md`, `README.md`, `docs/architecture-backend.md`, README của từng app frontend) trong **cùng lần thay đổi (cùng commit)**.
+   - **Dòng mốc bắt buộc:** Phải cập nhật lại dòng đầu tiên của tài liệu sống:  
+     `"Cập nhật lần cuối: <ngày/tháng/năm> — đối chiếu commit <hash ngắn>"`
+
 ## Gotchas & Lưu ý quan trọng
 
 1. **Auth cookie & Guest Cart**:
