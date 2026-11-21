@@ -320,12 +320,19 @@ export function DataTable<T extends DataItem>({
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium text-[--color-text-2]">Hàng / trang</p>
                         <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-                            <SelectTrigger className="h-8 w-[70px] border-[--color-border] bg-[--color-bg-elevated] text-[--color-text-1] focus:ring-[--color-accent]">
+                            <SelectTrigger aria-label="Hàng / trang" className="h-8 w-[70px] border-[--color-border] bg-[--color-bg-elevated] text-[--color-text-1] focus:ring-[--color-accent]">
                                 <SelectValue placeholder={pageSize.toString()} />
                             </SelectTrigger>
-                            <SelectContent side="top" className="border-[--color-border] bg-[--color-bg-card] text-[--color-text-1]">
+                            <SelectContent
+                                side="top"
+                                className="rounded-lg border-border bg-popover text-popover-foreground shadow-xl supports-[backdrop-filter]:bg-popover/90 supports-[backdrop-filter]:backdrop-blur-md"
+                            >
                                 {config.pageSizeOptions.map((size) => (
-                                    <SelectItem key={size} value={size.toString()} className="focus:bg-[--color-accent-muted] focus:text-[--color-accent]">
+                                    <SelectItem
+                                        key={size}
+                                        value={size.toString()}
+                                        className="focus:bg-accent/15 focus:text-popover-foreground data-[state=checked]:font-semibold"
+                                    >
                                         {size}
                                     </SelectItem>
                                 ))}

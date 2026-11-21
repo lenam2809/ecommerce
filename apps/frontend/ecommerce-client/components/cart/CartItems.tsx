@@ -2,6 +2,7 @@ import React from "react"
 import CartItemsHeader from "./CartItemsHeader"
 import CartItem from "./CartItem"
 import { CartItem as CartItemType } from "@/types/cart"
+import styles from "./CartItems.module.css"
 
 type CartItemsProps = {
     items: CartItemType[]
@@ -27,9 +28,9 @@ const CartItems = ({
     }
 
     return (
-        <div>
-            <CartItemsHeader />
-            <div className="divide-y divide-slate-200 dark:divide-slate-800">
+        <div className={styles.container}>
+            <div className={styles.items}>
+                <CartItemsHeader />
                 {items.map((item) => {
                     const key = item.id || item.productId
                     return (

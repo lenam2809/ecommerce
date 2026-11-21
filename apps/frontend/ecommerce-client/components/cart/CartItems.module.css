@@ -1,0 +1,71 @@
+.container {
+    container-type: inline-size;
+}
+
+.header,
+.unitPrice {
+    display: none;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.product,
+.addOn {
+    flex-basis: 100%;
+    min-width: 0;
+}
+
+.lineActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+}
+
+@container (max-width: 20rem) {
+    .row {
+        padding-inline: 0.625rem;
+        column-gap: 0.5rem;
+    }
+}
+
+@container (min-width: 40rem) {
+    .items {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content 7rem max-content 2.25rem;
+        column-gap: 1rem;
+    }
+
+    .header,
+    .row {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        column-gap: inherit;
+    }
+
+    .addOn {
+        grid-column: 1 / -1;
+    }
+
+    .unitPrice {
+        display: block;
+    }
+
+    .compactUnitPrice {
+        display: none;
+    }
+
+    .quantity {
+        justify-self: center;
+    }
+
+    .lineActions {
+        display: contents;
+    }
+}
