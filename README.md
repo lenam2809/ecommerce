@@ -1,6 +1,6 @@
-Cập nhật lần cuối: 27/11/2026 — đối chiếu commit 27ff08f
+Cập nhật lần cuối: 27/11/2026 — đối chiếu commit a835efb
 
-Render dùng `GET /health/ready` trong Production. Endpoint trả `200` khi kết nối được cơ sở dữ liệu và `503` khi chưa sẵn sàng.
+Render dùng `GET /health/ready` trong Production. Endpoint trả `200` khi kết nối được cơ sở dữ liệu và `503` khi chưa sẵn sàng. Cấu hình kết nối PostgreSQL Supabase qua `ConnectionStrings__DefaultConnection` trong Render Environment.
 
 # ShopViet E-Commerce Platform
 

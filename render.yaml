@@ -13,9 +13,7 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: ecommerce-db
-          property: connectionString
+        sync: false
       - key: ConnectionStrings__Redis
         fromService:
           type: keyvalue

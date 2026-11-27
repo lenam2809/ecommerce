@@ -1,6 +1,6 @@
-Cập nhật lần cuối: 27/11/2026 — đối chiếu commit 27ff08f
+Cập nhật lần cuối: 27/11/2026 — đối chiếu commit a835efb
 
-Backend trên Render dùng `GET /health/ready` để kiểm tra kết nối cơ sở dữ liệu khi triển khai.
+Backend trên Render dùng `GET /health/ready` để kiểm tra kết nối cơ sở dữ liệu khi triển khai. Cấu hình kết nối PostgreSQL Supabase qua `ConnectionStrings__DefaultConnection` trong Render Environment.
 
 # ShopViet E-Commerce Client (Storefront)
 
