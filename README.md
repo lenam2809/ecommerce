@@ -1,4 +1,6 @@
-Cập nhật lần cuối: 27/11/2026 — đối chiếu commit d4450c3
+Cập nhật lần cuối: 27/11/2026 — đối chiếu commit 27ff08f
+
+Render dùng `GET /health/ready` trong Production. Endpoint trả `200` khi kết nối được cơ sở dữ liệu và `503` khi chưa sẵn sàng.
 
 # ShopViet E-Commerce Platform
 

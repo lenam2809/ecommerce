@@ -318,6 +318,16 @@ app.MapGet("/api/health", () => Results.Ok(new
 
 app.MapHealthChecks("/api/health/redis").AllowAnonymous();
 
+app.MapGet("/health/ready", async (ApplicationDbContext context, CancellationToken cancellationToken) =>
+{
+    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+    timeout.CancelAfter(TimeSpan.FromSeconds(3));
+
+    return await context.Database.CanConnectAsync(timeout.Token)
+        ? Results.Ok(new { status = "ready" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+}).AllowAnonymous();
+
 app.Run();
 
 public partial class Program

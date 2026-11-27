@@ -1,4 +1,6 @@
-Cập nhật lần cuối: 02/11/2026 — đối chiếu commit 3837493
+Cập nhật lần cuối: 27/11/2026 — đối chiếu commit 27ff08f
+
+Backend trên Render dùng `GET /health/ready` để kiểm tra kết nối cơ sở dữ liệu khi triển khai.
 
 # ShopViet E-Commerce Client (Storefront)
 
