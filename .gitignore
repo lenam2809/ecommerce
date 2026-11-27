@@ -123,6 +123,9 @@ apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads/*
 # Documentation
 docs/*
 !docs/*.md
+!docs/reports/
+docs/reports/*
+!docs/reports/ShopViet_2026_E2E_Test_Report.csv
 !docs/ui-redesign
 !docs/ui-redesign/*
 docs/architecture-backend.md
@@ -134,3 +137,7 @@ docs/elasticsearch-setup.md
 docs/security-audit.md
 docs/shopviet_architecture_improvement_report.md
 docs/ui-ux-redesign.md
+
+# Generated QA output
+/e2e_results.json
+/apps/frontend/ecommerce-client/eslint_report.json
