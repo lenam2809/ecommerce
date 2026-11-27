@@ -78,6 +78,7 @@ namespace Ecommerce.Infrastructure.Persistence.Seed
                 await SeedReviewsAsync();
                 await SeedProductVariantsAsync();
                 await SeedProductImagesAsync();
+                await SeedReplacementProductImagesAsync();
                 await SeedBannersAsync();
                 await SeedShowroomsAsync();
                 await SeedVouchersAsync();
