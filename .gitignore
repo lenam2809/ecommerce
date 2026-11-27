@@ -123,6 +123,9 @@ apps/backend/Ecommerce/Ecommerce.WebAPI/wwwroot/uploads/*
 # Documentation
 docs/*
 !docs/*.md
+!docs/screenshots/
+docs/screenshots/*
+!docs/screenshots/*.webp
 !docs/reports/
 docs/reports/*
 !docs/reports/ShopViet_2026_E2E_Test_Report.csv
